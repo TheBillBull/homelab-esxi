@@ -1,0 +1,857 @@
+<title>Homelab ESXi — Arquitectura</title>
+<style>
+  :root {
+    --bg: #EEF1F4;
+    --grid-dot: rgba(20, 26, 34, 0.06);
+    --surface: #FFFFFF;
+    --surface-alt: #F5F7F9;
+    --text: #141A22;
+    --text-muted: #59636F;
+    --border: #D7DDE3;
+    --accent: #B6591A;
+    --accent-contrast: #FFFFFF;
+
+    --swatch-1: #3E6EA5; /* Gestión */
+    --swatch-2: #6A5AC2; /* vMotion */
+    --swatch-3: #1F8F82; /* Almacenamiento */
+    --swatch-4: #9B4FAE; /* Réplica */
+    --swatch-5: #7C8B3E; /* Control / DMZ interna */
+    --swatch-6: #3E8C55; /* Producción */
+    --swatch-7: #B5871F; /* NSX-TEP */
+    --swatch-8: #C24A2E; /* Extranet */
+    --swatch-9: #C2508A; /* Clientes */
+
+    --font-display: ui-monospace, "Cascadia Code", "Cascadia Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    --font-body: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #10151B;
+      --grid-dot: rgba(232, 236, 239, 0.05);
+      --surface: #171E26;
+      --surface-alt: #1D2530;
+      --text: #E8ECEF;
+      --text-muted: #8D98A4;
+      --border: #2B3641;
+      --accent: #E8A03D;
+      --accent-contrast: #10151B;
+
+      --swatch-1: #6E97D1;
+      --swatch-2: #9A8AE8;
+      --swatch-3: #4FBFAF;
+      --swatch-4: #C481D6;
+      --swatch-5: #A8B968;
+      --swatch-6: #6FBB82;
+      --swatch-7: #D9AD52;
+      --swatch-8: #E2765A;
+      --swatch-9: #E284B0;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #10151B;
+    --grid-dot: rgba(232, 236, 239, 0.05);
+    --surface: #171E26;
+    --surface-alt: #1D2530;
+    --text: #E8ECEF;
+    --text-muted: #8D98A4;
+    --border: #2B3641;
+    --accent: #E8A03D;
+    --accent-contrast: #10151B;
+
+    --swatch-1: #6E97D1;
+    --swatch-2: #9A8AE8;
+    --swatch-3: #4FBFAF;
+    --swatch-4: #C481D6;
+    --swatch-5: #A8B968;
+    --swatch-6: #6FBB82;
+    --swatch-7: #D9AD52;
+    --swatch-8: #E2765A;
+    --swatch-9: #E284B0;
+  }
+
+  :root[data-theme="light"] {
+    --bg: #EEF1F4;
+    --grid-dot: rgba(20, 26, 34, 0.06);
+    --surface: #FFFFFF;
+    --surface-alt: #F5F7F9;
+    --text: #141A22;
+    --text-muted: #59636F;
+    --border: #D7DDE3;
+    --accent: #B6591A;
+    --accent-contrast: #FFFFFF;
+
+    --swatch-1: #3E6EA5;
+    --swatch-2: #6A5AC2;
+    --swatch-3: #1F8F82;
+    --swatch-4: #9B4FAE;
+    --swatch-5: #7C8B3E;
+    --swatch-6: #3E8C55;
+    --swatch-7: #B5871F;
+    --swatch-8: #C24A2E;
+    --swatch-9: #C2508A;
+  }
+
+  * { box-sizing: border-box; }
+
+  html {
+    background: var(--bg);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html { scroll-behavior: smooth; }
+  }
+
+  body {
+    margin: 0;
+    background:
+      radial-gradient(var(--grid-dot) 1px, transparent 1px);
+    background-size: 22px 22px;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: var(--accent); }
+  a:focus-visible, button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .topbar {
+    height: 4px;
+    background: var(--accent);
+  }
+
+  h1, h2, h3 {
+    font-family: var(--font-display);
+    text-wrap: balance;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+
+  .eyebrow {
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 12px;
+    color: var(--accent);
+    margin: 0 0 10px 0;
+  }
+
+  .masthead {
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .masthead-inner {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 52px 32px 36px;
+  }
+
+  .masthead h1 {
+    font-size: clamp(28px, 4vw, 40px);
+    max-width: 18ch;
+  }
+
+  .masthead p.lede {
+    max-width: 62ch;
+    color: var(--text-muted);
+    font-size: 16px;
+    margin: 16px 0 0 0;
+  }
+
+  .stats {
+    margin-top: 32px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+  }
+
+  .stat {
+    background: var(--surface);
+    padding: 14px 16px;
+  }
+
+  .stat .label {
+    font-family: var(--font-display);
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+  }
+
+  .stat .value {
+    font-family: var(--font-display);
+    font-size: 19px;
+    font-variant-numeric: tabular-nums;
+    margin-top: 4px;
+  }
+
+  .layout {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 40px 32px 80px;
+    display: grid;
+    grid-template-columns: 208px 1fr;
+    gap: 48px;
+    align-items: start;
+  }
+
+  .toc {
+    position: sticky;
+    top: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .toc a {
+    font-family: var(--font-display);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    text-decoration: none;
+    color: var(--text-muted);
+    padding: 7px 10px;
+    border-left: 2px solid transparent;
+    transition: color 120ms ease, border-color 120ms ease, background 120ms ease;
+  }
+
+  .toc a:hover {
+    color: var(--text);
+    background: var(--surface-alt);
+  }
+
+  .toc a.active {
+    color: var(--accent);
+    border-left-color: var(--accent);
+    background: var(--surface-alt);
+  }
+
+  main { min-width: 0; }
+
+  section {
+    padding-top: 8px;
+    margin-bottom: 64px;
+    scroll-margin-top: 24px;
+  }
+
+  section .kicker {
+    font-family: var(--font-display);
+    font-size: 12px;
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+  }
+
+  section h2 {
+    font-size: 22px;
+    margin: 4px 0 14px 0;
+  }
+
+  section > p.intro {
+    max-width: 68ch;
+    color: var(--text-muted);
+    margin: 0 0 24px 0;
+  }
+
+  .panel {
+    border: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .panel-pad { padding: 20px 22px; }
+
+  .scroll-x { overflow-x: auto; }
+
+  figure { margin: 0; }
+
+  figcaption {
+    font-family: var(--font-display);
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    padding: 10px 22px;
+    border-top: 1px solid var(--border);
+  }
+
+  pre.mermaid {
+    margin: 0;
+    padding: 24px;
+    display: flex;
+    justify-content: center;
+    min-width: 560px;
+  }
+
+  table {
+    width: 100%;
+    min-width: 560px;
+    border-collapse: collapse;
+    font-size: 14.5px;
+  }
+
+  thead th {
+    text-align: left;
+    font-family: var(--font-display);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    font-weight: 500;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-alt);
+  }
+
+  tbody td {
+    padding: 13px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--surface-alt); }
+
+  td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  .swatch {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    margin-right: 9px;
+    vertical-align: middle;
+    flex: none;
+  }
+
+  .cat-name {
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+  }
+
+  .card {
+    background: var(--surface);
+    padding: 18px 20px;
+  }
+
+  .card .card-eyebrow {
+    font-family: var(--font-display);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+  }
+
+  .card h3 {
+    font-size: 16px;
+    margin: 6px 0 14px 0;
+  }
+
+  .spec {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-size: 13.5px;
+    padding: 5px 0;
+  }
+
+  .spec .k {
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  .spec .leader {
+    flex: 1;
+    border-bottom: 1px dotted var(--border);
+    margin-bottom: 4px;
+  }
+
+  .spec .v {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    font-weight: 600;
+  }
+
+  .note {
+    border-left: 3px solid var(--accent);
+    background: var(--surface-alt);
+    padding: 14px 18px;
+    font-size: 14.5px;
+    color: var(--text);
+    margin-top: 20px;
+  }
+
+  .note .note-label {
+    font-family: var(--font-display);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+  }
+
+  .split .half {
+    background: var(--surface);
+    padding: 18px 20px;
+  }
+
+  .split h4 {
+    font-family: var(--font-display);
+    font-size: 13px;
+    margin: 0 0 8px 0;
+  }
+
+  .split p { margin: 0; font-size: 14px; color: var(--text-muted); }
+
+  ul.plain {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  ul.plain li {
+    position: relative;
+    padding: 6px 0 6px 18px;
+    font-size: 14.5px;
+    color: var(--text-muted);
+  }
+
+  ul.plain li::before {
+    content: "—";
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+  }
+
+  footer {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 28px 32px 60px;
+    border-top: 1px solid var(--border);
+  }
+
+  footer p {
+    font-family: var(--font-display);
+    font-size: 12px;
+    color: var(--text-muted);
+    max-width: 70ch;
+    line-height: 1.7;
+  }
+
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 1fr; }
+    .toc {
+      position: static;
+      flex-direction: row;
+      overflow-x: auto;
+      gap: 4px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 8px;
+    }
+    .toc a { border-left: none; border-bottom: 2px solid transparent; white-space: nowrap; }
+    .toc a.active { border-left-color: transparent; border-bottom-color: var(--accent); }
+    .split { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="topbar"></div>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <p class="eyebrow">Infraestructura · Homelab</p>
+    <h1>Laboratorio de virtualización ESXi</h1>
+    <p class="lede">
+      Clúster de 3 nodos ESXi con almacenamiento compartido en TrueNAS, red segmentada
+      sobre un switch L3 y salida a internet gestionada por un router MikroTik. Documentación
+      de arquitectura — sin IPs, VLANs numéricas ni credenciales.
+    </p>
+    <div class="stats">
+      <div class="stat"><div class="label">Hosts ESXi</div><div class="value">3</div></div>
+      <div class="stat"><div class="label">Nodo TrueNAS</div><div class="value">1</div></div>
+      <div class="stat"><div class="label">Segmentos de red</div><div class="value">9</div></div>
+      <div class="stat"><div class="label">Clúster</div><div class="value">HA + DRS</div></div>
+      <div class="stat"><div class="label">Pools storage</div><div class="value">2× mirror</div></div>
+      <div class="stat"><div class="label">Acceso remoto</div><div class="value">CF Tunnel</div></div>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="toc" id="toc">
+    <a href="#topologia">Topología</a>
+    <a href="#fisica">Capa física</a>
+    <a href="#red">Capa de red</a>
+    <a href="#virtualizacion">Virtualización</a>
+    <a href="#almacenamiento">Almacenamiento</a>
+    <a href="#cargas">Cargas de trabajo</a>
+    <a href="#acceso">Acceso remoto</a>
+    <a href="#alcance">Alcance</a>
+  </nav>
+
+  <main>
+
+    <section id="topologia">
+      <p class="kicker">01</p>
+      <h2>Topología física</h2>
+      <p class="intro">
+        El tráfico entra por el MikroTik (frontera WAN), pasa al Cisco SG300-28 que hace de
+        columna vertebral L3, y de ahí se reparte a los tres hosts ESXi y a TrueNAS. Cada host
+        aporta 5 NICs físicas repartidas en dos roles distintos.
+      </p>
+      <figure class="panel">
+        <div class="scroll-x">
+          <pre class="mermaid">
+flowchart TB
+    INET((Internet))
+    MT["MikroTik RouterBoard<br/>WAN · NAT"]
+    SW["Cisco SG300-28<br/>Switch L3"]
+    H1["Host 1 — ESXi 8<br/>i7 8ª gen · 64 GB RAM"]
+    H2["Host 2 — ESXi 8<br/>i5 9ª gen · 64 GB RAM"]
+    H3["Host 3 — ESXi 8<br/>i5 9ª gen · 64 GB RAM"]
+    NAS["TrueNAS<br/>i5 8ª gen · 32 GB RAM"]
+
+    INET --> MT --> SW
+    SW -->|"5 NIC: 3 trunk + 2 iSCSI"| H1
+    SW -->|"5 NIC: 3 trunk + 2 iSCSI"| H2
+    SW -->|"5 NIC: 3 trunk + 2 iSCSI"| H3
+    SW -->|"5 NIC: 1 mgmt + 2 iSCSI + 2 libres"| NAS
+          </pre>
+        </div>
+        <figcaption>Fig. 1 — Topología física y reparto de interfaces</figcaption>
+      </figure>
+    </section>
+
+    <section id="fisica">
+      <p class="kicker">02</p>
+      <h2>Capa física</h2>
+      <p class="intro">
+        Las 4 máquinas son Lenovo ThinkCentre M720s (Small Form Factor). No son homogéneas
+        entre sí — algo a tener en cuenta para el clúster, ver nota más abajo.
+      </p>
+
+      <div class="cards">
+        <div class="card">
+          <div class="card-eyebrow">Host 01 · Principal</div>
+          <h3>ESXi 8</h3>
+          <div class="spec"><span class="k">CPU</span><span class="leader"></span><span class="v">i7 · 8ª gen</span></div>
+          <div class="spec"><span class="k">RAM</span><span class="leader"></span><span class="v">64 GB</span></div>
+          <div class="spec"><span class="k">Disco</span><span class="leader"></span><span class="v">500 GB NVMe</span></div>
+        </div>
+        <div class="card">
+          <div class="card-eyebrow">Host 02</div>
+          <h3>ESXi 8</h3>
+          <div class="spec"><span class="k">CPU</span><span class="leader"></span><span class="v">i5 · 9ª gen</span></div>
+          <div class="spec"><span class="k">RAM</span><span class="leader"></span><span class="v">64 GB</span></div>
+          <div class="spec"><span class="k">Disco</span><span class="leader"></span><span class="v">500 GB NVMe</span></div>
+        </div>
+        <div class="card">
+          <div class="card-eyebrow">Host 03</div>
+          <h3>ESXi 8</h3>
+          <div class="spec"><span class="k">CPU</span><span class="leader"></span><span class="v">i5 · 9ª gen</span></div>
+          <div class="spec"><span class="k">RAM</span><span class="leader"></span><span class="v">64 GB</span></div>
+          <div class="spec"><span class="k">Disco</span><span class="leader"></span><span class="v">500 GB NVMe</span></div>
+        </div>
+        <div class="card">
+          <div class="card-eyebrow">Storage</div>
+          <h3>TrueNAS</h3>
+          <div class="spec"><span class="k">CPU</span><span class="leader"></span><span class="v">i5 · 8ª gen</span></div>
+          <div class="spec"><span class="k">RAM</span><span class="leader"></span><span class="v">32 GB</span></div>
+          <div class="spec"><span class="k">SO</span><span class="leader"></span><span class="v">256 GB SSD</span></div>
+          <div class="spec"><span class="k">Pool A</span><span class="leader"></span><span class="v">2× 1 TB NVMe</span></div>
+          <div class="spec"><span class="k">Pool B</span><span class="leader"></span><span class="v">2× 1 TB HDD 2.5″</span></div>
+        </div>
+      </div>
+
+      <div class="note">
+        <span class="note-label">Nota técnica</span>
+        Al mezclar CPU de generaciones distintas (i7 8ª gen + i5 9ª gen) dentro del mismo
+        clúster, si en el futuro hace falta más margen de compatibilidad para vMotion entre
+        hosts conviene fijar un baseline EVC (Enhanced vMotion Compatibility) explícito en
+        vCenter, en vez de confiar en que las CPU sean lo bastante parecidas por defecto.
+      </div>
+
+      <div class="split" style="margin-top: 24px;">
+        <div class="half">
+          <h4>Cisco SG300-28</h4>
+          <p>Switch L3. Hace de columna vertebral de la red: enrutamiento entre VLANs y
+            enlaces trunk 802.1Q hacia cada host.</p>
+        </div>
+        <div class="half">
+          <h4>MikroTik RouterBoard</h4>
+          <p>Frontera WAN. NAT y salida a internet — todo lo que sale o entra del laboratorio
+            pasa por aquí antes de llegar al switch.</p>
+        </div>
+      </div>
+
+      <p class="intro" style="margin-top: 24px; margin-bottom: 0;">
+        Cada host ESXi reparte sus 5 NIC en dos grupos: 3 en modo <strong>trunk</strong>
+        (802.1Q, todas las VLANs etiquetadas) para que la segmentación se resuelva por
+        software dentro del switch distribuido de vSphere, y 2 dedicadas en modo
+        <strong>access</strong> sin etiquetar, exclusivas para iSCSI con dos caminos
+        independientes (multipathing real, no solo redundancia lógica). TrueNAS reparte sus
+        5 NIC de forma parecida: 1 para gestión, 2 para los caminos de iSCSI, y 2 sin un rol
+        confirmado por ahora.
+      </p>
+    </section>
+
+    <section id="red">
+      <p class="kicker">03</p>
+      <h2>Capa de red — segmentación</h2>
+      <p class="intro">
+        9 categorías de VLAN, cada una con un propósito claro. Por seguridad se omiten aquí
+        los identificadores numéricos y los rangos de IP — lo que importa para entender el
+        diseño es qué tráfico va por dónde y por qué.
+      </p>
+      <div class="panel">
+        <div class="scroll-x">
+          <table>
+            <thead>
+              <tr><th style="width: 30%;">Categoría</th><th>Propósito</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="cat-name"><span class="swatch" style="background:var(--swatch-1)"></span>Gestión (Management)</span></td>
+                <td>Administración de la plataforma: vCenter Server, interfaces vmk0 de los ESXi, interfaz web de TrueNAS y consola del switch.</td>
+              </tr>
+              <tr>
+                <td><span class="cat-name"><span class="swatch" style="background:var(--swatch-2)"></span>Migración en vivo (vMotion)</span></td>
+                <td>Red aislada de alta velocidad, dedicada en exclusiva a mover memoria RAM de las VMs entre hosts durante una migración en caliente.</td>
+              </tr>
+              <tr>
+                <td><span class="cat-name"><span class="swatch" style="background:var(--swatch-3)"></span>Almacenamiento (iSCSI)</span></td>
+                <td>Tráfico de bloques entre TrueNAS y los hipervisores. Sin etiquetar, en NIC dedicadas, para multipathing real con dos caminos independientes.</td>
+              </tr>
+              <tr>
+                <td><span class="cat-name"><span class="swatch" style="background:var(--swatch-4)"></span>Réplica y protección</span></td>
+                <td>Canal para replicación de VMs (vSphere Replication) y tolerancia a fallos entre hosts.</td>
+              </tr>
+              <tr>
+                <td><span class="cat-name"><span class="swatch" style="background:var(--swatch-5)"></span>Clúster y control</span></td>
+                <td>Red aislada para componentes de control de la plataforma de nivel superior, separada del tráfico de producción — DMZ interna.</td>
+              </tr>
+              <tr>
+                <td><span class="cat-name"><span class="swatch" style="background:var(--swatch-6)"></span>Producción</span></td>
+                <td>Tráfico normal de las VMs que prestan servicio: el dominio AD/DNS, Jellyfin, y lo que venga después.</td>
+              </tr>
+              <tr>
+                <td><span class="cat-name"><span class="swatch" style="background:var(--swatch-7)"></span>Transporte SDN (NSX-TEP)</span></td>
+                <td>Segmento reservado para túneles de red overlay — preparado para una futura adopción de NSX, aún sin activar.</td>
+              </tr>
+              <tr>
+                <td><span class="cat-name"><span class="swatch" style="background:var(--swatch-8)"></span>Extranet (DMZ frontend)</span></td>
+                <td>Segmento de salida para lo que necesita ser accesible desde fuera del laboratorio.</td>
+              </tr>
+              <tr>
+                <td><span class="cat-name"><span class="swatch" style="background:var(--swatch-9)"></span>Clientes de red</span></td>
+                <td>Tráfico nativo de dispositivos de usuario final conectados a la red.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="virtualizacion">
+      <p class="kicker">04</p>
+      <h2>Virtualización</h2>
+      <p class="intro">
+        vCenter gestiona los 3 hosts como un único clúster, con un switch distribuido (vDS)
+        en vez de switches estándar por host — coherente con el diseño de NIC en trunk de
+        la capa física.
+      </p>
+      <div class="cards">
+        <div class="card">
+          <div class="card-eyebrow">Cluster</div>
+          <h3>HA + DRS</h3>
+          <p style="color:var(--text-muted); font-size:14px; margin:0;">Activados y verificados en
+            funcionamiento: el clúster reubica VMs automáticamente ante fallo de host o
+            desequilibrio de carga.</p>
+        </div>
+        <div class="card">
+          <div class="card-eyebrow">Networking</div>
+          <h3>vDS</h3>
+          <p style="color:var(--text-muted); font-size:14px; margin:0;">Switch distribuido:
+            la configuración de red se gestiona a nivel de clúster, no host a host.</p>
+        </div>
+        <div class="card">
+          <div class="card-eyebrow">Storage compartido</div>
+          <h3>Sin vSAN (aún)</h3>
+          <p style="color:var(--text-muted); font-size:14px; margin:0;">El almacenamiento
+            compartido del clúster viene de TrueNAS por iSCSI, no de vSAN — pendiente de evaluar.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="almacenamiento">
+      <p class="kicker">05</p>
+      <h2>Almacenamiento</h2>
+      <p class="intro">
+        TrueNAS sirve dos pools independientes, ambos en espejo (mirror), cada uno con el
+        protocolo que mejor encaja según el tipo de carga.
+      </p>
+      <figure class="panel">
+        <div class="scroll-x">
+          <pre class="mermaid">
+flowchart LR
+    subgraph NASBOX["TrueNAS"]
+      direction TB
+      P1["Pool NVMe · mirror<br/>2× 1 TB NVMe"]
+      P2["Pool HDD · mirror<br/>2× 1 TB HDD 2.5″"]
+    end
+    P1 -->|"iSCSI · Path A/B"| DS1["Datastore clúster ESXi<br/>VMs + Jellyfin (app)"]
+    P2 -->|"NFS"| DS2["Biblioteca multimedia<br/>Películas · Series · ISOs"]
+    DS1 -.->|"monta"| DS2
+          </pre>
+        </div>
+        <figcaption>Fig. 2 — Pools de almacenamiento y protocolos</figcaption>
+      </figure>
+      <p class="intro" style="margin-top: 20px; margin-bottom: 0;">
+        La VM de Jellyfin corre desde el pool NVMe para que la app, la caché y las carátulas
+        respondan rápido, pero las películas y series en sí viven en el pool HDD y se montan
+        por NFS — separa las operaciones pequeñas y frecuentes (metadatos) de la lectura
+        secuencial de archivos grandes, sin necesitar todo el almacenamiento en flash.
+      </p>
+    </section>
+
+    <section id="cargas">
+      <p class="kicker">06</p>
+      <h2>Cargas de trabajo</h2>
+      <p class="intro">Dos VMs de producción, cada una con un propósito bien delimitado.</p>
+      <div class="cards">
+        <div class="card">
+          <div class="card-eyebrow">VM · Windows Server</div>
+          <h3>Directorio activo + DNS</h3>
+          <ul class="plain">
+            <li>Controlador de dominio (Active Directory)</li>
+            <li>Zona DNS interna del laboratorio</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-eyebrow">VM · Ubuntu Server</div>
+          <h3>Jellyfin sobre Docker</h3>
+          <ul class="plain">
+            <li>Servidor multimedia personal</li>
+            <li>Corre en el datastore NVMe</li>
+            <li>Media en el pool HDD vía NFS</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="acceso">
+      <p class="kicker">07</p>
+      <h2>Acceso remoto</h2>
+      <p class="intro">
+        Jellyfin se publica hacia fuera con un túnel de Cloudflare: sin abrir un solo puerto
+        en el router MikroTik. El dominio se gestiona con el DNS de Cloudflare, que además
+        actúa como capa de proxy inverso frente al contenedor.
+      </p>
+      <figure class="panel">
+        <div class="scroll-x">
+          <pre class="mermaid">
+flowchart LR
+    U["Usuario<br/>(cualquier red)"] --> CF["Cloudflare<br/>DNS + Tunnel"]
+    CF -->|"conexión saliente<br/>sin puertos abiertos"| CFD["cloudflared<br/>contenedor Docker"]
+    CFD --> JF["Jellyfin<br/>Ubuntu Server · Docker"]
+          </pre>
+        </div>
+        <figcaption>Fig. 3 — Publicación de Jellyfin vía Cloudflare Tunnel</figcaption>
+      </figure>
+    </section>
+
+    <section id="alcance">
+      <p class="kicker">08</p>
+      <h2>Alcance y próximos pasos</h2>
+      <ul class="plain">
+        <li>vSAN aún no evaluado — el storage compartido del clúster depende hoy por completo de TrueNAS.</li>
+        <li>Los segmentos de transporte SDN (NSX-TEP) y control de plataforma están reservados para una futura expansión, sin activar todavía.</li>
+        <li>Los hosts no son homogéneos entre sí (i7 8ª gen + i5 9ª gen) — revisar EVC si el clúster crece o exige más compatibilidad entre CPU.</li>
+      </ul>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  <p>
+    // Esta página describe la arquitectura y las decisiones de diseño del laboratorio.
+    Se omiten intencionadamente direcciones IP, identificadores numéricos de VLAN, puertos
+    físicos del switch y cualquier credencial — no son necesarios para entender el diseño y
+    no deben formar parte de un documento público.<br/>
+    // Última actualización: 2026-08-21
+  </p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  // Fuera del visor de Artifacts (p.ej. en GitHub Pages) no hay renderizado
+  // nativo de Mermaid, así que se inicializa aquí si la librería cargó.
+  (function () {
+    function initMermaid() {
+      if (typeof mermaid === "undefined") return false;
+      var isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      var themeAttr = document.documentElement.getAttribute("data-theme");
+      if (themeAttr) isDark = themeAttr === "dark";
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: isDark ? "dark" : "default",
+        securityLevel: "loose",
+        fontFamily: "ui-monospace, Consolas, monospace"
+      });
+      return true;
+    }
+    if (!initMermaid()) {
+      window.addEventListener("load", initMermaid);
+    }
+  })();
+
+  // Resalta el enlace activo del índice según la sección visible
+  (function () {
+    var links = Array.prototype.slice.call(document.querySelectorAll("#toc a"));
+    var map = {};
+    links.forEach(function (a) {
+      map[a.getAttribute("href").slice(1)] = a;
+    });
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        var link = map[entry.target.id];
+        if (!link) return;
+        if (entry.isIntersecting) {
+          links.forEach(function (a) { a.classList.remove("active"); });
+          link.classList.add("active");
+        }
+      });
+    }, { rootMargin: "-20% 0px -70% 0px" });
+    document.querySelectorAll("main section[id]").forEach(function (s) {
+      observer.observe(s);
+    });
+  })();
+</script>
