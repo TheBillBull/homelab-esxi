@@ -627,21 +627,22 @@ flowchart TB
       <p class="kicker">03</p>
       <h2>Origen del hardware</h2>
       <p class="intro">
-        Las cuatro máquinas no salieron de una tienda listas para montar el laboratorio —
-        vinieron de trastero y de segunda mano, y llegaron a este estado tras pasar por un
-        reacondicionamiento completo, pieza a pieza.
+        Ninguna pieza salió de una tienda lista para montar el laboratorio. Los tres hosts
+        ESXi, el nodo TrueNAS, el switch Cisco SG300-28 y el router MikroTik llegaron de
+        trastero y de segunda mano, y pasaron por un reacondicionamiento completo, pieza a
+        pieza, antes de entrar en producción.
       </p>
 
       <div class="split">
         <div class="half">
           <h4>Procedencia</h4>
-          <p>Lenovo ThinkCentre M720s recuperados de trastero y de compras de segunda mano —
-            ninguno llegó en condiciones de producción.</p>
+          <p>Lenovo ThinkCentre M720s, switch Cisco y router MikroTik recuperados de trastero
+            y de compras de segunda mano — ningún equipo llegó en condiciones de producción.</p>
         </div>
         <div class="half">
           <h4>Intervención</h4>
-          <p>Reacondicionamiento completo antes de entrar en el clúster: no solo limpieza,
-            también sustitución de componentes internos.</p>
+          <p>Reacondicionamiento completo antes de entrar en servicio: no solo limpieza,
+            también sustitución de componentes internos y puesta a punto de cada equipo.</p>
         </div>
       </div>
 
@@ -651,19 +652,18 @@ flowchart TB
           <li>Sustitución de discos por SSD/NVMe</li>
           <li>Adaptación de bahías internas para encajar el nuevo almacenamiento</li>
           <li>Reemplazo de piezas desgastadas o defectuosas, y de ventiladores</li>
-          <li>Cambio de pasta térmica</li>
-          <li>Actualización de BIOS/firmware</li>
+          <li>Optimización de los sistemas de refrigeración — limpieza de disipadores, pasta térmica nueva y mejora del flujo de aire para el uso 24/7</li>
+          <li>Actualización de BIOS y firmware, también en el switch y el router</li>
           <li>Soldadura básica en algún cable o conector</li>
         </ul>
       </div>
 
-      <div class="note">
-        <span class="note-label">Nota</span>
-        Vengo del hardware — soy técnico SAT oficial de marca, aunque no es el camino que
-        quiero seguir a partir de ahora. Este laboratorio está pensado sobre todo para mostrar
-        habilidades de sistemas, redes e infraestructura, pero el reacondicionamiento de las
-        máquinas es un guiño a por qué me gusta cacharrear con hardware.
-      </div>
+      <p class="intro" style="margin-top: 20px; margin-bottom: 0;">
+        Por separado ninguno de estos pasos es del otro mundo, pero mantener cuatro equipos
+        de segunda mano funcionando de forma fiable 24/7 —sin cuellos de botella térmicos ni
+        piezas a medio vivir— exige cuidado en cada uno de ellos. No es solo "enchufar y
+        listo".
+      </p>
     </section>
 
     <section id="red">
@@ -850,7 +850,7 @@ flowchart LR
     Se omiten intencionadamente direcciones IP, identificadores numéricos de VLAN, puertos
     físicos del switch y cualquier credencial — no son necesarios para entender el diseño y
     no deben formar parte de un documento público.<br/>
-    // Última actualización: 2026-09-02
+    // Última actualización: 2026-09-02 (rev. 2)
   </p>
 </footer>
 
