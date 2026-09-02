@@ -508,6 +508,7 @@
   <nav class="toc" id="toc">
     <a href="#topologia">Topología</a>
     <a href="#fisica">Capa física</a>
+    <a href="#reacondicionamiento">Origen del hardware</a>
     <a href="#red">Capa de red</a>
     <a href="#virtualizacion">Virtualización</a>
     <a href="#almacenamiento">Almacenamiento</a>
@@ -622,8 +623,51 @@ flowchart TB
       </p>
     </section>
 
-    <section id="red">
+    <section id="reacondicionamiento">
       <p class="kicker">03</p>
+      <h2>Origen del hardware</h2>
+      <p class="intro">
+        Las cuatro máquinas no salieron de una tienda listas para montar el laboratorio —
+        vinieron de trastero y de segunda mano, y llegaron a este estado tras pasar por un
+        reacondicionamiento completo, pieza a pieza.
+      </p>
+
+      <div class="split">
+        <div class="half">
+          <h4>Procedencia</h4>
+          <p>Lenovo ThinkCentre M720s recuperados de trastero y de compras de segunda mano —
+            ninguno llegó en condiciones de producción.</p>
+        </div>
+        <div class="half">
+          <h4>Intervención</h4>
+          <p>Reacondicionamiento completo antes de entrar en el clúster: no solo limpieza,
+            también sustitución de componentes internos.</p>
+        </div>
+      </div>
+
+      <div class="panel panel-pad" style="margin-top: 20px;">
+        <ul class="plain">
+          <li>Cambio de procesadores y ampliación de RAM hasta la configuración actual</li>
+          <li>Sustitución de discos por SSD/NVMe</li>
+          <li>Adaptación de bahías internas para encajar el nuevo almacenamiento</li>
+          <li>Reemplazo de piezas desgastadas o defectuosas, y de ventiladores</li>
+          <li>Cambio de pasta térmica</li>
+          <li>Actualización de BIOS/firmware</li>
+          <li>Soldadura básica en algún cable o conector</li>
+        </ul>
+      </div>
+
+      <div class="note">
+        <span class="note-label">Nota</span>
+        Vengo del hardware — soy técnico SAT oficial de marca, aunque no es el camino que
+        quiero seguir a partir de ahora. Este laboratorio está pensado sobre todo para mostrar
+        habilidades de sistemas, redes e infraestructura, pero el reacondicionamiento de las
+        máquinas es un guiño a por qué me gusta cacharrear con hardware.
+      </div>
+    </section>
+
+    <section id="red">
+      <p class="kicker">04</p>
       <h2>Capa de red — segmentación</h2>
       <p class="intro">
         9 categorías de VLAN, cada una con un propósito claro. Por seguridad se omiten aquí
@@ -680,7 +724,7 @@ flowchart TB
     </section>
 
     <section id="virtualizacion">
-      <p class="kicker">04</p>
+      <p class="kicker">05</p>
       <h2>Virtualización</h2>
       <p class="intro">
         vCenter gestiona los 3 hosts como un único clúster, con un switch distribuido (vDS)
@@ -711,7 +755,7 @@ flowchart TB
     </section>
 
     <section id="almacenamiento">
-      <p class="kicker">05</p>
+      <p class="kicker">06</p>
       <h2>Almacenamiento</h2>
       <p class="intro">
         TrueNAS sirve dos pools independientes, ambos en espejo (mirror), cada uno con el
@@ -742,7 +786,7 @@ flowchart LR
     </section>
 
     <section id="cargas">
-      <p class="kicker">06</p>
+      <p class="kicker">07</p>
       <h2>Cargas de trabajo</h2>
       <p class="intro">Dos VMs de producción, cada una con un propósito bien delimitado.</p>
       <div class="cards">
@@ -767,7 +811,7 @@ flowchart LR
     </section>
 
     <section id="acceso">
-      <p class="kicker">07</p>
+      <p class="kicker">08</p>
       <h2>Acceso remoto</h2>
       <p class="intro">
         Jellyfin se publica hacia fuera con un túnel de Cloudflare: sin abrir un solo puerto
@@ -788,7 +832,7 @@ flowchart LR
     </section>
 
     <section id="alcance">
-      <p class="kicker">08</p>
+      <p class="kicker">09</p>
       <h2>Alcance y próximos pasos</h2>
       <ul class="plain">
         <li>vSAN aún no evaluado — el storage compartido del clúster depende hoy por completo de TrueNAS.</li>
@@ -806,7 +850,7 @@ flowchart LR
     Se omiten intencionadamente direcciones IP, identificadores numéricos de VLAN, puertos
     físicos del switch y cualquier credencial — no son necesarios para entender el diseño y
     no deben formar parte de un documento público.<br/>
-    // Última actualización: 2026-08-21
+    // Última actualización: 2026-09-02
   </p>
 </footer>
 
