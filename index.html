@@ -789,7 +789,7 @@ flowchart TB
               </tr>
               <tr>
                 <td><span class="cat-name"><span class="swatch" style="background:var(--swatch-10)"></span>Multimedia</span></td>
-                <td>Tráfico de archivos entre TrueNAS y los consumidores de la biblioteca multimedia: Jellyfin por NFS, y SMB para el repositorio de ISOs y para montar el pool como unidad de red en el portátil de trabajo.</td>
+                <td>Tráfico de archivos entre TrueNAS y los consumidores de la biblioteca multimedia: Jellyfin por NFS, y SMB para el repositorio de ISOs y para montar el pool como unidad de red en el portátil de trabajo. Corre sobre un puerto físico de TrueNAS dedicado en exclusiva a esta VLAN, no solo una etiqueta lógica compartiendo NIC con otro tráfico.</td>
               </tr>
               <tr>
                 <td><span class="cat-name"><span class="swatch" style="background:var(--swatch-7)"></span>Transporte SDN (NSX-TEP)</span></td>
@@ -806,6 +806,16 @@ flowchart TB
             </tbody>
           </table>
         </div>
+      </div>
+
+      <div class="note">
+        <span class="note-label">Aislamiento físico, no solo lógico</span>
+        La VLAN de Multimedia no es solo una etiqueta compartiendo cable con otro tráfico:
+        en TrueNAS tiene un puerto físico propio, sin repartir con gestión, iSCSI ni
+        producción (ver <a href="#fisica">capa física</a>). Con varios usuarios viendo
+        streaming a la vez, ese tráfico no compite por ancho de banda con las VMs de
+        producción que se vayan añadiendo — el streaming no corta y las cargas importantes
+        no se resienten, aunque la biblioteca esté muy solicitada.
       </div>
     </section>
 
@@ -1010,7 +1020,7 @@ flowchart LR
     Se omiten intencionadamente direcciones IP, identificadores numéricos de VLAN, puertos
     físicos del switch y cualquier credencial — no son necesarios para entender el diseño y
     no deben formar parte de un documento público.<br/>
-    // Última actualización: 2026-09-07 (rev. 5)
+    // Última actualización: 2026-09-07 (rev. 6)
   </p>
 </footer>
 
