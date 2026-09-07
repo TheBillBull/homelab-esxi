@@ -20,6 +20,7 @@
     --swatch-7: #B5871F; /* NSX-TEP */
     --swatch-8: #C24A2E; /* Extranet */
     --swatch-9: #C2508A; /* Clientes */
+    --swatch-10: #8C5A3C; /* Multimedia */
 
     --font-display: ui-monospace, "Cascadia Code", "Cascadia Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
     --font-body: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
@@ -69,6 +70,7 @@
     --swatch-7: #D9AD52;
     --swatch-8: #E2765A;
     --swatch-9: #E284B0;
+    --swatch-10: #C98F6C;
   }
 
   :root[data-theme="light"] {
@@ -91,6 +93,7 @@
     --swatch-7: #B5871F;
     --swatch-8: #C24A2E;
     --swatch-9: #C2508A;
+    --swatch-10: #8C5A3C;
   }
 
   * { box-sizing: border-box; }
@@ -496,9 +499,10 @@
     <div class="stats">
       <div class="stat"><div class="label">Hosts ESXi</div><div class="value">3</div></div>
       <div class="stat"><div class="label">Nodo TrueNAS</div><div class="value">1</div></div>
-      <div class="stat"><div class="label">Segmentos de red</div><div class="value">9</div></div>
+      <div class="stat"><div class="label">Segmentos de red</div><div class="value">10</div></div>
       <div class="stat"><div class="label">Clúster</div><div class="value">HA + DRS</div></div>
       <div class="stat"><div class="label">Pools storage</div><div class="value">2× mirror</div></div>
+      <div class="stat"><div class="label">Datastores heartbeat</div><div class="value">2</div></div>
       <div class="stat"><div class="label">Acceso remoto</div><div class="value">CF Tunnel</div></div>
     </div>
   </div>
@@ -509,6 +513,7 @@
     <a href="#topologia">Topología</a>
     <a href="#fisica">Capa física</a>
     <a href="#reacondicionamiento">Origen del hardware</a>
+    <a href="#construccion-truenas">TrueNAS por dentro</a>
     <a href="#red">Capa de red</a>
     <a href="#virtualizacion">Virtualización</a>
     <a href="#almacenamiento">Almacenamiento</a>
@@ -543,7 +548,7 @@ flowchart TB
     SW -->|"5 NIC: 3 trunk + 2 iSCSI"| H1
     SW -->|"5 NIC: 3 trunk + 2 iSCSI"| H2
     SW -->|"5 NIC: 3 trunk + 2 iSCSI"| H3
-    SW -->|"5 NIC: 1 mgmt + 2 iSCSI + 2 libres"| NAS
+    SW -->|"5 NIC: 1 mgmt + 2 iSCSI + 1 media + 1 prod"| NAS
           </pre>
         </div>
         <figcaption>Fig. 1 — Topología física y reparto de interfaces</figcaption>
@@ -618,8 +623,10 @@ flowchart TB
         software dentro del switch distribuido de vSphere, y 2 dedicadas en modo
         <strong>access</strong> sin etiquetar, exclusivas para iSCSI con dos caminos
         independientes (multipathing real, no solo redundancia lógica). TrueNAS reparte sus
-        5 NIC de forma parecida: 1 para gestión, 2 para los caminos de iSCSI, y 2 sin un rol
-        confirmado por ahora.
+        5 NIC de forma parecida: 1 para gestión, 2 para los caminos de iSCSI, 1 para la
+        biblioteca multimedia de Jellyfin, y otra para producción — el detalle de cómo se
+        llega físicamente a esas 5 interfaces está en
+        <a href="#construccion-truenas">TrueNAS por dentro</a>.
       </p>
     </section>
 
@@ -667,11 +674,75 @@ flowchart TB
       </p>
     </section>
 
-    <section id="red">
+    <section id="construccion-truenas">
       <p class="kicker">04</p>
+      <h2>TrueNAS por dentro</h2>
+      <p class="intro">
+        El nodo de almacenamiento comparte chasis con los hosts ESXi — un Lenovo ThinkCentre
+        M720s SFF, pensado de fábrica para un disco y una sola ranura de expansión libre.
+        Encajar ahí dos pools en espejo, un SO dedicado y una NIC de 4 puertos llevó algo de
+        ingenio casero.
+      </p>
+
+      <div class="cards">
+        <div class="card">
+          <div class="card-eyebrow">Bahía 3.5″ → 2× 2.5″</div>
+          <h3>Adaptador impreso en 3D</h3>
+          <p style="color:var(--text-muted); font-size:14px; margin:0;">La única bahía de
+            3.5″ del chasis aloja, gracias a una pieza diseñada e impresa a medida, dos
+            discos de 2.5″ en el hueco pensado para uno solo.</p>
+        </div>
+        <div class="card">
+          <div class="card-eyebrow">Ranura PCIe #1</div>
+          <h3>NIC de 4 puertos</h3>
+          <p style="color:var(--text-muted); font-size:14px; margin:0;">Sumada a la NIC
+            integrada, completa las 5 interfaces de red repartidas en gestión, iSCSI,
+            multimedia y producción (ver capa de red).</p>
+        </div>
+        <div class="card">
+          <div class="card-eyebrow">Ranura PCIe #2</div>
+          <h3>Adaptador a NVMe</h3>
+          <p style="color:var(--text-muted); font-size:14px; margin:0;">El chasis solo trae
+            una ranura M.2 nativa. Este adaptador añade una segunda vía NVMe para completar
+            el mirror del datastore principal.</p>
+        </div>
+        <div class="card">
+          <div class="card-eyebrow">Bahía óptica (ex-DVD)</div>
+          <h3>SSD de sistema</h3>
+          <p style="color:var(--text-muted); font-size:14px; margin:0;">La unidad óptica, sin
+            uso, se retiró para dejar sitio a otro adaptador con el SSD de baja capacidad que
+            aloja en exclusiva el sistema operativo TrueNAS — nunca datos.</p>
+        </div>
+      </div>
+
+      <div class="split" style="margin-top: 24px;">
+        <div class="half">
+          <h4>Mirror NVMe repartido entre 2 vías</h4>
+          <p>Los 2 discos NVMe del datastore principal no comparten ranura: uno vive en el
+            M.2 nativo y el otro en el adaptador PCIe. Un fallo de disco — o incluso del
+            propio adaptador — no compromete el datastore del clúster.</p>
+        </div>
+        <div class="half">
+          <h4>Refrigeración</h4>
+          <p>Al liberar la bahía óptica se ganó flujo de aire interno. Los ventiladores
+            originales se sustituyeron por modelos más eficientes y silenciosos, en línea con
+            el resto del reacondicionamiento del laboratorio.</p>
+        </div>
+      </div>
+
+      <div class="note">
+        <span class="note-label">Resultado</span>
+        Un SFF pensado de fábrica para un disco y una tarjeta de expansión termina alojando 5
+        discos (2 NVMe + 2 HDD 2.5″ + 1 SSD de sistema) y una NIC adicional de 4 puertos, con
+        mejor refrigeración que la que traía de fábrica — sin cambiar de chasis.
+      </div>
+    </section>
+
+    <section id="red">
+      <p class="kicker">05</p>
       <h2>Capa de red — segmentación</h2>
       <p class="intro">
-        9 categorías de VLAN, cada una con un propósito claro. Por seguridad se omiten aquí
+        10 categorías de VLAN, cada una con un propósito claro. Por seguridad se omiten aquí
         los identificadores numéricos y los rangos de IP — lo que importa para entender el
         diseño es qué tráfico va por dónde y por qué.
       </p>
@@ -707,6 +778,10 @@ flowchart TB
                 <td>Tráfico normal de las VMs que prestan servicio: el dominio AD/DNS, Jellyfin, y lo que venga después.</td>
               </tr>
               <tr>
+                <td><span class="cat-name"><span class="swatch" style="background:var(--swatch-10)"></span>Multimedia</span></td>
+                <td>Tráfico de archivos entre TrueNAS y los consumidores de la biblioteca multimedia: Jellyfin por NFS, y SMB para el repositorio de ISOs y para montar el pool como unidad de red en el portátil de trabajo.</td>
+              </tr>
+              <tr>
                 <td><span class="cat-name"><span class="swatch" style="background:var(--swatch-7)"></span>Transporte SDN (NSX-TEP)</span></td>
                 <td>Segmento reservado para túneles de red overlay — preparado para una futura adopción de NSX, aún sin activar.</td>
               </tr>
@@ -725,7 +800,7 @@ flowchart TB
     </section>
 
     <section id="virtualizacion">
-      <p class="kicker">05</p>
+      <p class="kicker">06</p>
       <h2>Virtualización</h2>
       <p class="intro">
         vCenter gestiona los 3 hosts como un único clúster, con un switch distribuido (vDS)
@@ -756,11 +831,12 @@ flowchart TB
     </section>
 
     <section id="almacenamiento">
-      <p class="kicker">06</p>
+      <p class="kicker">07</p>
       <h2>Almacenamiento</h2>
       <p class="intro">
         TrueNAS sirve dos pools independientes, ambos en espejo (mirror), cada uno con el
-        protocolo que mejor encaja según el tipo de carga.
+        protocolo que mejor encaja según el tipo de carga — más dos datastores adicionales
+        que no guardan datos, solo hacen de latido del clúster.
       </p>
       <figure class="panel">
         <div class="scroll-x">
@@ -772,7 +848,9 @@ flowchart LR
       P2["Pool HDD · mirror<br/>2× 1 TB HDD 2.5″"]
     end
     P1 -->|"iSCSI · Path A/B"| DS1["Datastore clúster ESXi<br/>VMs + Jellyfin (app)"]
-    P2 -->|"NFS"| DS2["Biblioteca multimedia<br/>Películas · Series · ISOs"]
+    P2 -->|"NFS"| DS2["Biblioteca multimedia<br/>Jellyfin"]
+    P2 -->|"SMB"| DS3["ISOs<br/>vCenter"]
+    P2 -->|"SMB"| WS["Portátil de trabajo<br/>unidad de red"]
     DS1 -.->|"monta"| DS2
           </pre>
         </div>
@@ -784,10 +862,27 @@ flowchart LR
         por NFS — separa las operaciones pequeñas y frecuentes (metadatos) de la lectura
         secuencial de archivos grandes, sin necesitar todo el almacenamiento en flash.
       </p>
+
+      <div class="split" style="margin-top: 24px;">
+        <div class="half">
+          <h4>El mismo pool, varios usos</h4>
+          <p>El pool HDD no solo alimenta Jellyfin por NFS: también expone por SMB un
+            repositorio de ISOs que usa vCenter, y esa misma vía SMB monta el pool entero
+            como una unidad de red más en el portátil de trabajo — mover archivos entre el
+            equipo local y TrueNAS es tan directo como copiar a un disco local, y de paso
+            alimenta el flujo que clasifica y ordena la biblioteca multimedia con IA.</p>
+        </div>
+        <div class="half">
+          <h4>Datastores de heartbeat</h4>
+          <p>A nivel lógico hay dos datastores adicionales de tamaño mínimo, sin más función
+            que servir de latido (heartbeat) para el clúster HA — un requisito de vSphere que
+            queda resuelto sin restar espacio útil a los pools NVMe o HDD.</p>
+        </div>
+      </div>
     </section>
 
     <section id="cargas">
-      <p class="kicker">07</p>
+      <p class="kicker">08</p>
       <h2>Cargas de trabajo</h2>
       <p class="intro">Dos VMs de producción, cada una con un propósito bien delimitado.</p>
       <div class="cards">
@@ -812,7 +907,7 @@ flowchart LR
     </section>
 
     <section id="acceso">
-      <p class="kicker">08</p>
+      <p class="kicker">09</p>
       <h2>Acceso remoto</h2>
       <p class="intro">
         Jellyfin se publica hacia fuera con un túnel de Cloudflare: sin abrir un solo puerto
@@ -833,7 +928,7 @@ flowchart LR
     </section>
 
     <section id="alcance">
-      <p class="kicker">09</p>
+      <p class="kicker">10</p>
       <h2>Alcance y próximos pasos</h2>
       <ul class="plain">
         <li>vSAN aún no evaluado — el storage compartido del clúster depende hoy por completo de TrueNAS.</li>
@@ -851,7 +946,7 @@ flowchart LR
     Se omiten intencionadamente direcciones IP, identificadores numéricos de VLAN, puertos
     físicos del switch y cualquier credencial — no son necesarios para entender el diseño y
     no deben formar parte de un documento público.<br/>
-    // Última actualización: 2026-09-02 (rev. 3)
+    // Última actualización: 2026-09-07 (rev. 4)
   </p>
 </footer>
 
