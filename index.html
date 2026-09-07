@@ -119,6 +119,15 @@
   }
 
   a { color: var(--accent); }
+
+  code {
+    font-family: var(--font-display);
+    font-size: 0.9em;
+    background: var(--surface-alt);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.1em 0.4em;
+  }
   a:focus-visible, button:focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 2px;
@@ -518,6 +527,7 @@
     <a href="#virtualizacion">Virtualización</a>
     <a href="#almacenamiento">Almacenamiento</a>
     <a href="#cargas">Cargas de trabajo</a>
+    <a href="#jellyfin-gpu">Jellyfin: GPU y memoria</a>
     <a href="#acceso">Acceso remoto</a>
     <a href="#alcance">Alcance</a>
   </nav>
@@ -898,16 +908,70 @@ flowchart LR
           <div class="card-eyebrow">VM · Ubuntu Server</div>
           <h3>Jellyfin sobre Docker</h3>
           <ul class="plain">
-            <li>Servidor multimedia personal</li>
-            <li>Corre en el datastore NVMe</li>
+            <li>Servidor multimedia personal, orquestado con Docker Compose</li>
+            <li>App, caché y carátulas en el datastore NVMe</li>
             <li>Media en el pool HDD vía NFS</li>
+            <li>Transcodificación por hardware (iGPU Quick Sync, passthrough)</li>
           </ul>
         </div>
       </div>
     </section>
 
-    <section id="acceso">
+    <section id="jellyfin-gpu">
       <p class="kicker">09</p>
+      <h2>Jellyfin: GPU y memoria dedicadas</h2>
+      <p class="intro">
+        Con la biblioteca creciendo, transcodificar por software empezaba a saturar la CPU
+        del host. Para evitarlo se pasó la iGPU (Quick Sync) del host por PCI passthrough
+        directamente a la VM, y se fijó la RAM de esa VM para que un pico de transcodificación
+        no compita por memoria con el resto del clúster.
+      </p>
+      <figure class="panel">
+        <div class="scroll-x">
+          <pre class="mermaid">
+flowchart LR
+    subgraph HOST["Host ESXi"]
+      IGPU["iGPU Intel<br/>Quick Sync"]
+    end
+    IGPU -->|"PCI passthrough<br/>DirectPath I/O"| VM["VM Ubuntu Server"]
+    subgraph VM2["dentro de la VM"]
+      DRI["/dev/dri"]
+      DOCKER["Contenedor Docker<br/>Jellyfin"]
+      DRI -->|"grupo render/video"| DOCKER
+    end
+    VM --> VM2
+    NVME["Datastore NVMe<br/>config + caché + carátulas"] --> DOCKER
+    NFS["Pool HDD · NFS<br/>biblioteca multimedia"] --> DOCKER
+          </pre>
+        </div>
+        <figcaption>Fig. 4 — Passthrough de GPU y volúmenes del contenedor de Jellyfin</figcaption>
+      </figure>
+
+      <div class="split" style="margin-top: 24px;">
+        <div class="half">
+          <h4>Passthrough de la iGPU</h4>
+          <p>El host que aloja la VM reserva su iGPU en exclusiva vía PCI passthrough
+            (DirectPath I/O): el hypervisor deja de gestionarla y el control pasa por
+            completo a la VM. Dentro de Ubuntu el dispositivo aparece como
+            <code>/dev/dri</code>; se dio permiso al usuario del contenedor (grupo
+            render/video) para que Jellyfin use Quick Sync (VAAPI) sin correr como root.
+            Contrapartida: mientras la iGPU esté pasada por passthrough, esa VM concreta
+            pierde vMotion/DRS y queda anclada a ese host — el resto del clúster sigue
+            con HA normal.</p>
+        </div>
+        <div class="half">
+          <h4>Memoria fijada</h4>
+          <p>En vSphere se igualaron reservation y limit de RAM para la VM: le garantiza
+            memoria mínima disponible siempre (sin swap ni contención con otras VMs) y
+            evita que un pico de transcodificación le quite RAM al resto del clúster.
+            Separa a Jellyfin del pool de memoria compartido, a cambio de reservar esa RAM
+            de forma fija aunque la VM esté inactiva.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="acceso">
+      <p class="kicker">10</p>
       <h2>Acceso remoto</h2>
       <p class="intro">
         Jellyfin se publica hacia fuera con un túnel de Cloudflare: sin abrir un solo puerto
@@ -928,7 +992,7 @@ flowchart LR
     </section>
 
     <section id="alcance">
-      <p class="kicker">10</p>
+      <p class="kicker">11</p>
       <h2>Alcance y próximos pasos</h2>
       <ul class="plain">
         <li>vSAN aún no evaluado — el storage compartido del clúster depende hoy por completo de TrueNAS.</li>
@@ -946,7 +1010,7 @@ flowchart LR
     Se omiten intencionadamente direcciones IP, identificadores numéricos de VLAN, puertos
     físicos del switch y cualquier credencial — no son necesarios para entender el diseño y
     no deben formar parte de un documento público.<br/>
-    // Última actualización: 2026-09-07 (rev. 4)
+    // Última actualización: 2026-09-07 (rev. 5)
   </p>
 </footer>
 
