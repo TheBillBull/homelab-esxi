@@ -549,9 +549,9 @@ flowchart TB
     INET((Internet))
     MT["MikroTik RouterBoard<br/>WAN · NAT"]
     SW["Cisco SG300-28<br/>Switch L3"]
-    H1["Host 1 — ESXi 8<br/>i7 8ª gen · 64 GB RAM"]
-    H2["Host 2 — ESXi 8<br/>i5 9ª gen · 64 GB RAM"]
-    H3["Host 3 — ESXi 8<br/>i5 9ª gen · 64 GB RAM"]
+    H1["Host 1 — ESXi 8<br/>i7-8700 · 64 GB RAM"]
+    H2["Host 2 — ESXi 8<br/>i7-8700 · 64 GB RAM"]
+    H3["Host 3 — ESXi 8<br/>i7-8700 · 64 GB RAM"]
     NAS["TrueNAS<br/>i5 8ª gen · 32 GB RAM"]
 
     INET --> MT --> SW
@@ -577,21 +577,21 @@ flowchart TB
         <div class="card">
           <div class="card-eyebrow">Host 01 · Principal</div>
           <h3>ESXi 8</h3>
-          <div class="spec"><span class="k">CPU</span><span class="leader"></span><span class="v">i7 · 8ª gen</span></div>
+          <div class="spec"><span class="k">CPU</span><span class="leader"></span><span class="v">i7-8700</span></div>
           <div class="spec"><span class="k">RAM</span><span class="leader"></span><span class="v">64 GB</span></div>
           <div class="spec"><span class="k">Disco</span><span class="leader"></span><span class="v">500 GB NVMe</span></div>
         </div>
         <div class="card">
           <div class="card-eyebrow">Host 02</div>
           <h3>ESXi 8</h3>
-          <div class="spec"><span class="k">CPU</span><span class="leader"></span><span class="v">i5 · 9ª gen</span></div>
+          <div class="spec"><span class="k">CPU</span><span class="leader"></span><span class="v">i7-8700</span></div>
           <div class="spec"><span class="k">RAM</span><span class="leader"></span><span class="v">64 GB</span></div>
           <div class="spec"><span class="k">Disco</span><span class="leader"></span><span class="v">500 GB NVMe</span></div>
         </div>
         <div class="card">
           <div class="card-eyebrow">Host 03</div>
           <h3>ESXi 8</h3>
-          <div class="spec"><span class="k">CPU</span><span class="leader"></span><span class="v">i5 · 9ª gen</span></div>
+          <div class="spec"><span class="k">CPU</span><span class="leader"></span><span class="v">i7-8700</span></div>
           <div class="spec"><span class="k">RAM</span><span class="leader"></span><span class="v">64 GB</span></div>
           <div class="spec"><span class="k">Disco</span><span class="leader"></span><span class="v">500 GB NVMe</span></div>
         </div>
@@ -608,10 +608,9 @@ flowchart TB
 
       <div class="note">
         <span class="note-label">Nota técnica</span>
-        Al mezclar CPU de generaciones distintas (i7 8ª gen + i5 9ª gen) dentro del mismo
-        clúster, si en el futuro hace falta más margen de compatibilidad para vMotion entre
-        hosts conviene fijar un baseline EVC (Enhanced vMotion Compatibility) explícito en
-        vCenter, en vez de confiar en que las CPU sean lo bastante parecidas por defecto.
+        Los 3 hosts del clúster son homogéneos, todos con Intel Core i7-8700 (tras un upgrade
+        de hardware) — al compartir la misma CPU no hace falta fijar un baseline EVC (Enhanced
+        vMotion Compatibility) en vCenter para garantizar compatibilidad de vMotion entre ellos.
       </div>
 
       <div class="split" style="margin-top: 24px;">
@@ -1007,7 +1006,6 @@ flowchart LR
       <ul class="plain">
         <li>vSAN aún no evaluado — el storage compartido del clúster depende hoy por completo de TrueNAS.</li>
         <li>Los segmentos de transporte SDN (NSX-TEP) y control de plataforma están reservados para una futura expansión, sin activar todavía.</li>
-        <li>Los hosts no son homogéneos entre sí (i7 8ª gen + i5 9ª gen) — revisar EVC si el clúster crece o exige más compatibilidad entre CPU.</li>
       </ul>
     </section>
 
@@ -1020,7 +1018,7 @@ flowchart LR
     Se omiten intencionadamente direcciones IP, identificadores numéricos de VLAN, puertos
     físicos del switch y cualquier credencial — no son necesarios para entender el diseño y
     no deben formar parte de un documento público.<br/>
-    // Última actualización: 2026-09-07 (rev. 6)
+    // Última actualización: 2026-09-09 (rev. 7)
   </p>
 </footer>
 
