@@ -1,0 +1,399 @@
+<title>Homelab ESXi: Cómputo</title>
+<style>
+  :root {
+    --bg: #EEF1F4;
+    --grid-dot: rgba(20, 26, 34, 0.06);
+    --surface: #FFFFFF;
+    --surface-alt: #F5F7F9;
+    --text: #141A22;
+    --text-muted: #59636F;
+    --border: #D7DDE3;
+    --accent: #B6591A;
+    --accent-contrast: #FFFFFF;
+    --swatch-6: #3E8C55;
+    --font-display: ui-monospace, "Cascadia Code", "Cascadia Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    --font-body: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #10151B; --grid-dot: rgba(232, 236, 239, 0.05); --surface: #171E26;
+      --surface-alt: #1D2530; --text: #E8ECEF; --text-muted: #8D98A4; --border: #2B3641;
+      --accent: #E8A03D; --accent-contrast: #10151B; --swatch-6: #6FBB82;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #10151B; --grid-dot: rgba(232, 236, 239, 0.05); --surface: #171E26;
+    --surface-alt: #1D2530; --text: #E8ECEF; --text-muted: #8D98A4; --border: #2B3641;
+    --accent: #E8A03D; --accent-contrast: #10151B; --swatch-6: #6FBB82;
+  }
+
+  :root[data-theme="light"] {
+    --bg: #EEF1F4; --grid-dot: rgba(20, 26, 34, 0.06); --surface: #FFFFFF;
+    --surface-alt: #F5F7F9; --text: #141A22; --text-muted: #59636F; --border: #D7DDE3;
+    --accent: #B6591A; --accent-contrast: #FFFFFF; --swatch-6: #3E8C55;
+  }
+
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+
+  body {
+    margin: 0;
+    background: radial-gradient(var(--grid-dot) 1px, transparent 1px);
+    background-size: 22px 22px;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: var(--accent); }
+  code {
+    font-family: var(--font-display); font-size: 0.9em; background: var(--surface-alt);
+    border: 1px solid var(--border); border-radius: 4px; padding: 0.1em 0.4em;
+  }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .sitenav {
+    position: sticky; top: 0; z-index: 20;
+    border-top: 4px solid var(--accent); border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .sitenav-inner {
+    max-width: 1180px; margin: 0 auto; padding: 0 32px; height: 52px;
+    display: flex; align-items: center; justify-content: space-between; gap: 24px;
+  }
+  .sitenav-brand { font-family: var(--font-display); font-size: 13px; font-weight: 600; color: var(--text); text-decoration: none; white-space: nowrap; }
+  .sitenav-links { display: flex; gap: 2px; overflow-x: auto; }
+  .sitenav-links a {
+    font-family: var(--font-display); font-size: 12px; text-transform: uppercase;
+    letter-spacing: 0.06em; text-decoration: none; color: var(--text-muted);
+    padding: 8px 12px; white-space: nowrap; border-bottom: 2px solid transparent;
+    transition: color 120ms ease, border-color 120ms ease;
+  }
+  .sitenav-links a:hover { color: var(--text); }
+  .sitenav-links a[aria-current="page"] { color: var(--accent); border-bottom-color: var(--accent); }
+  @media (max-width: 640px) { .sitenav-inner { padding: 0 16px; } .sitenav-brand { display: none; } }
+
+  h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; font-weight: 600; letter-spacing: -0.01em; margin: 0; }
+
+  .subhead { border-bottom: 1px solid var(--border); background: var(--surface); }
+  .subhead-inner { max-width: 1180px; margin: 0 auto; padding: 40px 32px 28px; }
+  .breadcrumb { font-family: var(--font-display); font-size: 12px; color: var(--text-muted); letter-spacing: 0.03em; margin: 0 0 14px 0; }
+  .breadcrumb a { color: var(--text-muted); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--accent); }
+  .breadcrumb .sep { margin: 0 8px; color: var(--border); }
+  .subhead .eyebrow { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.12em; font-size: 12px; color: var(--swatch-6); margin: 0 0 10px 0; }
+  .subhead h1 { font-size: clamp(26px, 3.6vw, 36px); max-width: 22ch; }
+  .subhead p.lede { max-width: 64ch; color: var(--text-muted); font-size: 15.5px; margin: 14px 0 0 0; }
+
+  .layout {
+    max-width: 1180px; margin: 0 auto; padding: 40px 32px 80px;
+    display: grid; grid-template-columns: 208px 1fr; gap: 48px; align-items: start;
+  }
+  .toc { position: sticky; top: 68px; display: flex; flex-direction: column; gap: 2px; }
+  .toc a {
+    font-family: var(--font-display); font-size: 12px; text-transform: uppercase;
+    letter-spacing: 0.06em; text-decoration: none; color: var(--text-muted);
+    padding: 7px 10px; border-left: 2px solid transparent;
+    transition: color 120ms ease, border-color 120ms ease, background 120ms ease;
+  }
+  .toc a:hover { color: var(--text); background: var(--surface-alt); }
+  .toc a.active { color: var(--accent); border-left-color: var(--accent); background: var(--surface-alt); }
+
+  main { min-width: 0; }
+  section { padding-top: 8px; margin-bottom: 64px; scroll-margin-top: 76px; }
+  section .kicker { font-family: var(--font-display); font-size: 12px; color: var(--text-muted); letter-spacing: 0.06em; }
+  section h2 { font-size: 22px; margin: 4px 0 14px 0; }
+  section > p.intro { max-width: 68ch; color: var(--text-muted); margin: 0 0 24px 0; }
+
+  .panel { border: 1px solid var(--border); background: var(--surface); }
+  .scroll-x { overflow-x: auto; }
+  figure { margin: 0; }
+  figcaption {
+    font-family: var(--font-display); font-size: 11.5px; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--text-muted); padding: 10px 22px; border-top: 1px solid var(--border);
+  }
+  pre.mermaid { margin: 0; padding: 24px; display: flex; justify-content: center; min-width: 560px; }
+
+  .cards {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1px;
+    background: var(--border); border: 1px solid var(--border);
+  }
+  .card { background: var(--surface); padding: 18px 20px; }
+  .card .card-eyebrow { font-family: var(--font-display); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); }
+  .card h3 { font-size: 16px; margin: 6px 0 14px 0; }
+
+  .split {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1px;
+    background: var(--border); border: 1px solid var(--border);
+  }
+  .split .half { background: var(--surface); padding: 18px 20px; }
+  .split h4 { font-family: var(--font-display); font-size: 13px; margin: 0 0 8px 0; }
+  .split p { margin: 0; font-size: 14px; color: var(--text-muted); }
+
+  ul.plain { margin: 0; padding: 0; list-style: none; }
+  ul.plain li { position: relative; padding: 6px 0 6px 18px; font-size: 14.5px; color: var(--text-muted); }
+  ul.plain li::before { content: "—"; position: absolute; left: 0; color: var(--accent); }
+
+  .history-mini { border: 1px solid var(--border); background: var(--surface); }
+  .history-row { display: flex; gap: 16px; padding: 14px 20px; border-bottom: 1px solid var(--border); align-items: baseline; flex-wrap: wrap; }
+  .history-row:last-child { border-bottom: none; }
+  .history-row .hdate { font-family: var(--font-display); font-size: 11.5px; color: var(--text-muted); white-space: nowrap; font-variant-numeric: tabular-nums; min-width: 84px; }
+  .history-row .htitle { font-size: 14.5px; flex: 1; min-width: 200px; }
+  .history-row .htitle strong { font-weight: 600; }
+
+  footer { max-width: 1180px; margin: 0 auto; padding: 28px 32px 60px; border-top: 1px solid var(--border); }
+  footer p { font-family: var(--font-display); font-size: 12px; color: var(--text-muted); max-width: 70ch; line-height: 1.7; }
+  footer a { color: var(--accent); }
+
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 1fr; }
+    .toc {
+      position: static; flex-direction: row; overflow-x: auto; gap: 4px;
+      padding-bottom: 6px; border-bottom: 1px solid var(--border); margin-bottom: 8px;
+    }
+    .toc a { border-left: none; border-bottom: 2px solid transparent; white-space: nowrap; }
+    .toc a.active { border-left-color: transparent; border-bottom-color: var(--accent); }
+    .split { grid-template-columns: 1fr; }
+  }
+</style>
+
+<nav class="sitenav">
+  <div class="sitenav-inner">
+    <a class="sitenav-brand" href="index.html">Homelab ESXi</a>
+    <div class="sitenav-links">
+      <a href="index.html">Arquitectura</a>
+      <a href="almacenamiento.html">Almacenamiento</a>
+      <a href="red.html">Red</a>
+      <a href="computo.html" aria-current="page">Cómputo</a>
+      <a href="changelog.html">Evolución</a>
+    </div>
+  </div>
+</nav>
+
+<header class="subhead">
+  <div class="subhead-inner">
+    <p class="breadcrumb"><a href="index.html">Homelab ESXi</a><span class="sep">/</span>Cómputo</p>
+    <p class="eyebrow">Clúster · Cargas de trabajo · Jellyfin</p>
+    <h1>Cómputo</h1>
+    <p class="lede">
+      Cómo el clúster reparte las VMs, qué corre en él, y el caso particular de Jellyfin:
+      GPU dedicada por passthrough, memoria fijada, y publicación hacia internet sin abrir
+      un solo puerto.
+    </p>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="toc" id="toc">
+    <a href="#virtualizacion">Clúster y virtualización</a>
+    <a href="#cargas">Cargas de trabajo</a>
+    <a href="#jellyfin-gpu">Jellyfin: GPU y memoria</a>
+    <a href="#acceso">Acceso remoto</a>
+    <a href="#historial">Evolución de este componente</a>
+  </nav>
+
+  <main>
+
+    <section id="virtualizacion">
+      <p class="kicker">01</p>
+      <h2>Clúster y virtualización</h2>
+      <p class="intro">
+        vCenter gestiona los 3 hosts como un único clúster, con un switch distribuido (vDS)
+        en vez de switches estándar por host — coherente con el diseño de NIC en trunk de
+        la capa física (ver <a href="index.html#fisica">capa física</a>).
+      </p>
+      <div class="cards">
+        <div class="card">
+          <div class="card-eyebrow">Cluster</div>
+          <h3>HA + DRS</h3>
+          <p style="color:var(--text-muted); font-size:14px; margin:0;">Activados y verificados en
+            funcionamiento: el clúster reubica VMs automáticamente ante fallo de host o
+            desequilibrio de carga.</p>
+        </div>
+        <div class="card">
+          <div class="card-eyebrow">Networking</div>
+          <h3>vDS</h3>
+          <p style="color:var(--text-muted); font-size:14px; margin:0;">Switch distribuido:
+            la configuración de red se gestiona a nivel de clúster, no host a host.</p>
+        </div>
+        <div class="card">
+          <div class="card-eyebrow">Storage compartido</div>
+          <h3>Sin vSAN (aún)</h3>
+          <p style="color:var(--text-muted); font-size:14px; margin:0;">El almacenamiento
+            compartido del clúster viene de TrueNAS por iSCSI, no de vSAN — pendiente de evaluar.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="cargas">
+      <p class="kicker">02</p>
+      <h2>Cargas de trabajo</h2>
+      <p class="intro">Dos VMs de producción, cada una con un propósito bien delimitado.</p>
+      <div class="cards">
+        <div class="card">
+          <div class="card-eyebrow">VM · Windows Server</div>
+          <h3>Directorio activo + DNS</h3>
+          <ul class="plain">
+            <li>Controlador de dominio (Active Directory)</li>
+            <li>Zona DNS interna del laboratorio</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-eyebrow">VM · Ubuntu Server</div>
+          <h3>Jellyfin sobre Docker</h3>
+          <ul class="plain">
+            <li>Servidor multimedia personal, orquestado con Docker Compose</li>
+            <li>App, caché y carátulas en el datastore NVMe</li>
+            <li>Media en el pool HDD vía NFS</li>
+            <li>Transcodificación por hardware (iGPU Quick Sync, passthrough)</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="jellyfin-gpu">
+      <p class="kicker">03</p>
+      <h2>Jellyfin: GPU y memoria dedicadas</h2>
+      <p class="intro">
+        Con la biblioteca creciendo, transcodificar por software empezaba a saturar la CPU
+        del host. Para evitarlo se pasó la iGPU (Quick Sync) del host por PCI passthrough
+        directamente a la VM, y se fijó la RAM de esa VM para que un pico de transcodificación
+        no compita por memoria con el resto del clúster.
+      </p>
+      <figure class="panel">
+        <div class="scroll-x">
+          <pre class="mermaid">
+flowchart LR
+    subgraph HOST["Host ESXi"]
+      IGPU["iGPU Intel<br/>Quick Sync"]
+    end
+    IGPU -->|"PCI passthrough<br/>DirectPath I/O"| VM["VM Ubuntu Server"]
+    subgraph VM2["dentro de la VM"]
+      DRI["/dev/dri"]
+      DOCKER["Contenedor Docker<br/>Jellyfin"]
+      DRI -->|"grupo render/video"| DOCKER
+    end
+    VM --> VM2
+    NVME["Datastore NVMe<br/>config + caché + carátulas"] --> DOCKER
+    NFS["Pool HDD · NFS<br/>biblioteca multimedia"] --> DOCKER
+          </pre>
+        </div>
+        <figcaption>Fig. 1 — Passthrough de GPU y volúmenes del contenedor de Jellyfin</figcaption>
+      </figure>
+
+      <div class="split" style="margin-top: 24px;">
+        <div class="half">
+          <h4>Passthrough de la iGPU</h4>
+          <p>El host que aloja la VM reserva su iGPU en exclusiva vía PCI passthrough
+            (DirectPath I/O): el hypervisor deja de gestionarla y el control pasa por
+            completo a la VM. Dentro de Ubuntu el dispositivo aparece como
+            <code>/dev/dri</code>; se dio permiso al usuario del contenedor (grupo
+            render/video) para que Jellyfin use Quick Sync (VAAPI) sin correr como root.
+            Contrapartida: mientras la iGPU esté pasada por passthrough, esa VM concreta
+            pierde vMotion/DRS y queda anclada a ese host — el resto del clúster sigue
+            con HA normal.</p>
+        </div>
+        <div class="half">
+          <h4>Memoria fijada</h4>
+          <p>En vSphere se igualaron reservation y limit de RAM para la VM: le garantiza
+            memoria mínima disponible siempre (sin swap ni contención con otras VMs) y
+            evita que un pico de transcodificación le quite RAM al resto del clúster.
+            Separa a Jellyfin del pool de memoria compartido, a cambio de reservar esa RAM
+            de forma fija aunque la VM esté inactiva.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="acceso">
+      <p class="kicker">04</p>
+      <h2>Acceso remoto</h2>
+      <p class="intro">
+        Jellyfin se publica hacia fuera con un túnel de Cloudflare: sin abrir un solo puerto
+        en el router MikroTik. El dominio se gestiona con el DNS de Cloudflare, que además
+        actúa como capa de proxy inverso frente al contenedor.
+      </p>
+      <figure class="panel">
+        <div class="scroll-x">
+          <pre class="mermaid">
+flowchart LR
+    U["Usuario<br/>(cualquier red)"] --> CF["Cloudflare<br/>DNS + Tunnel"]
+    CF -->|"conexión saliente<br/>sin puertos abiertos"| CFD["cloudflared<br/>contenedor Docker"]
+    CFD --> JF["Jellyfin<br/>Ubuntu Server · Docker"]
+          </pre>
+        </div>
+        <figcaption>Fig. 2 — Publicación de Jellyfin vía Cloudflare Tunnel</figcaption>
+      </figure>
+    </section>
+
+    <section id="historial">
+      <p class="kicker">05</p>
+      <h2>Evolución de este componente</h2>
+      <p class="intro">Cambios relevantes de cómputo, más recientes primero.</p>
+      <div class="history-mini">
+        <div class="history-row">
+          <span class="hdate">09/09/2026</span>
+          <span class="htitle"><strong>Hosts del clúster homogeneizados</strong> — los 3 pasan a Intel Core i7-8700; ya no hace falta fijar EVC en vCenter.</span>
+        </div>
+        <div class="history-row">
+          <span class="hdate">07/09/2026</span>
+          <span class="htitle"><strong>Jellyfin: GPU y memoria dedicadas</strong> — passthrough de iGPU (Quick Sync) y RAM con reservation=limit.</span>
+        </div>
+      </div>
+      <p class="intro" style="margin-top: 16px; margin-bottom: 0;">
+        <a href="changelog.html">Ver la evolución completa del laboratorio →</a>
+      </p>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  <p>
+    // Esta página describe el clúster de cómputo y las cargas de trabajo del laboratorio.
+    Se omiten intencionadamente direcciones IP, identificadores numéricos de VLAN, puertos
+    físicos del switch y cualquier credencial.<br/>
+    // Historial completo de cambios: <a href="changelog.html">página de evolución →</a>
+  </p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  (function () {
+    function initMermaid() {
+      if (typeof mermaid === "undefined") return false;
+      var isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      var themeAttr = document.documentElement.getAttribute("data-theme");
+      if (themeAttr) isDark = themeAttr === "dark";
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: isDark ? "dark" : "default",
+        securityLevel: "loose",
+        fontFamily: "ui-monospace, Consolas, monospace"
+      });
+      return true;
+    }
+    if (!initMermaid()) { window.addEventListener("load", initMermaid); }
+  })();
+
+  (function () {
+    var links = Array.prototype.slice.call(document.querySelectorAll("#toc a"));
+    var map = {};
+    links.forEach(function (a) { map[a.getAttribute("href").slice(1)] = a; });
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        var link = map[entry.target.id];
+        if (!link) return;
+        if (entry.isIntersecting) {
+          links.forEach(function (a) { a.classList.remove("active"); });
+          link.classList.add("active");
+        }
+      });
+    }, { rootMargin: "-20% 0px -70% 0px" });
+    document.querySelectorAll("main section[id]").forEach(function (s) { observer.observe(s); });
+  })();
+</script>

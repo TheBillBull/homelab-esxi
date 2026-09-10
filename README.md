@@ -4,14 +4,17 @@ Documentación de un laboratorio de virtualización doméstico: clúster de 3 ho
 
 **Página completa:** https://thebillbull.github.io/homelab-esxi/
 
-## Qué incluye
+## Estructura
 
-- Topología física del laboratorio (hosts, switch, router, TrueNAS) y cómo se reparten las NIC de cada equipo
-- Segmentación de red: 9 categorías de VLAN y su propósito
-- Configuración del clúster de virtualización (vDS, HA, DRS)
-- Diseño de almacenamiento: pools en espejo sobre TrueNAS, servidos por iSCSI y NFS
-- Cargas de trabajo: directorio activo/DNS y un servidor Jellyfin sobre Docker
-- Cómo se publica Jellyfin hacia fuera mediante un túnel de Cloudflare, sin abrir puertos
+Sitio estático de 5 páginas, sin build step:
+
+- `index.html` — Arquitectura: topología física, capa física, origen del hardware, alcance y próximos pasos
+- `almacenamiento.html` — Construcción física de TrueNAS, pools NVMe/HDD y protocolos, ampliación de capacidad
+- `red.html` — Las 10 categorías de VLAN y el aislamiento físico de la de Multimedia
+- `computo.html` — Clúster HA/DRS, cargas de trabajo, passthrough de GPU para Jellyfin, acceso remoto
+- `changelog.html` — Línea temporal con el histórico completo de cambios de infraestructura
+
+Cada página de detalle enlaza al final con su propio historial de cambios, y todo el historial completo vive en `changelog.html`.
 
 ## Nota sobre privacidad
 
@@ -19,4 +22,4 @@ Esta documentación describe decisiones de diseño y arquitectura, no la red en 
 
 ## Tecnología
 
-Página estática en HTML/CSS puro (sin frameworks ni dependencias), con diagramas en Mermaid. Publicada con GitHub Pages.
+Páginas estáticas en HTML/CSS puro (sin frameworks ni dependencias), con diagramas en Mermaid. Publicado con GitHub Pages.

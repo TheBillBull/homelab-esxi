@@ -1,0 +1,334 @@
+<title>Homelab ESXi: Red</title>
+<style>
+  :root {
+    --bg: #EEF1F4;
+    --grid-dot: rgba(20, 26, 34, 0.06);
+    --surface: #FFFFFF;
+    --surface-alt: #F5F7F9;
+    --text: #141A22;
+    --text-muted: #59636F;
+    --border: #D7DDE3;
+    --accent: #B6591A;
+    --accent-contrast: #FFFFFF;
+
+    --swatch-1: #3E6EA5;
+    --swatch-2: #6A5AC2;
+    --swatch-3: #1F8F82;
+    --swatch-4: #9B4FAE;
+    --swatch-5: #7C8B3E;
+    --swatch-6: #3E8C55;
+    --swatch-7: #B5871F;
+    --swatch-8: #C24A2E;
+    --swatch-9: #C2508A;
+    --swatch-10: #8C5A3C;
+
+    --font-display: ui-monospace, "Cascadia Code", "Cascadia Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    --font-body: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #10151B; --grid-dot: rgba(232, 236, 239, 0.05); --surface: #171E26;
+      --surface-alt: #1D2530; --text: #E8ECEF; --text-muted: #8D98A4; --border: #2B3641;
+      --accent: #E8A03D; --accent-contrast: #10151B;
+      --swatch-1: #6E97D1; --swatch-2: #9A8AE8; --swatch-3: #4FBFAF; --swatch-4: #C481D6;
+      --swatch-5: #A8B968; --swatch-6: #6FBB82; --swatch-7: #D9AD52; --swatch-8: #E2765A;
+      --swatch-9: #E284B0; --swatch-10: #C98F6C;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #10151B; --grid-dot: rgba(232, 236, 239, 0.05); --surface: #171E26;
+    --surface-alt: #1D2530; --text: #E8ECEF; --text-muted: #8D98A4; --border: #2B3641;
+    --accent: #E8A03D; --accent-contrast: #10151B;
+    --swatch-1: #6E97D1; --swatch-2: #9A8AE8; --swatch-3: #4FBFAF; --swatch-4: #C481D6;
+    --swatch-5: #A8B968; --swatch-6: #6FBB82; --swatch-7: #D9AD52; --swatch-8: #E2765A;
+    --swatch-9: #E284B0; --swatch-10: #C98F6C;
+  }
+
+  :root[data-theme="light"] {
+    --bg: #EEF1F4; --grid-dot: rgba(20, 26, 34, 0.06); --surface: #FFFFFF;
+    --surface-alt: #F5F7F9; --text: #141A22; --text-muted: #59636F; --border: #D7DDE3;
+    --accent: #B6591A; --accent-contrast: #FFFFFF;
+    --swatch-1: #3E6EA5; --swatch-2: #6A5AC2; --swatch-3: #1F8F82; --swatch-4: #9B4FAE;
+    --swatch-5: #7C8B3E; --swatch-6: #3E8C55; --swatch-7: #B5871F; --swatch-8: #C24A2E;
+    --swatch-9: #C2508A; --swatch-10: #8C5A3C;
+  }
+
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+
+  body {
+    margin: 0;
+    background: radial-gradient(var(--grid-dot) 1px, transparent 1px);
+    background-size: 22px 22px;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: var(--accent); }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .sitenav {
+    position: sticky; top: 0; z-index: 20;
+    border-top: 4px solid var(--accent); border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .sitenav-inner {
+    max-width: 1180px; margin: 0 auto; padding: 0 32px; height: 52px;
+    display: flex; align-items: center; justify-content: space-between; gap: 24px;
+  }
+  .sitenav-brand { font-family: var(--font-display); font-size: 13px; font-weight: 600; color: var(--text); text-decoration: none; white-space: nowrap; }
+  .sitenav-links { display: flex; gap: 2px; overflow-x: auto; }
+  .sitenav-links a {
+    font-family: var(--font-display); font-size: 12px; text-transform: uppercase;
+    letter-spacing: 0.06em; text-decoration: none; color: var(--text-muted);
+    padding: 8px 12px; white-space: nowrap; border-bottom: 2px solid transparent;
+    transition: color 120ms ease, border-color 120ms ease;
+  }
+  .sitenav-links a:hover { color: var(--text); }
+  .sitenav-links a[aria-current="page"] { color: var(--accent); border-bottom-color: var(--accent); }
+  @media (max-width: 640px) { .sitenav-inner { padding: 0 16px; } .sitenav-brand { display: none; } }
+
+  h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; font-weight: 600; letter-spacing: -0.01em; margin: 0; }
+
+  .subhead { border-bottom: 1px solid var(--border); background: var(--surface); }
+  .subhead-inner { max-width: 1180px; margin: 0 auto; padding: 40px 32px 28px; }
+  .breadcrumb { font-family: var(--font-display); font-size: 12px; color: var(--text-muted); letter-spacing: 0.03em; margin: 0 0 14px 0; }
+  .breadcrumb a { color: var(--text-muted); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--accent); }
+  .breadcrumb .sep { margin: 0 8px; color: var(--border); }
+  .subhead .eyebrow { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.12em; font-size: 12px; color: var(--swatch-1); margin: 0 0 10px 0; }
+  .subhead h1 { font-size: clamp(26px, 3.6vw, 36px); max-width: 22ch; }
+  .subhead p.lede { max-width: 64ch; color: var(--text-muted); font-size: 15.5px; margin: 14px 0 0 0; }
+
+  .layout {
+    max-width: 1180px; margin: 0 auto; padding: 40px 32px 80px;
+    display: grid; grid-template-columns: 208px 1fr; gap: 48px; align-items: start;
+  }
+  .toc { position: sticky; top: 68px; display: flex; flex-direction: column; gap: 2px; }
+  .toc a {
+    font-family: var(--font-display); font-size: 12px; text-transform: uppercase;
+    letter-spacing: 0.06em; text-decoration: none; color: var(--text-muted);
+    padding: 7px 10px; border-left: 2px solid transparent;
+    transition: color 120ms ease, border-color 120ms ease, background 120ms ease;
+  }
+  .toc a:hover { color: var(--text); background: var(--surface-alt); }
+  .toc a.active { color: var(--accent); border-left-color: var(--accent); background: var(--surface-alt); }
+
+  main { min-width: 0; }
+  section { padding-top: 8px; margin-bottom: 64px; scroll-margin-top: 76px; }
+  section .kicker { font-family: var(--font-display); font-size: 12px; color: var(--text-muted); letter-spacing: 0.06em; }
+  section h2 { font-size: 22px; margin: 4px 0 14px 0; }
+  section > p.intro { max-width: 68ch; color: var(--text-muted); margin: 0 0 24px 0; }
+
+  .panel { border: 1px solid var(--border); background: var(--surface); }
+  .scroll-x { overflow-x: auto; }
+
+  table { width: 100%; min-width: 560px; border-collapse: collapse; font-size: 14.5px; }
+  thead th {
+    text-align: left; font-family: var(--font-display); font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--text-muted); font-weight: 500; padding: 12px 16px;
+    border-bottom: 1px solid var(--border); background: var(--surface-alt);
+  }
+  tbody td { padding: 13px 16px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--surface-alt); }
+
+  .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 9px; vertical-align: middle; flex: none; }
+  .cat-name { display: flex; align-items: center; font-weight: 600; white-space: nowrap; }
+
+  .note {
+    border-left: 3px solid var(--accent); background: var(--surface-alt); padding: 14px 18px;
+    font-size: 14.5px; color: var(--text); margin-top: 20px;
+  }
+  .note .note-label { font-family: var(--font-display); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); display: block; margin-bottom: 6px; }
+
+  .history-mini { border: 1px solid var(--border); background: var(--surface); }
+  .history-row { display: flex; gap: 16px; padding: 14px 20px; border-bottom: 1px solid var(--border); align-items: baseline; flex-wrap: wrap; }
+  .history-row:last-child { border-bottom: none; }
+  .history-row .hdate { font-family: var(--font-display); font-size: 11.5px; color: var(--text-muted); white-space: nowrap; font-variant-numeric: tabular-nums; min-width: 84px; }
+  .history-row .htitle { font-size: 14.5px; flex: 1; min-width: 200px; }
+  .history-row .htitle strong { font-weight: 600; }
+
+  footer { max-width: 1180px; margin: 0 auto; padding: 28px 32px 60px; border-top: 1px solid var(--border); }
+  footer p { font-family: var(--font-display); font-size: 12px; color: var(--text-muted); max-width: 70ch; line-height: 1.7; }
+  footer a { color: var(--accent); }
+
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 1fr; }
+    .toc {
+      position: static; flex-direction: row; overflow-x: auto; gap: 4px;
+      padding-bottom: 6px; border-bottom: 1px solid var(--border); margin-bottom: 8px;
+    }
+    .toc a { border-left: none; border-bottom: 2px solid transparent; white-space: nowrap; }
+    .toc a.active { border-left-color: transparent; border-bottom-color: var(--accent); }
+  }
+</style>
+
+<nav class="sitenav">
+  <div class="sitenav-inner">
+    <a class="sitenav-brand" href="index.html">Homelab ESXi</a>
+    <div class="sitenav-links">
+      <a href="index.html">Arquitectura</a>
+      <a href="almacenamiento.html">Almacenamiento</a>
+      <a href="red.html" aria-current="page">Red</a>
+      <a href="computo.html">Cómputo</a>
+      <a href="changelog.html">Evolución</a>
+    </div>
+  </div>
+</nav>
+
+<header class="subhead">
+  <div class="subhead-inner">
+    <p class="breadcrumb"><a href="index.html">Homelab ESXi</a><span class="sep">/</span>Red</p>
+    <p class="eyebrow">Segmentación · VLANs · Aislamiento</p>
+    <h1>Red</h1>
+    <p class="lede">
+      10 categorías de VLAN, cada una con un propósito claro. Por seguridad se omiten aquí
+      los identificadores numéricos y los rangos de IP — lo que importa para entender el
+      diseño es qué tráfico va por dónde y por qué.
+    </p>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="toc" id="toc">
+    <a href="#categorias">Categorías de VLAN</a>
+    <a href="#aislamiento">Aislamiento físico</a>
+    <a href="#historial">Evolución de este componente</a>
+  </nav>
+
+  <main>
+
+    <section id="categorias">
+      <p class="kicker">01</p>
+      <h2>Categorías de VLAN</h2>
+      <p class="intro">
+        Ver <a href="index.html#topologia">Topología física</a> para cómo se reparten estas
+        VLANs entre las NIC físicas de cada host y de TrueNAS.
+      </p>
+      <div class="panel">
+        <div class="scroll-x">
+          <table>
+            <thead>
+              <tr><th style="width: 30%;">Categoría</th><th>Propósito</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="cat-name"><span class="swatch" style="background:var(--swatch-1)"></span>Gestión (Management)</span></td>
+                <td>Administración de la plataforma: vCenter Server, interfaces vmk0 de los ESXi, interfaz web de TrueNAS y consola del switch.</td>
+              </tr>
+              <tr>
+                <td><span class="cat-name"><span class="swatch" style="background:var(--swatch-2)"></span>Migración en vivo (vMotion)</span></td>
+                <td>Red aislada de alta velocidad, dedicada en exclusiva a mover memoria RAM de las VMs entre hosts durante una migración en caliente.</td>
+              </tr>
+              <tr>
+                <td><span class="cat-name"><span class="swatch" style="background:var(--swatch-3)"></span>Almacenamiento (iSCSI)</span></td>
+                <td>Tráfico de bloques entre TrueNAS y los hipervisores. Sin etiquetar, en NIC dedicadas, para multipathing real con dos caminos independientes.</td>
+              </tr>
+              <tr>
+                <td><span class="cat-name"><span class="swatch" style="background:var(--swatch-4)"></span>Réplica y protección</span></td>
+                <td>Canal para replicación de VMs (vSphere Replication) y tolerancia a fallos entre hosts.</td>
+              </tr>
+              <tr>
+                <td><span class="cat-name"><span class="swatch" style="background:var(--swatch-5)"></span>Clúster y control</span></td>
+                <td>Red aislada para componentes de control de la plataforma de nivel superior, separada del tráfico de producción — DMZ interna.</td>
+              </tr>
+              <tr>
+                <td><span class="cat-name"><span class="swatch" style="background:var(--swatch-6)"></span>Producción</span></td>
+                <td>Tráfico normal de las VMs que prestan servicio: el dominio AD/DNS, Jellyfin, y lo que venga después.</td>
+              </tr>
+              <tr>
+                <td><span class="cat-name"><span class="swatch" style="background:var(--swatch-10)"></span>Multimedia</span></td>
+                <td>Tráfico de archivos entre TrueNAS y los consumidores de la biblioteca multimedia: Jellyfin por NFS, y SMB para el repositorio de ISOs y para montar el pool como unidad de red en el portátil de trabajo.</td>
+              </tr>
+              <tr>
+                <td><span class="cat-name"><span class="swatch" style="background:var(--swatch-7)"></span>Transporte SDN (NSX-TEP)</span></td>
+                <td>Segmento reservado para túneles de red overlay — preparado para una futura adopción de NSX, aún sin activar.</td>
+              </tr>
+              <tr>
+                <td><span class="cat-name"><span class="swatch" style="background:var(--swatch-8)"></span>Extranet (DMZ frontend)</span></td>
+                <td>Segmento de salida para lo que necesita ser accesible desde fuera del laboratorio.</td>
+              </tr>
+              <tr>
+                <td><span class="cat-name"><span class="swatch" style="background:var(--swatch-9)"></span>Clientes de red</span></td>
+                <td>Tráfico nativo de dispositivos de usuario final conectados a la red.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="aislamiento">
+      <p class="kicker">02</p>
+      <h2>Aislamiento físico de Multimedia</h2>
+      <p class="intro">
+        La VLAN de Multimedia no es solo una etiqueta compartiendo cable con otro tráfico:
+        en TrueNAS tiene un puerto físico propio, sin repartir con gestión, iSCSI ni
+        producción (ver <a href="almacenamiento.html#construccion">construcción física de
+        TrueNAS</a>).
+      </p>
+      <div class="note">
+        <span class="note-label">Por qué</span>
+        Con varios usuarios viendo streaming a la vez, ese tráfico no compite por ancho de
+        banda con las VMs de producción que se vayan añadiendo — el streaming no corta y las
+        cargas importantes no se resienten, aunque la biblioteca esté muy solicitada. Es
+        segmentación a nivel de cableado, no solo de configuración lógica del switch.
+      </div>
+    </section>
+
+    <section id="historial">
+      <p class="kicker">03</p>
+      <h2>Evolución de este componente</h2>
+      <p class="intro">Cambios relevantes de red, más recientes primero.</p>
+      <div class="history-mini">
+        <div class="history-row">
+          <span class="hdate">07/09/2026</span>
+          <span class="htitle"><strong>Aislamiento físico de la VLAN Multimedia</strong> — puerto dedicado en TrueNAS, sin compartir con gestión/iSCSI/producción.</span>
+        </div>
+        <div class="history-row">
+          <span class="hdate">07/09/2026</span>
+          <span class="htitle"><strong>10 categorías de VLAN documentadas</strong> — se añade Multimedia, separando el tráfico de Jellyfin/ISOs/unidad de red del resto de producción.</span>
+        </div>
+      </div>
+      <p class="intro" style="margin-top: 16px; margin-bottom: 0;">
+        <a href="changelog.html">Ver la evolución completa del laboratorio →</a>
+      </p>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  <p>
+    // Esta página describe la segmentación de red del laboratorio. Se omiten
+    intencionadamente direcciones IP, identificadores numéricos de VLAN, puertos físicos del
+    switch y cualquier credencial.<br/>
+    // Historial completo de cambios: <a href="changelog.html">página de evolución →</a>
+  </p>
+</footer>
+
+<script>
+  (function () {
+    var links = Array.prototype.slice.call(document.querySelectorAll("#toc a"));
+    var map = {};
+    links.forEach(function (a) { map[a.getAttribute("href").slice(1)] = a; });
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        var link = map[entry.target.id];
+        if (!link) return;
+        if (entry.isIntersecting) {
+          links.forEach(function (a) { a.classList.remove("active"); });
+          link.classList.add("active");
+        }
+      });
+    }, { rootMargin: "-20% 0px -70% 0px" });
+    document.querySelectorAll("main section[id]").forEach(function (s) { observer.observe(s); });
+  })();
+</script>
