@@ -1,25 +1,31 @@
 # Homelab ESXi — Documentación de arquitectura
 
-Documentación de un laboratorio de virtualización doméstico: clúster de 3 hosts ESXi, almacenamiento compartido en TrueNAS, red segmentada sobre un switch Cisco L3 y salida a internet por un router MikroTik.
+Documentación pública de un laboratorio de virtualización doméstico: clúster VMware ESXi con
+hardware reacondicionado, almacenamiento compartido en TrueNAS, red segmentada en un switch de
+capa 3 y un servicio publicado en internet a través de un reverse proxy propio en DMZ.
 
-**Página completa:** https://thebillbull.github.io/homelab-esxi/
+**Web:** https://thebillbull.github.io/homelab-esxi/
 
-## Estructura
+## Páginas
 
-Sitio estático de 5 páginas, sin build step:
+| Fichero | Contenido |
+|---|---|
+| `index.html` | Arquitectura: estado del laboratorio, topología, capa física, origen del hardware y método de trabajo |
+| `red.html` | Plan de VLANs, qué se enruta, almacenamiento con dos caminos, DMZ con su ACL y renovación del switch |
+| `almacenamiento.html` | Construcción de TrueNAS, pools y protocolos, datastores y una ampliación de capacidad |
+| `computo.html` | Clúster y alta disponibilidad, cargas de trabajo y el postmortem de una incidencia |
+| `publicacion.html` | Del túnel de Cloudflare al reverse proxy propio: recorrido, capas de protección y pruebas |
+| `changelog.html` | Historial de cambios reales |
+| `assets/site.css`, `assets/site.js` | Estilos y comportamiento comunes (diagramas Mermaid e índice lateral) |
 
-- `index.html` — Arquitectura: topología física, capa física, origen del hardware, alcance y próximos pasos
-- `almacenamiento.html` — Construcción física de TrueNAS, pools NVMe/HDD y protocolos, ampliación de capacidad
-- `red.html` — Las 10 categorías de VLAN y el aislamiento físico de la de Multimedia
-- `computo.html` — Clúster HA/DRS, cargas de trabajo, passthrough de GPU para Jellyfin, acceso remoto
-- `changelog.html` — Línea temporal con el histórico completo de cambios de infraestructura
+Cada componente se marca con su estado real: **en servicio**, **en curso** o **planificado**.
 
-Cada página de detalle enlaza al final con su propio historial de cambios, y todo el historial completo vive en `changelog.html`.
+## Privacidad
 
-## Nota sobre privacidad
-
-Esta documentación describe decisiones de diseño y arquitectura, no la red en sí: se omiten intencionadamente direcciones IP, identificadores numéricos de VLAN, puertos físicos del switch y cualquier credencial.
+Se omiten a propósito direcciones IP, puertos físicos, nombres de dominio y cualquier credencial.
+Los identificadores de VLAN son **ilustrativos**: la estructura del plan es la real, la numeración no.
 
 ## Tecnología
 
-Páginas estáticas en HTML/CSS puro (sin frameworks ni dependencias), con diagramas en Mermaid. Publicado con GitHub Pages.
+HTML y CSS estáticos, sin build ni frameworks. Diagramas con Mermaid y tipografías de Google Fonts
+(Chakra Petch, IBM Plex Sans, IBM Plex Mono). Publicado con GitHub Pages.

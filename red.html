@@ -1,334 +1,235 @@
-<title>Homelab ESXi: Red</title>
-<style>
-  :root {
-    --bg: #EEF1F4;
-    --grid-dot: rgba(20, 26, 34, 0.06);
-    --surface: #FFFFFF;
-    --surface-alt: #F5F7F9;
-    --text: #141A22;
-    --text-muted: #59636F;
-    --border: #D7DDE3;
-    --accent: #B6591A;
-    --accent-contrast: #FFFFFF;
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Homelab ESXi · Red</title>
+<meta name="description" content="Segmentación del homelab: plan de VLANs, qué se enruta y qué no, almacenamiento con dos caminos y una DMZ aislada con ACL verificada.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23161B21'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%232FBF71'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<a class="skip" href="#contenido">Saltar al contenido</a>
 
-    --swatch-1: #3E6EA5;
-    --swatch-2: #6A5AC2;
-    --swatch-3: #1F8F82;
-    --swatch-4: #9B4FAE;
-    --swatch-5: #7C8B3E;
-    --swatch-6: #3E8C55;
-    --swatch-7: #B5871F;
-    --swatch-8: #C24A2E;
-    --swatch-9: #C2508A;
-    --swatch-10: #8C5A3C;
-
-    --font-display: ui-monospace, "Cascadia Code", "Cascadia Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-    --font-body: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #10151B; --grid-dot: rgba(232, 236, 239, 0.05); --surface: #171E26;
-      --surface-alt: #1D2530; --text: #E8ECEF; --text-muted: #8D98A4; --border: #2B3641;
-      --accent: #E8A03D; --accent-contrast: #10151B;
-      --swatch-1: #6E97D1; --swatch-2: #9A8AE8; --swatch-3: #4FBFAF; --swatch-4: #C481D6;
-      --swatch-5: #A8B968; --swatch-6: #6FBB82; --swatch-7: #D9AD52; --swatch-8: #E2765A;
-      --swatch-9: #E284B0; --swatch-10: #C98F6C;
-    }
-  }
-
-  :root[data-theme="dark"] {
-    --bg: #10151B; --grid-dot: rgba(232, 236, 239, 0.05); --surface: #171E26;
-    --surface-alt: #1D2530; --text: #E8ECEF; --text-muted: #8D98A4; --border: #2B3641;
-    --accent: #E8A03D; --accent-contrast: #10151B;
-    --swatch-1: #6E97D1; --swatch-2: #9A8AE8; --swatch-3: #4FBFAF; --swatch-4: #C481D6;
-    --swatch-5: #A8B968; --swatch-6: #6FBB82; --swatch-7: #D9AD52; --swatch-8: #E2765A;
-    --swatch-9: #E284B0; --swatch-10: #C98F6C;
-  }
-
-  :root[data-theme="light"] {
-    --bg: #EEF1F4; --grid-dot: rgba(20, 26, 34, 0.06); --surface: #FFFFFF;
-    --surface-alt: #F5F7F9; --text: #141A22; --text-muted: #59636F; --border: #D7DDE3;
-    --accent: #B6591A; --accent-contrast: #FFFFFF;
-    --swatch-1: #3E6EA5; --swatch-2: #6A5AC2; --swatch-3: #1F8F82; --swatch-4: #9B4FAE;
-    --swatch-5: #7C8B3E; --swatch-6: #3E8C55; --swatch-7: #B5871F; --swatch-8: #C24A2E;
-    --swatch-9: #C2508A; --swatch-10: #8C5A3C;
-  }
-
-  * { box-sizing: border-box; }
-  html { background: var(--bg); }
-  @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
-
-  body {
-    margin: 0;
-    background: radial-gradient(var(--grid-dot) 1px, transparent 1px);
-    background-size: 22px 22px;
-    color: var(--text);
-    font-family: var(--font-body);
-    font-size: 16px;
-    line-height: 1.6;
-    -webkit-font-smoothing: antialiased;
-  }
-
-  a { color: var(--accent); }
-  a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-
-  .sitenav {
-    position: sticky; top: 0; z-index: 20;
-    border-top: 4px solid var(--accent); border-bottom: 1px solid var(--border);
-    background: var(--surface);
-  }
-  .sitenav-inner {
-    max-width: 1180px; margin: 0 auto; padding: 0 32px; height: 52px;
-    display: flex; align-items: center; justify-content: space-between; gap: 24px;
-  }
-  .sitenav-brand { font-family: var(--font-display); font-size: 13px; font-weight: 600; color: var(--text); text-decoration: none; white-space: nowrap; }
-  .sitenav-links { display: flex; gap: 2px; overflow-x: auto; }
-  .sitenav-links a {
-    font-family: var(--font-display); font-size: 12px; text-transform: uppercase;
-    letter-spacing: 0.06em; text-decoration: none; color: var(--text-muted);
-    padding: 8px 12px; white-space: nowrap; border-bottom: 2px solid transparent;
-    transition: color 120ms ease, border-color 120ms ease;
-  }
-  .sitenav-links a:hover { color: var(--text); }
-  .sitenav-links a[aria-current="page"] { color: var(--accent); border-bottom-color: var(--accent); }
-  @media (max-width: 640px) { .sitenav-inner { padding: 0 16px; } .sitenav-brand { display: none; } }
-
-  h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; font-weight: 600; letter-spacing: -0.01em; margin: 0; }
-
-  .subhead { border-bottom: 1px solid var(--border); background: var(--surface); }
-  .subhead-inner { max-width: 1180px; margin: 0 auto; padding: 40px 32px 28px; }
-  .breadcrumb { font-family: var(--font-display); font-size: 12px; color: var(--text-muted); letter-spacing: 0.03em; margin: 0 0 14px 0; }
-  .breadcrumb a { color: var(--text-muted); text-decoration: none; }
-  .breadcrumb a:hover { color: var(--accent); }
-  .breadcrumb .sep { margin: 0 8px; color: var(--border); }
-  .subhead .eyebrow { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.12em; font-size: 12px; color: var(--swatch-1); margin: 0 0 10px 0; }
-  .subhead h1 { font-size: clamp(26px, 3.6vw, 36px); max-width: 22ch; }
-  .subhead p.lede { max-width: 64ch; color: var(--text-muted); font-size: 15.5px; margin: 14px 0 0 0; }
-
-  .layout {
-    max-width: 1180px; margin: 0 auto; padding: 40px 32px 80px;
-    display: grid; grid-template-columns: 208px 1fr; gap: 48px; align-items: start;
-  }
-  .toc { position: sticky; top: 68px; display: flex; flex-direction: column; gap: 2px; }
-  .toc a {
-    font-family: var(--font-display); font-size: 12px; text-transform: uppercase;
-    letter-spacing: 0.06em; text-decoration: none; color: var(--text-muted);
-    padding: 7px 10px; border-left: 2px solid transparent;
-    transition: color 120ms ease, border-color 120ms ease, background 120ms ease;
-  }
-  .toc a:hover { color: var(--text); background: var(--surface-alt); }
-  .toc a.active { color: var(--accent); border-left-color: var(--accent); background: var(--surface-alt); }
-
-  main { min-width: 0; }
-  section { padding-top: 8px; margin-bottom: 64px; scroll-margin-top: 76px; }
-  section .kicker { font-family: var(--font-display); font-size: 12px; color: var(--text-muted); letter-spacing: 0.06em; }
-  section h2 { font-size: 22px; margin: 4px 0 14px 0; }
-  section > p.intro { max-width: 68ch; color: var(--text-muted); margin: 0 0 24px 0; }
-
-  .panel { border: 1px solid var(--border); background: var(--surface); }
-  .scroll-x { overflow-x: auto; }
-
-  table { width: 100%; min-width: 560px; border-collapse: collapse; font-size: 14.5px; }
-  thead th {
-    text-align: left; font-family: var(--font-display); font-size: 11px; text-transform: uppercase;
-    letter-spacing: 0.06em; color: var(--text-muted); font-weight: 500; padding: 12px 16px;
-    border-bottom: 1px solid var(--border); background: var(--surface-alt);
-  }
-  tbody td { padding: 13px 16px; border-bottom: 1px solid var(--border); vertical-align: top; }
-  tbody tr:last-child td { border-bottom: none; }
-  tbody tr:hover td { background: var(--surface-alt); }
-
-  .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 9px; vertical-align: middle; flex: none; }
-  .cat-name { display: flex; align-items: center; font-weight: 600; white-space: nowrap; }
-
-  .note {
-    border-left: 3px solid var(--accent); background: var(--surface-alt); padding: 14px 18px;
-    font-size: 14.5px; color: var(--text); margin-top: 20px;
-  }
-  .note .note-label { font-family: var(--font-display); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); display: block; margin-bottom: 6px; }
-
-  .history-mini { border: 1px solid var(--border); background: var(--surface); }
-  .history-row { display: flex; gap: 16px; padding: 14px 20px; border-bottom: 1px solid var(--border); align-items: baseline; flex-wrap: wrap; }
-  .history-row:last-child { border-bottom: none; }
-  .history-row .hdate { font-family: var(--font-display); font-size: 11.5px; color: var(--text-muted); white-space: nowrap; font-variant-numeric: tabular-nums; min-width: 84px; }
-  .history-row .htitle { font-size: 14.5px; flex: 1; min-width: 200px; }
-  .history-row .htitle strong { font-weight: 600; }
-
-  footer { max-width: 1180px; margin: 0 auto; padding: 28px 32px 60px; border-top: 1px solid var(--border); }
-  footer p { font-family: var(--font-display); font-size: 12px; color: var(--text-muted); max-width: 70ch; line-height: 1.7; }
-  footer a { color: var(--accent); }
-
-  @media (max-width: 860px) {
-    .layout { grid-template-columns: 1fr; }
-    .toc {
-      position: static; flex-direction: row; overflow-x: auto; gap: 4px;
-      padding-bottom: 6px; border-bottom: 1px solid var(--border); margin-bottom: 8px;
-    }
-    .toc a { border-left: none; border-bottom: 2px solid transparent; white-space: nowrap; }
-    .toc a.active { border-left-color: transparent; border-bottom-color: var(--accent); }
-  }
-</style>
-
-<nav class="sitenav">
+<nav class="sitenav" aria-label="Secciones del sitio">
   <div class="sitenav-inner">
-    <a class="sitenav-brand" href="index.html">Homelab ESXi</a>
-    <div class="sitenav-links">
+    <a class="brand" href="index.html"><span class="led led--on" aria-hidden="true"></span><span>Homelab ESXi</span></a>
+    <div class="navlinks">
       <a href="index.html">Arquitectura</a>
-      <a href="almacenamiento.html">Almacenamiento</a>
       <a href="red.html" aria-current="page">Red</a>
+      <a href="almacenamiento.html">Almacenamiento</a>
       <a href="computo.html">Cómputo</a>
+      <a href="publicacion.html">Publicación</a>
       <a href="changelog.html">Evolución</a>
     </div>
   </div>
 </nav>
 
-<header class="subhead">
-  <div class="subhead-inner">
-    <p class="breadcrumb"><a href="index.html">Homelab ESXi</a><span class="sep">/</span>Red</p>
-    <p class="eyebrow">Segmentación · VLANs · Aislamiento</p>
-    <h1>Red</h1>
+<header class="masthead">
+  <div class="masthead-inner">
+    <span class="tape">Red · Segmentación · DMZ</span>
+    <h1>Cada tipo de tráfico en su sitio, y el expuesto, encerrado</h1>
     <p class="lede">
-      10 categorías de VLAN, cada una con un propósito claro. Por seguridad se omiten aquí
-      los identificadores numéricos y los rangos de IP — lo que importa para entender el
-      diseño es qué tráfico va por dónde y por qué.
+      El switch de núcleo separa el tráfico en VLANs y enruta solo las que lo necesitan. El
+      almacenamiento y la migración de VMs viven en redes sin salida. El único segmento que recibe
+      conexiones de internet solo puede hablar con el servicio que publica.
     </p>
+    <p class="disclaimer">Identificadores de VLAN ilustrativos: la estructura es la real, la numeración no.</p>
   </div>
 </header>
 
 <div class="layout">
-  <nav class="toc" id="toc">
-    <a href="#categorias">Categorías de VLAN</a>
-    <a href="#aislamiento">Aislamiento físico</a>
-    <a href="#historial">Evolución de este componente</a>
+  <nav class="toc" id="toc" aria-label="En esta página">
+    <a href="#vlans">Plan de VLANs</a>
+    <a href="#routing">Qué se enruta</a>
+    <a href="#iscsi">Almacenamiento</a>
+    <a href="#dmz">DMZ</a>
+    <a href="#multimedia">Tráfico multimedia</a>
+    <a href="#switch">Renovación del switch</a>
   </nav>
 
-  <main>
+  <main id="contenido">
 
-    <section id="categorias">
-      <p class="kicker">01</p>
-      <h2>Categorías de VLAN</h2>
+    <section id="vlans">
+      <span class="tape tape--small">Plan de VLANs</span>
+      <h2>Diseñado entero, desplegado según hace falta</h2>
       <p class="intro">
-        Ver <a href="index.html#topologia">Topología física</a> para cómo se reparten estas
-        VLANs entre las NIC físicas de cada host y de TrueNAS.
+        El plan reserva un segmento para cada función que el laboratorio tendrá tarde o temprano.
+        Solo cinco están en uso hoy; el resto existe en el switch pero vacío, listo para cuando llegue
+        su momento. La columna de estado dice cuál es cuál.
       </p>
-      <div class="panel">
-        <div class="scroll-x">
-          <table>
-            <thead>
-              <tr><th style="width: 30%;">Categoría</th><th>Propósito</th></tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><span class="cat-name"><span class="swatch" style="background:var(--swatch-1)"></span>Gestión (Management)</span></td>
-                <td>Administración de la plataforma: vCenter Server, interfaces vmk0 de los ESXi, interfaz web de TrueNAS y consola del switch.</td>
-              </tr>
-              <tr>
-                <td><span class="cat-name"><span class="swatch" style="background:var(--swatch-2)"></span>Migración en vivo (vMotion)</span></td>
-                <td>Red aislada de alta velocidad, dedicada en exclusiva a mover memoria RAM de las VMs entre hosts durante una migración en caliente.</td>
-              </tr>
-              <tr>
-                <td><span class="cat-name"><span class="swatch" style="background:var(--swatch-3)"></span>Almacenamiento (iSCSI)</span></td>
-                <td>Tráfico de bloques entre TrueNAS y los hipervisores. Sin etiquetar, en NIC dedicadas, para multipathing real con dos caminos independientes.</td>
-              </tr>
-              <tr>
-                <td><span class="cat-name"><span class="swatch" style="background:var(--swatch-4)"></span>Réplica y protección</span></td>
-                <td>Canal para replicación de VMs (vSphere Replication) y tolerancia a fallos entre hosts.</td>
-              </tr>
-              <tr>
-                <td><span class="cat-name"><span class="swatch" style="background:var(--swatch-5)"></span>Clúster y control</span></td>
-                <td>Red aislada para componentes de control de la plataforma de nivel superior, separada del tráfico de producción — DMZ interna.</td>
-              </tr>
-              <tr>
-                <td><span class="cat-name"><span class="swatch" style="background:var(--swatch-6)"></span>Producción</span></td>
-                <td>Tráfico normal de las VMs que prestan servicio: el dominio AD/DNS, Jellyfin, y lo que venga después.</td>
-              </tr>
-              <tr>
-                <td><span class="cat-name"><span class="swatch" style="background:var(--swatch-10)"></span>Multimedia</span></td>
-                <td>Tráfico de archivos entre TrueNAS y los consumidores de la biblioteca multimedia: Jellyfin por NFS, y SMB para el repositorio de ISOs y para montar el pool como unidad de red en el portátil de trabajo.</td>
-              </tr>
-              <tr>
-                <td><span class="cat-name"><span class="swatch" style="background:var(--swatch-7)"></span>Transporte SDN (NSX-TEP)</span></td>
-                <td>Segmento reservado para túneles de red overlay — preparado para una futura adopción de NSX, aún sin activar.</td>
-              </tr>
-              <tr>
-                <td><span class="cat-name"><span class="swatch" style="background:var(--swatch-8)"></span>Extranet (DMZ frontend)</span></td>
-                <td>Segmento de salida para lo que necesita ser accesible desde fuera del laboratorio.</td>
-              </tr>
-              <tr>
-                <td><span class="cat-name"><span class="swatch" style="background:var(--swatch-9)"></span>Clientes de red</span></td>
-                <td>Tráfico nativo de dispositivos de usuario final conectados a la red.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+      <div class="panel scroll-x">
+        <table class="datatable">
+          <thead>
+            <tr><th>VLAN</th><th>Función</th><th>Qué pasa por ella</th><th>Salida</th><th>Estado</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="mono">101</td><td>Gestión</td><td>vCenter, interfaces de gestión de los ESXi, TrueNAS, equipos de red</td><td class="muted">Enrutada</td><td><span class="state"><span class="led led--on" aria-hidden="true"></span>En uso</span></td></tr>
+            <tr><td class="mono">102</td><td>Migración en caliente</td><td>Memoria de las VMs durante vMotion</td><td class="muted">Solo L2</td><td><span class="state"><span class="led led--plan" aria-hidden="true"></span>Planificada</span></td></tr>
+            <tr><td class="mono">103</td><td>Almacenamiento</td><td>iSCSI entre TrueNAS y los hosts, dos caminos independientes</td><td class="muted">Solo L2</td><td><span class="state"><span class="led led--on" aria-hidden="true"></span>En uso</span></td></tr>
+            <tr><td class="mono">104</td><td>Réplica y protección</td><td>vSphere Replication / tolerancia a fallos</td><td class="muted">Solo L2</td><td><span class="state"><span class="led led--plan" aria-hidden="true"></span>Reservada</span></td></tr>
+            <tr><td class="mono">105</td><td>Control de plataforma</td><td>Componentes de control de nivel superior</td><td class="muted">Enrutada</td><td><span class="state"><span class="led led--plan" aria-hidden="true"></span>Reservada</span></td></tr>
+            <tr><td class="mono">201</td><td>Servidores</td><td>VMs que dan servicio, incluido el servidor multimedia</td><td class="muted">Enrutada</td><td><span class="state"><span class="led led--on" aria-hidden="true"></span>En uso</span></td></tr>
+            <tr><td class="mono">202</td><td>Transporte SDN</td><td>Túneles Geneve de NSX</td><td class="muted">Solo L2</td><td><span class="state"><span class="led led--plan" aria-hidden="true"></span>Reservada</span></td></tr>
+            <tr><td class="mono">301</td><td>DMZ frontal</td><td>El proxy que recibe las conexiones de internet</td><td class="muted">Enrutada, con ACL</td><td><span class="state"><span class="led led--on" aria-hidden="true"></span>En uso</span></td></tr>
+            <tr><td class="mono">401</td><td>Clientes</td><td>Dispositivos de usuario final</td><td class="muted">Enrutada</td><td><span class="state"><span class="led led--plan" aria-hidden="true"></span>Reservada</span></td></tr>
+            <tr><td class="mono">901</td><td>Tránsito</td><td>Enlace punto a punto entre el switch de núcleo y el router de borde</td><td class="muted">Enlace /30</td><td><span class="state"><span class="led led--on" aria-hidden="true"></span>En uso</span></td></tr>
+          </tbody>
+        </table>
       </div>
     </section>
 
-    <section id="aislamiento">
-      <p class="kicker">02</p>
-      <h2>Aislamiento físico de Multimedia</h2>
+    <section id="routing">
+      <span class="tape tape--small">Enrutamiento</span>
+      <h2>Qué se enruta y qué no</h2>
+      <div class="prose">
+        <p>
+          El switch de núcleo trabaja en capa 3: tiene una interfaz en cada VLAN que necesita hablar con
+          otras, y hace de puerta de enlace para ellas. Su ruta por defecto apunta al router de borde a
+          través de la VLAN de tránsito, y el router de borde hace NAT hacia internet.
+        </p>
+        <p>
+          Las VLANs de almacenamiento, migración, réplica y SDN <strong>no tienen interfaz en el
+          switch, a propósito</strong>. Sin puerta de enlace no hay forma de enrutar hasta ellas desde
+          otro segmento: el tráfico de discos y de memoria de las VMs no puede alcanzarse ni por error.
+          Se comprobó intentando llegar al almacenamiento desde fuera de su red: sin respuesta.
+        </p>
+        <p>
+          La administración se hace desde un equipo concreto de la red doméstica, con su IP reservada
+          en el DHCP. Esas IPs son las únicas que el segmento DMZ tiene permitido contestar.
+        </p>
+      </div>
+    </section>
+
+    <section id="iscsi">
+      <span class="tape tape--small">Almacenamiento</span>
+      <h2>Dos caminos que no comparten nada</h2>
+      <div class="prose">
+        <p>
+          Cada host tiene dos tarjetas dedicadas al iSCSI, sin etiquetar, y TrueNAS otras dos. Cada
+          camino va en su propia subred, así que el multipathing es real: dos rutas físicas
+          independientes hasta el mismo LUN, no una redundancia solo lógica.
+        </p>
+        <p>
+          Todo el almacenamiento trabaja con MTU estándar (1500) de extremo a extremo. Es un dato que
+          se comprueba antes de cualquier cambio de switch: si un lado usara jumbo frames y el switch
+          nuevo no, los hosts perderían los discos de las VMs.
+        </p>
+      </div>
+    </section>
+
+    <section id="dmz">
+      <span class="tape tape--small">DMZ</span>
+      <h2>Un segmento que solo puede hablar con un servicio</h2>
       <p class="intro">
-        La VLAN de Multimedia no es solo una etiqueta compartiendo cable con otro tráfico:
-        en TrueNAS tiene un puerto físico propio, sin repartir con gestión, iSCSI ni
-        producción (ver <a href="almacenamiento.html#construccion">construcción física de
-        TrueNAS</a>).
+        El proxy que recibe las visitas de internet vive solo en su VLAN. Si algún día alguien lo
+        comprometiera, cada puerta abierta hacia dentro sería una puerta para el atacante. Por eso una
+        ACL en el switch filtra todo lo que sale de ese segmento.
       </p>
+
+      <div class="panel scroll-x">
+        <table class="datatable">
+          <thead><tr><th>Orden</th><th>Acción</th><th>Qué</th><th>Por qué</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">1</td><td>Permitir</td><td>Proxy → servidor multimedia, solo al puerto del servicio</td><td class="muted">Es lo único del laboratorio que necesita</td></tr>
+            <tr><td class="mono">2</td><td>Permitir</td><td>Respuestas SSH y HTTPS del proxy al equipo de administración</td><td class="muted">La ACL no tiene memoria: las respuestas también hay que permitirlas</td></tr>
+            <tr><td class="mono">3</td><td>Bloquear</td><td>Proxy → cualquier red privada</td><td class="muted">El resto del laboratorio y la red doméstica</td></tr>
+            <tr><td class="mono">4</td><td>Permitir</td><td>Proxy → cualquier otro destino</td><td class="muted">Solo queda internet: respuestas a los usuarios, actualizaciones, certificados</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="prose" style="margin-top:22px">
+        <p>
+          La ACL se evalúa de arriba abajo y gana la primera regla que coincide; lo que no coincide con
+          ninguna se descarta. El segmento tampoco usa el DNS interno: resuelve con DNS públicos, porque
+          una DMZ no debe depender del directorio interno ni tener camino hasta él.
+        </p>
+      </div>
+
       <div class="note">
-        <span class="note-label">Por qué</span>
-        Con varios usuarios viendo streaming a la vez, ese tráfico no compite por ancho de
-        banda con las VMs de producción que se vayan añadiendo — el streaming no corta y las
-        cargas importantes no se resienten, aunque la biblioteca esté muy solicitada. Es
-        segmentación a nivel de cableado, no solo de configuración lógica del switch.
+        <span class="tape tape--small">Lección aprendida</span>
+        <p>
+          La primera versión de esta ACL parecía correcta y no lo era. Un puerto estaba en el lado de
+          origen en vez de destino, una red entera estaba escrita como si fuera un solo equipo, y la
+          regla final dejaba pasar casi todo. En la práctica, la DMZ llegaba al almacenamiento y a la
+          red doméstica. Se detectó leyendo la configuración real en vez de fiarse de la intención, y se
+          rehízo con una batería de pruebas antes y después:
+        </p>
+      </div>
+
+      <div class="panel scroll-x">
+        <table class="datatable">
+          <thead><tr><th>Desde el proxy hacia…</th><th>ACL original</th><th>ACL corregida</th></tr></thead>
+          <tbody>
+            <tr><td>Servidor multimedia (puerto del servicio)</td><td>Llega, pero por la regla final</td><td><span class="state"><span class="led led--on" aria-hidden="true"></span>Llega, regla explícita</span></td></tr>
+            <tr><td>Almacenamiento en el segmento de servidores</td><td>⚠️ Llega</td><td><span class="state"><span class="led led--plan" aria-hidden="true"></span>Bloqueado</span></td></tr>
+            <tr><td>Red de gestión</td><td>Bloqueado</td><td><span class="state"><span class="led led--plan" aria-hidden="true"></span>Bloqueado</span></td></tr>
+            <tr><td>Red doméstica</td><td>⚠️ Llega</td><td><span class="state"><span class="led led--plan" aria-hidden="true"></span>Bloqueado</span></td></tr>
+            <tr><td>Internet</td><td>Llega</td><td><span class="state"><span class="led led--on" aria-hidden="true"></span>Llega</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="intro" style="margin-top:14px">
+        Detalle operativo: este switch no permite editar una ACL mientras está aplicada a una VLAN. El
+        procedimiento es quitarla, modificarla, volver a aplicarla y repetir las pruebas.
+      </p>
+    </section>
+
+    <section id="multimedia">
+      <span class="tape tape--small">Tráfico multimedia</span>
+      <h2>Un cable propio para el vídeo</h2>
+      <div class="prose">
+        <p>
+          El tráfico multimedia no tiene VLAN propia: va por el segmento de servidores. Lo que sí tiene
+          es un <strong>puerto físico dedicado en TrueNAS</strong>, que no comparte con gestión,
+          almacenamiento de VMs ni ningún otro servicio. Con varias personas viendo vídeo a la vez, la
+          biblioteca no le quita ancho de banda al resto de cargas. El servidor multimedia y ese puerto
+          están en la misma subred, así que la lectura de la biblioteca ni siquiera pasa por el router
+          del switch.
+        </p>
       </div>
     </section>
 
-    <section id="historial">
-      <p class="kicker">03</p>
-      <h2>Evolución de este componente</h2>
-      <p class="intro">Cambios relevantes de red, más recientes primero.</p>
-      <div class="history-mini">
-        <div class="history-row">
-          <span class="hdate">07/09/2026</span>
-          <span class="htitle"><strong>Aislamiento físico de la VLAN Multimedia</strong> — puerto dedicado en TrueNAS, sin compartir con gestión/iSCSI/producción.</span>
-        </div>
-        <div class="history-row">
-          <span class="hdate">07/09/2026</span>
-          <span class="htitle"><strong>10 categorías de VLAN documentadas</strong> — se añade Multimedia, separando el tráfico de Jellyfin/ISOs/unidad de red del resto de producción.</span>
-        </div>
+    <section id="switch">
+      <span class="tape tape--small">En curso</span>
+      <h2>Renovación del switch de núcleo</h2>
+      <div class="prose">
+        <p>
+          El switch actual tiene 28 puertos, uno de ellos intermitente, y el cuarto host los deja sin
+          margen. El sustituto (48 × 1 GbE + 4 × SFP+ a 10 GbE) se está preparando así:
+        </p>
       </div>
-      <p class="intro" style="margin-top: 16px; margin-bottom: 0;">
-        <a href="changelog.html">Ver la evolución completa del laboratorio →</a>
-      </p>
+      <ol class="path">
+        <li><strong>Inventario</strong><span>Configuración completa del switch actual, mapa de cables y puertos, MTU del almacenamiento y VLANs en uso. Nada de memoria.</span></li>
+        <li><strong>Preparación aparte</strong><span>El nuevo se configura desconectado del laboratorio: tendrá las mismas IPs que el actual y no pueden convivir.</span></li>
+        <li><strong>Réplica exacta</strong><span>Misma configuración y misma numeración de puertos, para que las etiquetas de los cables sigan valiendo. Nada de rediseños a la vez.</span></li>
+        <li><strong>Cambio de cables</strong><span>Uno a uno, según el mapa. El switch viejo queda intacto como vuelta atrás.</span></li>
+        <li><strong>Pruebas</strong><span>Caminos de almacenamiento, VMs, DMZ, servicio publicado e internet: la misma batería de siempre.</span></li>
+      </ol>
+      <div class="note">
+        <span class="tape tape--small">Hoja de ruta · 10 GbE</span>
+        <p>La conexión a internet ya da más de 1 Gb/s, así que el cuello de botella es la cadena interna.
+          El switch nuevo es el primer eslabón a 10 GbE; después irán el router de borde y las tarjetas
+          de los hosts, de segunda mano y comprobando antes que estén soportadas en ESXi 8.</p>
+      </div>
     </section>
 
   </main>
 </div>
 
 <footer>
-  <p>
-    // Esta página describe la segmentación de red del laboratorio. Se omiten
-    intencionadamente direcciones IP, identificadores numéricos de VLAN, puertos físicos del
-    switch y cualquier credencial.<br/>
-    // Historial completo de cambios: <a href="changelog.html">página de evolución →</a>
-  </p>
+  <div class="footer-inner">
+    <p>Esta web describe la arquitectura y las decisiones de diseño del laboratorio. Se omiten a propósito
+      direcciones IP, puertos físicos, nombres de dominio internos y cualquier credencial. Los
+      identificadores de VLAN son ilustrativos.</p>
+    <p>Última revisión: 12/09/2026 · <a href="changelog.html">Historial completo</a></p>
+  </div>
 </footer>
 
-<script>
-  (function () {
-    var links = Array.prototype.slice.call(document.querySelectorAll("#toc a"));
-    var map = {};
-    links.forEach(function (a) { map[a.getAttribute("href").slice(1)] = a; });
-    var observer = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        var link = map[entry.target.id];
-        if (!link) return;
-        if (entry.isIntersecting) {
-          links.forEach(function (a) { a.classList.remove("active"); });
-          link.classList.add("active");
-        }
-      });
-    }, { rootMargin: "-20% 0px -70% 0px" });
-    document.querySelectorAll("main section[id]").forEach(function (s) { observer.observe(s); });
-  })();
-</script>
+<script src="assets/site.js"></script>
+</body>
+</html>

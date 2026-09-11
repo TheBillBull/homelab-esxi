@@ -1,540 +1,28 @@
-<title>Homelab ESXi</title>
-<style>
-  :root {
-    --bg: #EEF1F4;
-    --grid-dot: rgba(20, 26, 34, 0.06);
-    --surface: #FFFFFF;
-    --surface-alt: #F5F7F9;
-    --text: #141A22;
-    --text-muted: #59636F;
-    --border: #D7DDE3;
-    --accent: #B6591A;
-    --accent-contrast: #FFFFFF;
-
-    --swatch-1: #3E6EA5; /* Gestión / Red */
-    --swatch-2: #6A5AC2; /* vMotion / Documentación */
-    --swatch-3: #1F8F82; /* Almacenamiento */
-    --swatch-4: #9B4FAE; /* Réplica */
-    --swatch-5: #7C8B3E; /* Control / DMZ interna */
-    --swatch-6: #3E8C55; /* Producción / Cómputo */
-    --swatch-7: #B5871F; /* NSX-TEP */
-    --swatch-8: #C24A2E; /* Extranet */
-    --swatch-9: #C2508A; /* Clientes */
-    --swatch-10: #8C5A3C; /* Multimedia */
-
-    --font-display: ui-monospace, "Cascadia Code", "Cascadia Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-    --font-body: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #10151B;
-      --grid-dot: rgba(232, 236, 239, 0.05);
-      --surface: #171E26;
-      --surface-alt: #1D2530;
-      --text: #E8ECEF;
-      --text-muted: #8D98A4;
-      --border: #2B3641;
-      --accent: #E8A03D;
-      --accent-contrast: #10151B;
-
-      --swatch-1: #6E97D1;
-      --swatch-2: #9A8AE8;
-      --swatch-3: #4FBFAF;
-      --swatch-4: #C481D6;
-      --swatch-5: #A8B968;
-      --swatch-6: #6FBB82;
-      --swatch-7: #D9AD52;
-      --swatch-8: #E2765A;
-      --swatch-9: #E284B0;
-      --swatch-10: #C98F6C;
-    }
-  }
-
-  :root[data-theme="dark"] {
-    --bg: #10151B;
-    --grid-dot: rgba(232, 236, 239, 0.05);
-    --surface: #171E26;
-    --surface-alt: #1D2530;
-    --text: #E8ECEF;
-    --text-muted: #8D98A4;
-    --border: #2B3641;
-    --accent: #E8A03D;
-    --accent-contrast: #10151B;
-
-    --swatch-1: #6E97D1;
-    --swatch-2: #9A8AE8;
-    --swatch-3: #4FBFAF;
-    --swatch-4: #C481D6;
-    --swatch-5: #A8B968;
-    --swatch-6: #6FBB82;
-    --swatch-7: #D9AD52;
-    --swatch-8: #E2765A;
-    --swatch-9: #E284B0;
-    --swatch-10: #C98F6C;
-  }
-
-  :root[data-theme="light"] {
-    --bg: #EEF1F4;
-    --grid-dot: rgba(20, 26, 34, 0.06);
-    --surface: #FFFFFF;
-    --surface-alt: #F5F7F9;
-    --text: #141A22;
-    --text-muted: #59636F;
-    --border: #D7DDE3;
-    --accent: #B6591A;
-    --accent-contrast: #FFFFFF;
-
-    --swatch-1: #3E6EA5;
-    --swatch-2: #6A5AC2;
-    --swatch-3: #1F8F82;
-    --swatch-4: #9B4FAE;
-    --swatch-5: #7C8B3E;
-    --swatch-6: #3E8C55;
-    --swatch-7: #B5871F;
-    --swatch-8: #C24A2E;
-    --swatch-9: #C2508A;
-    --swatch-10: #8C5A3C;
-  }
-
-  * { box-sizing: border-box; }
-
-  html { background: var(--bg); }
-
-  @media (prefers-reduced-motion: no-preference) {
-    html { scroll-behavior: smooth; }
-  }
-
-  body {
-    margin: 0;
-    background: radial-gradient(var(--grid-dot) 1px, transparent 1px);
-    background-size: 22px 22px;
-    color: var(--text);
-    font-family: var(--font-body);
-    font-size: 16px;
-    line-height: 1.6;
-    -webkit-font-smoothing: antialiased;
-  }
-
-  a { color: var(--accent); }
-
-  code {
-    font-family: var(--font-display);
-    font-size: 0.9em;
-    background: var(--surface-alt);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 0.1em 0.4em;
-  }
-
-  a:focus-visible, button:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-  }
-
-  /* Site nav — persistent across all pages of the site */
-  .sitenav {
-    position: sticky;
-    top: 0;
-    z-index: 20;
-    border-top: 4px solid var(--accent);
-    border-bottom: 1px solid var(--border);
-    background: var(--surface);
-  }
-
-  .sitenav-inner {
-    max-width: 1180px;
-    margin: 0 auto;
-    padding: 0 32px;
-    height: 52px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 24px;
-  }
-
-  .sitenav-brand {
-    font-family: var(--font-display);
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text);
-    text-decoration: none;
-    white-space: nowrap;
-  }
-
-  .sitenav-links {
-    display: flex;
-    gap: 2px;
-    overflow-x: auto;
-  }
-
-  .sitenav-links a {
-    font-family: var(--font-display);
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    text-decoration: none;
-    color: var(--text-muted);
-    padding: 8px 12px;
-    white-space: nowrap;
-    border-bottom: 2px solid transparent;
-    transition: color 120ms ease, border-color 120ms ease;
-  }
-
-  .sitenav-links a:hover { color: var(--text); }
-
-  .sitenav-links a[aria-current="page"] {
-    color: var(--accent);
-    border-bottom-color: var(--accent);
-  }
-
-  @media (max-width: 640px) {
-    .sitenav-inner { padding: 0 16px; }
-    .sitenav-brand { display: none; }
-  }
-
-  h1, h2, h3 {
-    font-family: var(--font-display);
-    text-wrap: balance;
-    font-weight: 600;
-    letter-spacing: -0.01em;
-    margin: 0;
-  }
-
-  .eyebrow {
-    font-family: var(--font-display);
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    font-size: 12px;
-    color: var(--accent);
-    margin: 0 0 10px 0;
-  }
-
-  .masthead {
-    border-bottom: 1px solid var(--border);
-    background: var(--surface);
-  }
-
-  .masthead-inner {
-    max-width: 1180px;
-    margin: 0 auto;
-    padding: 52px 32px 36px;
-  }
-
-  .masthead h1 {
-    font-size: clamp(28px, 4vw, 40px);
-    max-width: 18ch;
-  }
-
-  .masthead p.lede {
-    max-width: 64ch;
-    color: var(--text-muted);
-    font-size: 16px;
-    margin: 16px 0 0 0;
-  }
-
-  .stats {
-    margin-top: 32px;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 1px;
-    background: var(--border);
-    border: 1px solid var(--border);
-  }
-
-  .stat { background: var(--surface); padding: 14px 16px; }
-
-  .stat .label {
-    font-family: var(--font-display);
-    font-size: 10.5px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-muted);
-  }
-
-  .stat .value {
-    font-family: var(--font-display);
-    font-size: 19px;
-    font-variant-numeric: tabular-nums;
-    margin-top: 4px;
-  }
-
-  .stat .value a { color: var(--accent); text-decoration: none; }
-  .stat .value a:hover { text-decoration: underline; }
-
-  .layout {
-    max-width: 1180px;
-    margin: 0 auto;
-    padding: 40px 32px 80px;
-    display: grid;
-    grid-template-columns: 208px 1fr;
-    gap: 48px;
-    align-items: start;
-  }
-
-  .toc {
-    position: sticky;
-    top: 68px;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  .toc a {
-    font-family: var(--font-display);
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    text-decoration: none;
-    color: var(--text-muted);
-    padding: 7px 10px;
-    border-left: 2px solid transparent;
-    transition: color 120ms ease, border-color 120ms ease, background 120ms ease;
-  }
-
-  .toc a:hover { color: var(--text); background: var(--surface-alt); }
-
-  .toc a.active {
-    color: var(--accent);
-    border-left-color: var(--accent);
-    background: var(--surface-alt);
-  }
-
-  main { min-width: 0; }
-
-  section {
-    padding-top: 8px;
-    margin-bottom: 64px;
-    scroll-margin-top: 76px;
-  }
-
-  section .kicker {
-    font-family: var(--font-display);
-    font-size: 12px;
-    color: var(--text-muted);
-    letter-spacing: 0.06em;
-  }
-
-  section h2 { font-size: 22px; margin: 4px 0 14px 0; }
-
-  section > p.intro {
-    max-width: 68ch;
-    color: var(--text-muted);
-    margin: 0 0 24px 0;
-  }
-
-  .panel { border: 1px solid var(--border); background: var(--surface); }
-  .panel-pad { padding: 20px 22px; }
-  .scroll-x { overflow-x: auto; }
-  figure { margin: 0; }
-
-  figcaption {
-    font-family: var(--font-display);
-    font-size: 11.5px;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--text-muted);
-    padding: 10px 22px;
-    border-top: 1px solid var(--border);
-  }
-
-  pre.mermaid {
-    margin: 0;
-    padding: 24px;
-    display: flex;
-    justify-content: center;
-    min-width: 560px;
-  }
-
-  table {
-    width: 100%;
-    min-width: 560px;
-    border-collapse: collapse;
-    font-size: 14.5px;
-  }
-
-  thead th {
-    text-align: left;
-    font-family: var(--font-display);
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--text-muted);
-    font-weight: 500;
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--border);
-    background: var(--surface-alt);
-  }
-
-  tbody td { padding: 13px 16px; border-bottom: 1px solid var(--border); vertical-align: top; }
-  tbody tr:last-child td { border-bottom: none; }
-  tbody tr:hover td { background: var(--surface-alt); }
-  td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
-
-  .swatch {
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    border-radius: 2px;
-    margin-right: 9px;
-    vertical-align: middle;
-    flex: none;
-  }
-
-  .cat-name { display: flex; align-items: center; font-weight: 600; white-space: nowrap; }
-
-  .cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-    gap: 1px;
-    background: var(--border);
-    border: 1px solid var(--border);
-  }
-
-  .card { background: var(--surface); padding: 18px 20px; }
-
-  .card .card-eyebrow {
-    font-family: var(--font-display);
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--accent);
-  }
-
-  .card h3 { font-size: 16px; margin: 6px 0 14px 0; }
-
-  .spec { display: flex; align-items: baseline; gap: 6px; font-size: 13.5px; padding: 5px 0; }
-  .spec .k { color: var(--text-muted); white-space: nowrap; }
-  .spec .leader { flex: 1; border-bottom: 1px dotted var(--border); margin-bottom: 4px; }
-  .spec .v { font-variant-numeric: tabular-nums; white-space: nowrap; font-weight: 600; }
-
-  .note {
-    border-left: 3px solid var(--accent);
-    background: var(--surface-alt);
-    padding: 14px 18px;
-    font-size: 14.5px;
-    color: var(--text);
-    margin-top: 20px;
-  }
-
-  .note .note-label {
-    font-family: var(--font-display);
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--accent);
-    display: block;
-    margin-bottom: 6px;
-  }
-
-  .split {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1px;
-    background: var(--border);
-    border: 1px solid var(--border);
-  }
-
-  .split .half { background: var(--surface); padding: 18px 20px; }
-  .split h4 { font-family: var(--font-display); font-size: 13px; margin: 0 0 8px 0; }
-  .split p { margin: 0; font-size: 14px; color: var(--text-muted); }
-
-  ul.plain { margin: 0; padding: 0; list-style: none; }
-
-  ul.plain li {
-    position: relative;
-    padding: 6px 0 6px 18px;
-    font-size: 14.5px;
-    color: var(--text-muted);
-  }
-
-  ul.plain li::before { content: "—"; position: absolute; left: 0; color: var(--accent); }
-
-  /* "Explorar en detalle" link cards */
-  .explore-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1px;
-    background: var(--border);
-    border: 1px solid var(--border);
-  }
-
-  .explore-card {
-    background: var(--surface);
-    padding: 22px 24px;
-    text-decoration: none;
-    color: inherit;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    transition: background 120ms ease;
-  }
-
-  .explore-card:hover { background: var(--surface-alt); }
-
-  .explore-card .card-eyebrow {
-    font-family: var(--font-display);
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--accent);
-  }
-
-  .explore-card h3 { font-size: 17px; margin: 0; }
-  .explore-card p { margin: 0; color: var(--text-muted); font-size: 14px; }
-
-  .explore-card .go {
-    margin-top: auto;
-    padding-top: 4px;
-    font-family: var(--font-display);
-    font-size: 11.5px;
-    color: var(--accent);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-  }
-
-  footer {
-    max-width: 1180px;
-    margin: 0 auto;
-    padding: 28px 32px 60px;
-    border-top: 1px solid var(--border);
-  }
-
-  footer p {
-    font-family: var(--font-display);
-    font-size: 12px;
-    color: var(--text-muted);
-    max-width: 70ch;
-    line-height: 1.7;
-  }
-
-  footer a { color: var(--accent); }
-
-  @media (max-width: 860px) {
-    .layout { grid-template-columns: 1fr; }
-    .toc {
-      position: static;
-      flex-direction: row;
-      overflow-x: auto;
-      gap: 4px;
-      padding-bottom: 6px;
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 8px;
-    }
-    .toc a { border-left: none; border-bottom: 2px solid transparent; white-space: nowrap; }
-    .toc a.active { border-left-color: transparent; border-bottom-color: var(--accent); }
-    .split { grid-template-columns: 1fr; }
-  }
-</style>
-
-<nav class="sitenav">
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Homelab ESXi · Arquitectura</title>
+<meta name="description" content="Clúster VMware ESXi montado con hardware reacondicionado: arquitectura, red segmentada, almacenamiento compartido y publicación segura, documentados con su estado real.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23161B21'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%232FBF71'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<a class="skip" href="#contenido">Saltar al contenido</a>
+
+<nav class="sitenav" aria-label="Secciones del sitio">
   <div class="sitenav-inner">
-    <a class="sitenav-brand" href="index.html">Homelab ESXi</a>
-    <div class="sitenav-links">
+    <a class="brand" href="index.html"><span class="led led--on" aria-hidden="true"></span><span>Homelab ESXi</span></a>
+    <div class="navlinks">
       <a href="index.html" aria-current="page">Arquitectura</a>
-      <a href="almacenamiento.html">Almacenamiento</a>
       <a href="red.html">Red</a>
+      <a href="almacenamiento.html">Almacenamiento</a>
       <a href="computo.html">Cómputo</a>
+      <a href="publicacion.html">Publicación</a>
       <a href="changelog.html">Evolución</a>
     </div>
   </div>
@@ -542,278 +30,251 @@
 
 <header class="masthead">
   <div class="masthead-inner">
-    <p class="eyebrow">Infraestructura · Homelab</p>
-    <h1>Laboratorio de virtualización ESXi</h1>
+    <span class="tape">Homelab · Virtualización</span>
+    <h1>Un clúster ESXi con hardware reacondicionado, gestionado como si fuera producción</h1>
     <p class="lede">
-      Clúster de 3 nodos ESXi con almacenamiento compartido en TrueNAS, red segmentada
-      sobre un switch L3 y salida a internet gestionada por un router MikroTik. Esta
-      página da la vista general — el detalle técnico de cada pieza vive en su propia
-      página, y cada cambio queda registrado en el historial. Documentación de
-      arquitectura — sin IPs, VLANs numéricas ni credenciales.
+      Tres hosts ESXi (un cuarto en camino) con almacenamiento compartido en TrueNAS, red segmentada
+      en un switch de capa 3 y un servicio multimedia publicado en internet a través de un proxy
+      propio en DMZ. Cada cambio se comprueba antes y después, y queda registrado.
     </p>
-    <div class="stats">
-      <div class="stat"><div class="label">Hosts ESXi</div><div class="value">3</div></div>
-      <div class="stat"><div class="label">Nodo TrueNAS</div><div class="value">1</div></div>
-      <div class="stat"><div class="label">Segmentos de red</div><div class="value">10</div></div>
-      <div class="stat"><div class="label">Clúster</div><div class="value">HA + DRS</div></div>
-      <div class="stat"><div class="label">Pools storage</div><div class="value">2× mirror</div></div>
-      <div class="stat"><div class="label">Acceso remoto</div><div class="value">CF Tunnel</div></div>
-      <div class="stat"><div class="label">Evolución</div><div class="value"><a href="changelog.html">Ver historial →</a></div></div>
+
+    <div class="faceplate" role="group" aria-labelledby="estado-titulo">
+      <div class="faceplate-head">
+        <span class="faceplate-title" id="estado-titulo">Estado del laboratorio</span>
+        <div class="legend">
+          <span class="state"><span class="led led--on" aria-hidden="true"></span>En servicio</span>
+          <span class="state"><span class="led led--busy" aria-hidden="true"></span>En curso</span>
+          <span class="state"><span class="led led--plan" aria-hidden="true"></span>Planificado</span>
+        </div>
+      </div>
+      <ul class="faceplate-grid">
+        <li><span class="led led--on" role="img" aria-label="En servicio"></span><span class="name">Clúster vSphere</span><span class="what">HA · reinicio de VMs colgadas</span></li>
+        <li><span class="led led--on" role="img" aria-label="En servicio"></span><span class="name">Almacenamiento compartido</span><span class="what">iSCSI con dos caminos</span></li>
+        <li><span class="led led--on" role="img" aria-label="En servicio"></span><span class="name">Red segmentada</span><span class="what">routing L3 en el switch</span></li>
+        <li><span class="led led--on" role="img" aria-label="En servicio"></span><span class="name">Publicación a internet</span><span class="what">proxy propio en DMZ</span></li>
+        <li><span class="led led--busy" role="img" aria-label="En curso"></span><span class="name">Renovación del switch</span><span class="what">48 × 1 GbE + 4 × 10 GbE</span></li>
+        <li><span class="led led--busy" role="img" aria-label="En curso"></span><span class="name">Cuarto host</span><span class="what">hardware idéntico</span></li>
+        <li><span class="led led--plan" role="img" aria-label="Planificado"></span><span class="name">Migración en caliente</span><span class="what">vMotion · DRS efectivo</span></li>
+        <li><span class="led led--plan" role="img" aria-label="Planificado"></span><span class="name">Red a 10 GbE</span><span class="what">borde, núcleo y hosts</span></li>
+        <li><span class="led led--plan" role="img" aria-label="Planificado"></span><span class="name">vSAN · NSX</span><span class="what">por evaluar</span></li>
+      </ul>
     </div>
+
+    <p class="disclaimer">
+      Documentación de arquitectura y decisiones. No incluye direcciones IP, puertos físicos,
+      credenciales ni datos de la red real. Los identificadores de VLAN que aparecen son ilustrativos.
+    </p>
   </div>
 </header>
 
 <div class="layout">
-  <nav class="toc" id="toc">
+  <nav class="toc" id="toc" aria-label="En esta página">
     <a href="#topologia">Topología</a>
     <a href="#fisica">Capa física</a>
-    <a href="#reacondicionamiento">Origen del hardware</a>
+    <a href="#origen">Origen del hardware</a>
+    <a href="#metodo">Cómo trabajo</a>
     <a href="#detalle">Explorar en detalle</a>
-    <a href="#alcance">Alcance</a>
   </nav>
 
-  <main>
+  <main id="contenido">
 
     <section id="topologia">
-      <p class="kicker">01</p>
-      <h2>Topología física</h2>
+      <span class="tape tape--small">Topología</span>
+      <h2>Del operador al clúster</h2>
       <p class="intro">
-        El tráfico entra por el MikroTik (frontera WAN), pasa al Cisco SG300-28 que hace de
-        columna vertebral L3, y de ahí se reparte a los tres hosts ESXi y a TrueNAS. Cada host
-        aporta 5 NICs físicas repartidas en dos roles distintos.
+        El tráfico entra por el router del operador, pasa al router de borde (NAT y publicación de
+        servicios) y llega al switch de núcleo, que enruta entre VLANs. De ahí cuelgan los hosts ESXi
+        y el nodo de almacenamiento. El proxy público no es un equipo aparte: es una VM del clúster,
+        aislada en su propio segmento.
       </p>
       <figure class="panel">
         <div class="scroll-x">
           <pre class="mermaid">
 flowchart TB
     INET((Internet))
-    MT["MikroTik RouterBoard<br/>WAN · NAT"]
-    SW["Cisco SG300-28<br/>Switch L3"]
-    H1["Host 1 — ESXi 8<br/>i7-8700 · 64 GB RAM"]
-    H2["Host 2 — ESXi 8<br/>i7-8700 · 64 GB RAM"]
-    H3["Host 3 — ESXi 8<br/>i7-8700 · 64 GB RAM"]
-    NAS["TrueNAS<br/>i5 8ª gen · 32 GB RAM"]
-
-    INET --> MT --> SW
-    SW -->|"5 NIC: 3 trunk + 2 iSCSI"| H1
-    SW -->|"5 NIC: 3 trunk + 2 iSCSI"| H2
-    SW -->|"5 NIC: 3 trunk + 2 iSCSI"| H3
-    SW -->|"5 NIC: 1 mgmt + 2 iSCSI + 1 media + 1 prod"| NAS
+    ISP["Router del operador"]
+    EDGE["Router de borde · MikroTik<br/>NAT y publicación"]
+    CORE["Switch de núcleo · capa 3<br/>enruta entre VLANs"]
+    subgraph CL["Clúster vSphere"]
+        H1["Host ESXi"]
+        H2["Host ESXi"]
+        H3["Host ESXi"]
+        H4["Host ESXi<br/>(en incorporación)"]
+    end
+    NAS["TrueNAS<br/>almacenamiento compartido"]
+    INET --- ISP --- EDGE --- CORE
+    CORE ---|"3 trunks + 2 iSCSI por host"| CL
+    CORE ---|"gestión · 2 iSCSI · multimedia"| NAS
+    classDef pending stroke-dasharray: 5 4
+    class H4 pending
           </pre>
         </div>
-        <figcaption>Fig. 1 — Topología física y reparto de interfaces</figcaption>
+        <figcaption>Topología física. Los detalles de cada tramo están en Red y Publicación.</figcaption>
       </figure>
     </section>
 
     <section id="fisica">
-      <p class="kicker">02</p>
-      <h2>Capa física</h2>
+      <span class="tape tape--small">Capa física</span>
+      <h2>Equipos pequeños, un clúster completo</h2>
       <p class="intro">
-        Las 4 máquinas son Lenovo ThinkCentre M720s (Small Form Factor).
+        Todo el cómputo y el almacenamiento corre en Lenovo ThinkCentre M720s de formato pequeño (SFF).
+        Silenciosos, de bajo consumo y ampliables lo justo para lo que hace falta.
       </p>
 
       <div class="cards">
         <div class="card">
-          <div class="card-eyebrow">Host 01 · Principal</div>
-          <h3>ESXi 8</h3>
-          <div class="spec"><span class="k">CPU</span><span class="leader"></span><span class="v">i7-8700</span></div>
-          <div class="spec"><span class="k">RAM</span><span class="leader"></span><span class="v">64 GB</span></div>
-          <div class="spec"><span class="k">Disco</span><span class="leader"></span><span class="v">500 GB NVMe</span></div>
+          <span class="tape tape--small">Hosts ESXi · ×3 (+1)</span>
+          <h3>Nodos del clúster</h3>
+          <div class="spec"><span class="k">CPU</span><span class="dots"></span><span class="v">i7-8700 · 6C/12T</span></div>
+          <div class="spec"><span class="k">RAM</span><span class="dots"></span><span class="v">64 GB</span></div>
+          <div class="spec"><span class="k">Disco local</span><span class="dots"></span><span class="v">500 GB NVMe</span></div>
+          <div class="spec"><span class="k">Red</span><span class="dots"></span><span class="v">5 × 1 GbE</span></div>
+          <div class="spec"><span class="k">Hipervisor</span><span class="dots"></span><span class="v">ESXi 8</span></div>
         </div>
         <div class="card">
-          <div class="card-eyebrow">Host 02</div>
-          <h3>ESXi 8</h3>
-          <div class="spec"><span class="k">CPU</span><span class="leader"></span><span class="v">i7-8700</span></div>
-          <div class="spec"><span class="k">RAM</span><span class="leader"></span><span class="v">64 GB</span></div>
-          <div class="spec"><span class="k">Disco</span><span class="leader"></span><span class="v">500 GB NVMe</span></div>
-        </div>
-        <div class="card">
-          <div class="card-eyebrow">Host 03</div>
-          <h3>ESXi 8</h3>
-          <div class="spec"><span class="k">CPU</span><span class="leader"></span><span class="v">i7-8700</span></div>
-          <div class="spec"><span class="k">RAM</span><span class="leader"></span><span class="v">64 GB</span></div>
-          <div class="spec"><span class="k">Disco</span><span class="leader"></span><span class="v">500 GB NVMe</span></div>
-        </div>
-        <div class="card">
-          <div class="card-eyebrow">Storage</div>
+          <span class="tape tape--small">Almacenamiento</span>
           <h3>TrueNAS</h3>
-          <div class="spec"><span class="k">CPU</span><span class="leader"></span><span class="v">i5 · 8ª gen</span></div>
-          <div class="spec"><span class="k">RAM</span><span class="leader"></span><span class="v">32 GB</span></div>
-          <div class="spec"><span class="k">SO</span><span class="leader"></span><span class="v">256 GB SSD</span></div>
-          <div class="spec"><span class="k">Pool A</span><span class="leader"></span><span class="v">2× 1 TB NVMe</span></div>
-          <div class="spec"><span class="k">Pool B</span><span class="leader"></span><span class="v">2× HDD 2.5″</span></div>
+          <div class="spec"><span class="k">CPU</span><span class="dots"></span><span class="v">i5 · 8.ª gen</span></div>
+          <div class="spec"><span class="k">RAM</span><span class="dots"></span><span class="v">32 GB</span></div>
+          <div class="spec"><span class="k">Pool rápido</span><span class="dots"></span><span class="v">2 × 1 TB NVMe, espejo</span></div>
+          <div class="spec"><span class="k">Pool capacidad</span><span class="dots"></span><span class="v">2 × HDD 2,5″, espejo</span></div>
+          <div class="spec"><span class="k">Red</span><span class="dots"></span><span class="v">5 × 1 GbE</span></div>
+        </div>
+        <div class="card">
+          <span class="tape tape--small">Núcleo de red</span>
+          <h3>Switch de capa 3</h3>
+          <div class="spec"><span class="k">Actual</span><span class="dots"></span><span class="v">Cisco SG300-28</span></div>
+          <div class="spec"><span class="k">Sustituto</span><span class="dots"></span><span class="v">D-Link DGS-1510-52X</span></div>
+          <div class="spec"><span class="k">Puertos</span><span class="dots"></span><span class="v">48 × 1 GbE + 4 × SFP+</span></div>
+          <p style="margin-top:10px">Cambio en curso: más puertos para el cuarto host y enlaces de 10 GbE para el futuro.</p>
+        </div>
+        <div class="card">
+          <span class="tape tape--small">Borde</span>
+          <h3>Router MikroTik</h3>
+          <p>Salida a internet con NAT y publicación del único servicio expuesto. Delante está el router
+            del operador; detrás, el switch de núcleo por un enlace de tránsito dedicado.</p>
         </div>
       </div>
 
       <div class="note">
-        <span class="note-label">Nota técnica</span>
-        Los 3 hosts del clúster son homogéneos, todos con Intel Core i7-8700 (tras un upgrade
-        de hardware — ver <a href="changelog.html">evolución</a>) — al compartir la misma CPU
-        no hace falta fijar un baseline EVC (Enhanced vMotion Compatibility) en vCenter para
-        garantizar compatibilidad de vMotion entre ellos.
+        <span class="tape tape--small">Decisión</span>
+        <p>Los hosts comparten exactamente la misma CPU. Así vMotion no necesita un modo de
+          compatibilidad (EVC) en vCenter, y el cuarto host se ha elegido idéntico para mantenerlo.</p>
       </div>
 
-      <div class="split" style="margin-top: 24px;">
-        <div class="half">
-          <h4>Cisco SG300-28</h4>
-          <p>Switch L3. Hace de columna vertebral de la red: enrutamiento entre VLANs y
-            enlaces trunk 802.1Q hacia cada host.</p>
-        </div>
-        <div class="half">
-          <h4>MikroTik RouterBoard</h4>
-          <p>Frontera WAN. NAT y salida a internet — todo lo que sale o entra del laboratorio
-            pasa por aquí antes de llegar al switch.</p>
-        </div>
+      <div class="prose">
+        <p>
+          Cada host reparte sus cinco tarjetas de red en dos grupos. <strong>Tres van en trunk</strong>
+          (802.1Q, VLANs etiquetadas) hacia el switch distribuido de vSphere, que es donde se decide qué
+          VLAN recibe cada VM. <strong>Dos van dedicadas al almacenamiento</strong>, sin etiquetar, una
+          por cada camino iSCSI: si falla un cable, una tarjeta o un puerto del switch, los discos de las
+          VMs siguen accesibles por el otro.
+        </p>
       </div>
-
-      <p class="intro" style="margin-top: 24px; margin-bottom: 0;">
-        Cada host ESXi reparte sus 5 NIC en dos grupos: 3 en modo <strong>trunk</strong>
-        (802.1Q, todas las VLANs etiquetadas) para que la segmentación se resuelva por
-        software dentro del switch distribuido de vSphere, y 2 dedicadas en modo
-        <strong>access</strong> sin etiquetar, exclusivas para iSCSI con dos caminos
-        independientes (multipathing real, no solo redundancia lógica). El detalle de cómo
-        TrueNAS reparte sus 5 NIC físicas, y cómo se construyó por dentro, está en
-        <a href="almacenamiento.html#construccion">Almacenamiento → construcción física</a>.
-      </p>
     </section>
 
-    <section id="reacondicionamiento">
-      <p class="kicker">03</p>
-      <h2>Origen del hardware</h2>
+    <section id="origen">
+      <span class="tape tape--small">Origen del hardware</span>
+      <h2>Nada salió de una tienda listo para usar</h2>
       <p class="intro">
-        Ninguna pieza salió de una tienda lista para montar el laboratorio. Los tres hosts
-        ESXi, el nodo TrueNAS, el switch Cisco SG300-28 y el router MikroTik llegaron de
-        trastero y de segunda mano, y pasaron por un reacondicionamiento completo, pieza a
-        pieza, antes de entrar en producción.
+        Los hosts, el nodo de almacenamiento, el switch y el router llegaron de segunda mano o de un
+        trastero, y pasaron por un reacondicionamiento completo antes de entrar en servicio. Las
+        ampliaciones siguen el mismo criterio: comprar de segunda mano cuando aparece una buena
+        oportunidad, de forma que cada inversión sea recuperable.
       </p>
-
-      <div class="split">
-        <div class="half">
-          <h4>Procedencia</h4>
-          <p>Lenovo ThinkCentre M720s, switch Cisco y router MikroTik recuperados de trastero
-            y de compras de segunda mano — ningún equipo llegó en condiciones de producción.</p>
-        </div>
-        <div class="half">
-          <h4>Intervención</h4>
-          <p>Reacondicionamiento completo antes de entrar en servicio: no solo limpieza,
-            también sustitución de componentes internos y puesta a punto de cada equipo.</p>
-        </div>
-      </div>
-
-      <div class="panel panel-pad" style="margin-top: 20px;">
-        <ul class="plain">
-          <li>Cambio de procesadores y ampliación de RAM hasta la configuración actual</li>
-          <li>Sustitución de discos por SSD/NVMe</li>
-          <li>Adaptación de bahías internas para encajar el nuevo almacenamiento</li>
-          <li>Reemplazo de piezas desgastadas o defectuosas, y de ventiladores</li>
-          <li>Optimización de los sistemas de refrigeración — limpieza de disipadores, pasta térmica nueva y mejora del flujo de aire para el uso 24/7</li>
-          <li>Actualización de BIOS y firmware, también en el switch y el router</li>
-          <li>Soldadura básica en algún cable o conector</li>
+      <div class="panel panel-pad prose">
+        <ul>
+          <li>Cambio de procesadores y ampliación de RAM hasta la configuración actual.</li>
+          <li>Discos sustituidos por SSD/NVMe y bahías adaptadas, con piezas impresas en 3D.</li>
+          <li>Ventiladores nuevos, pasta térmica y mejor flujo de aire para funcionar 24/7.</li>
+          <li>BIOS y firmware actualizados, también en switch y router.</li>
+          <li>Cableado ordenado por colores y todo etiquetado: hosts, puertos y cables. Sustituir un
+            componente, o un switch entero, es cuestión de minutos.</li>
         </ul>
       </div>
+    </section>
 
-      <p class="intro" style="margin-top: 24px; margin-bottom: 0;">
-        No imprescindible para que el laboratorio funcione, pero sí para que sea fácil de
-        mantener: orden y colorimetría en el cableado, etiquetado de hosts, puertos y cables,
-        y accesorios de guiado tanto para el cableado de red como para el de alimentación.
-        Con todo identificado, retirar o sustituir un componente — o un host entero — es
-        cuestión de minutos.
+    <section id="metodo">
+      <span class="tape tape--small">Método</span>
+      <h2>Cómo trabajo</h2>
+      <p class="intro">
+        El laboratorio sirve para aprender, pero se gestiona con las mismas reglas que usaría en un
+        entorno real. Varias de ellas salen de errores propios que están contados en estas páginas.
       </p>
+      <ul class="principles">
+        <li>
+          <h3>Comprobar antes de tocar</h3>
+          <p>Ningún cambio se hace sobre una suposición: primero se mira el estado real (la
+            configuración, la pantalla, el registro) y después se actúa.</p>
+        </li>
+        <li>
+          <h3>Un cambio cada vez</h3>
+          <p>Si algo falla, tiene que estar claro qué lo causó. Cambiar de switch y rediseñar la red a
+            la vez, por ejemplo, está descartado.</p>
+        </li>
+        <li>
+          <h3>Probar antes y después</h3>
+          <p>Cada cambio de red o de seguridad tiene una batería de pruebas que se pasa antes y
+            después. Si el "después" no cuadra, el cambio no está terminado.</p>
+        </li>
+        <li>
+          <h3>Dejar la vuelta atrás preparada</h3>
+          <p>Configuraciones guardadas, copias antes de editar y el equipo anterior intacto hasta que
+            el nuevo está probado.</p>
+        </li>
+      </ul>
     </section>
 
     <section id="detalle">
-      <p class="kicker">04</p>
-      <h2>Explorar en detalle</h2>
-      <p class="intro">
-        Cada pieza compleja del laboratorio tiene ahora su propia página: construcción,
-        decisiones y el porqué de cada cambio.
-      </p>
-      <div class="explore-grid">
-        <a class="explore-card" href="almacenamiento.html">
-          <span class="card-eyebrow">01 · Storage</span>
-          <h3>Almacenamiento</h3>
-          <p>Construcción física de TrueNAS, pools NVMe/HDD, protocolos, y el caso reciente
-            de ampliación de capacidad del pool HDD sin puertos SATA libres.</p>
-          <span class="go">Ver detalle técnico →</span>
+      <span class="tape tape--small">Explorar</span>
+      <h2>Cada pieza en su página</h2>
+      <div class="explore">
+        <a href="red.html">
+          <span class="tape tape--small">Red</span>
+          <h3>Segmentación y DMZ</h3>
+          <p>El plan de VLANs, qué se enruta y qué no, y cómo se aísla el segmento expuesto a internet.</p>
+          <span class="go">Ver detalle →</span>
         </a>
-        <a class="explore-card" href="red.html">
-          <span class="card-eyebrow">02 · Networking</span>
-          <h3>Red</h3>
-          <p>Las 10 categorías de VLAN del laboratorio y por qué la de Multimedia tiene
-            aislamiento físico, no solo lógico.</p>
-          <span class="go">Ver detalle técnico →</span>
+        <a href="almacenamiento.html">
+          <span class="tape tape--small">Almacenamiento</span>
+          <h3>TrueNAS por dentro</h3>
+          <p>Cómo caben dos pools en espejo en un SFF, qué protocolo sirve cada uno y una ampliación sin perder datos.</p>
+          <span class="go">Ver detalle →</span>
         </a>
-        <a class="explore-card" href="computo.html">
-          <span class="card-eyebrow">03 · Compute</span>
-          <h3>Cómputo</h3>
-          <p>Clúster HA/DRS, las cargas de trabajo, el passthrough de GPU para Jellyfin y
-            cómo se publica hacia internet sin abrir puertos.</p>
-          <span class="go">Ver detalle técnico →</span>
+        <a href="computo.html">
+          <span class="tape tape--small">Cómputo</span>
+          <h3>Clúster y cargas</h3>
+          <p>Alta disponibilidad, las VMs en producción y una incidencia real con su análisis.</p>
+          <span class="go">Ver detalle →</span>
+        </a>
+        <a href="publicacion.html">
+          <span class="tape tape--small">Publicación</span>
+          <h3>De un túnel a un proxy propio</h3>
+          <p>Por qué se dejó el túnel de Cloudflare y cómo llega hoy un usuario desde internet hasta el servicio.</p>
+          <span class="go">Ver detalle →</span>
+        </a>
+        <a href="changelog.html">
+          <span class="tape tape--small">Evolución</span>
+          <h3>Historial de cambios</h3>
+          <p>Cada cambio real de infraestructura, fechado, con enlace a su explicación.</p>
+          <span class="go">Ver historial →</span>
         </a>
       </div>
-    </section>
-
-    <section id="alcance">
-      <p class="kicker">05</p>
-      <h2>Alcance y próximos pasos</h2>
-      <ul class="plain">
-        <li>vSAN aún no evaluado — el storage compartido del clúster depende hoy por completo de TrueNAS.</li>
-        <li>Los segmentos de transporte SDN (NSX-TEP) y control de plataforma están reservados para una futura expansión, sin activar todavía.</li>
-      </ul>
     </section>
 
   </main>
 </div>
 
 <footer>
-  <p>
-    // Esta página describe la arquitectura y las decisiones de diseño del laboratorio.
-    Se omiten intencionadamente direcciones IP, identificadores numéricos de VLAN, puertos
-    físicos del switch y cualquier credencial — no son necesarios para entender el diseño y
-    no deben formar parte de un documento público.<br/>
-    // Historial completo de cambios: <a href="changelog.html">página de evolución →</a>
-  </p>
+  <div class="footer-inner">
+    <p>Esta web describe la arquitectura y las decisiones de diseño del laboratorio. Se omiten a propósito
+      direcciones IP, puertos físicos, nombres de dominio internos y cualquier credencial. Los
+      identificadores de VLAN son ilustrativos.</p>
+    <p>Última revisión: 12/09/2026 · <a href="changelog.html">Historial completo</a></p>
+  </div>
 </footer>
 
-<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-<script>
-  (function () {
-    function initMermaid() {
-      if (typeof mermaid === "undefined") return false;
-      var isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      var themeAttr = document.documentElement.getAttribute("data-theme");
-      if (themeAttr) isDark = themeAttr === "dark";
-      mermaid.initialize({
-        startOnLoad: true,
-        theme: isDark ? "dark" : "default",
-        securityLevel: "loose",
-        fontFamily: "ui-monospace, Consolas, monospace"
-      });
-      return true;
-    }
-    if (!initMermaid()) {
-      window.addEventListener("load", initMermaid);
-    }
-  })();
-
-  (function () {
-    var links = Array.prototype.slice.call(document.querySelectorAll("#toc a"));
-    var map = {};
-    links.forEach(function (a) {
-      map[a.getAttribute("href").slice(1)] = a;
-    });
-    var observer = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        var link = map[entry.target.id];
-        if (!link) return;
-        if (entry.isIntersecting) {
-          links.forEach(function (a) { a.classList.remove("active"); });
-          link.classList.add("active");
-        }
-      });
-    }, { rootMargin: "-20% 0px -70% 0px" });
-    document.querySelectorAll("main section[id]").forEach(function (s) {
-      observer.observe(s);
-    });
-  })();
-</script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script src="assets/site.js"></script>
+</body>
+</html>

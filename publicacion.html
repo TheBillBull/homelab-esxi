@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Homelab ESXi · Publicación</title>
+<meta name="description" content="Cómo se publica un servicio del homelab en internet: de un túnel de Cloudflare a un reverse proxy propio en DMZ, con TLS automático y varias capas de filtrado.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23161B21'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%232FBF71'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<a class="skip" href="#contenido">Saltar al contenido</a>
+
+<nav class="sitenav" aria-label="Secciones del sitio">
+  <div class="sitenav-inner">
+    <a class="brand" href="index.html"><span class="led led--on" aria-hidden="true"></span><span>Homelab ESXi</span></a>
+    <div class="navlinks">
+      <a href="index.html">Arquitectura</a>
+      <a href="red.html">Red</a>
+      <a href="almacenamiento.html">Almacenamiento</a>
+      <a href="computo.html">Cómputo</a>
+      <a href="publicacion.html" aria-current="page">Publicación</a>
+      <a href="changelog.html">Evolución</a>
+    </div>
+  </div>
+</nav>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <span class="tape">Publicación · Reverse proxy · TLS</span>
+    <h1>De un túnel prestado a una puerta propia</h1>
+    <p class="lede">
+      El servidor multimedia tiene que funcionar desde cualquier sitio para usuarios que no son
+      técnicos: abrir la app y entrar, sin VPN ni nada que instalar. Durante meses eso lo resolvió un
+      túnel de Cloudflare. Hoy lo resuelve un proxy propio en una DMZ.
+    </p>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="toc" id="toc" aria-label="En esta página">
+    <a href="#antes">Por qué cambiar</a>
+    <a href="#recorrido">Recorrido</a>
+    <a href="#capas">Capas de protección</a>
+    <a href="#pruebas">Cómo se probó</a>
+    <a href="#pendiente">Lo que falta</a>
+  </nav>
+
+  <main id="contenido">
+
+    <section id="antes">
+      <span class="tape tape--small">Por qué cambiar</span>
+      <h2>El túnel funcionaba, pero no era para vídeo</h2>
+      <div class="prose">
+        <p>
+          Un túnel de Cloudflare publica un servicio sin abrir puertos: la conexión la abre el
+          laboratorio hacia fuera. Es cómodo, pero todo el tráfico pasa por la red de Cloudflare, y sus
+          condiciones de uso gratuitas no contemplan servir vídeo de forma continuada. Para un servidor
+          multimedia, era cuestión de tiempo que fuera un problema.
+        </p>
+        <p>
+          La alternativa obvia, un proxy propio, tenía un obstáculo: la conexión de casa estaba detrás
+          de un <strong>CGNAT</strong> del operador. Con CGNAT el router no tiene una IP pública
+          propia; se comparte con otros clientes, y desde internet nadie puede iniciar una conexión hacia
+          casa. Se comprobó comparando la IP del router con la IP con la que se sale a internet: no
+          coincidían, y la del router estaba en el rango reservado para CGNAT. Se pidió al operador una
+          IP pública y el camino quedó libre.
+        </p>
+        <p>
+          ¿Por qué no una VPN, que es más segura? Porque exige instalar y activar algo en cada móvil o
+          televisor, y los usuarios de este servicio no son de trastear. La seguridad se pone detrás, no
+          se les pide a ellos.
+        </p>
+      </div>
+    </section>
+
+    <section id="recorrido">
+      <span class="tape tape--small">Recorrido</span>
+      <h2>Qué atraviesa una visita, paso a paso</h2>
+      <ol class="path">
+        <li><strong>DNS</strong><span>El nombre del servicio apunta directamente a la IP pública de casa, sin el proxy de Cloudflare delante: el vídeo ya no pasa por su red.</span></li>
+        <li><strong>Router del operador</strong><span>Reenvía solo el puerto HTTPS al router de borde. Ningún otro puerto está abierto.</span></li>
+        <li><strong>Router de borde</strong><span>Redirige a la DMZ solo lo que llega dirigido a él mismo. Así el tráfico HTTPS de la red doméstica hacia el laboratorio, como abrir vCenter, no se desvía al proxy por error.</span></li>
+        <li><strong>DMZ</strong><span>El proxy descifra la conexión con su certificado y comprueba qué nombre se ha pedido.</span></li>
+        <li><strong>Servidor multimedia</strong><span>El proxy abre su propia conexión hasta Jellyfin, la única que la ACL le permite. El usuario nunca habla directamente con el servidor.</span></li>
+      </ol>
+    </section>
+
+    <section id="capas">
+      <span class="tape tape--small">Capas de protección</span>
+      <h2>Ninguna capa confía en las demás</h2>
+      <div class="panel scroll-x">
+        <table class="datatable">
+          <thead><tr><th>Capa</th><th>Qué hace</th></tr></thead>
+          <tbody>
+            <tr><td>Un solo puerto</td><td>Desde internet solo se llega al HTTPS. El puerto 80 ni siquiera escucha.</td></tr>
+            <tr><td>Certificado automático</td><td>Let's Encrypt con validación por DNS, así que no hace falta abrir el puerto 80 para validar. Se renueva solo y el proxy recarga el certificado nuevo sin intervención.</td></tr>
+            <tr><td>Rechazo de desconocidos</td><td>Quien llega sin pedir el nombre exacto del servicio (los escáneres que recorren internet por IP) ve rechazado el cifrado antes de recibir nada.</td></tr>
+            <tr><td>Firewall del proxy</td><td>Controla lo que <em>entra</em>: HTTPS para todos, administración solo desde el equipo de gestión.</td></tr>
+            <tr><td>ACL de la DMZ</td><td>Controla lo que <em>sale</em>: hacia el laboratorio, solo el servidor multimedia. <a href="red.html#dmz">Detalle y pruebas</a>.</td></tr>
+            <tr><td>IP real del usuario</td><td>El proxy le pasa a Jellyfin la IP de cada usuario, y Jellyfin solo se fía de ese dato si viene del proxy. Sin eso, todos los usuarios parecerían la misma persona.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note">
+        <span class="tape tape--small">Detalle que costó encontrar</span>
+        <p>Jellyfin guardaba el proxy como "de confianza", pero seguía viendo a todo el mundo con la IP
+          del proxy. El ajuste solo se aplica al arrancar: hizo falta reiniciar el servicio. Se detectó
+          mirando el registro de actividad, no fiándose de la pantalla de configuración.</p>
+      </div>
+    </section>
+
+    <section id="pruebas">
+      <span class="tape tape--small">Pruebas</span>
+      <h2>Cómo se probó, de dentro hacia fuera</h2>
+      <p class="intro">Cada tramo se validó antes de abrir el siguiente, y el túnel antiguo siguió funcionando hasta el final como vuelta atrás.</p>
+      <ol class="path">
+        <li><strong>Desde el propio proxy</strong><span>Petición al servicio con el nombre correcto: responde, con certificado válido. Petición sin nombre: rechazada.</span></li>
+        <li><strong>Desde el equipo de administración</strong><span>El nombre forzado hacia el proxy solo en ese equipo, sin tocar el DNS público. El servicio carga y reproduce, y el registro del proxy lo confirma. La primera vez no fue así: el navegador seguía entrando por el túnel, y solo el registro vacío lo delató.</span></li>
+        <li><strong>Desde internet, por IP</strong><span>Con un móvil sin wifi, contra la IP pública: el proxy rechaza el cifrado (llega y no se deja engañar), y los contadores del router de borde suben.</span></li>
+        <li><strong>Cambio de DNS</strong><span>El nombre pasa del túnel a la IP de casa, comprobado contra dos resolvedores públicos.</span></li>
+        <li><strong>Desde internet, de verdad</strong><span>El móvil con datos reproduce un vídeo, transcodificado, y el registro del proxy muestra la IP del operador móvil.</span></li>
+      </ol>
+    </section>
+
+    <section id="pendiente">
+      <span class="tape tape--small">En curso</span>
+      <h2>Lo que falta</h2>
+      <div class="panel scroll-x">
+        <table class="datatable">
+          <thead><tr><th>Tarea</th><th>Por qué</th><th>Estado</th></tr></thead>
+          <tbody>
+            <tr><td>DNS dinámico</td><td>Si el operador cambia la IP pública, el nombre tiene que actualizarse solo</td><td><span class="state"><span class="led led--busy" aria-hidden="true"></span>En curso</span></td></tr>
+            <tr><td>Retirar el túnel</td><td>Ya no recibe tráfico, pero sigue existiendo</td><td><span class="state"><span class="led led--busy" aria-hidden="true"></span>En curso</span></td></tr>
+            <tr><td>Bloqueo de intentos repetidos</td><td>Cortar a quien falle el acceso una y otra vez</td><td><span class="state"><span class="led led--plan" aria-hidden="true"></span>Planificado</span></td></tr>
+            <tr><td>Registros más limpios</td><td>Que el proxy no guarde en sus registros datos de sesión que viajan en las direcciones del vídeo</td><td><span class="state"><span class="led led--plan" aria-hidden="true"></span>Planificado</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <p>Esta web describe la arquitectura y las decisiones de diseño del laboratorio. Se omiten a propósito
+      direcciones IP, puertos físicos, nombres de dominio y cualquier credencial.</p>
+    <p>Última revisión: 12/09/2026 · <a href="changelog.html">Historial completo</a></p>
+  </div>
+</footer>
+
+<script src="assets/site.js"></script>
+</body>
+</html>

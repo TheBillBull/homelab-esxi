@@ -1,314 +1,149 @@
-<title>Homelab ESXi: Evolución</title>
-<style>
-  :root {
-    --bg: #EEF1F4;
-    --grid-dot: rgba(20, 26, 34, 0.06);
-    --surface: #FFFFFF;
-    --surface-alt: #F5F7F9;
-    --text: #141A22;
-    --text-muted: #59636F;
-    --border: #D7DDE3;
-    --accent: #B6591A;
-    --accent-contrast: #FFFFFF;
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Homelab ESXi · Evolución</title>
+<meta name="description" content="Historial de cambios reales de infraestructura del homelab, del más reciente al más antiguo.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23161B21'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%232FBF71'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<a class="skip" href="#contenido">Saltar al contenido</a>
 
-    --swatch-1: #3E6EA5; /* Red */
-    --swatch-2: #6A5AC2; /* Documentación */
-    --swatch-3: #1F8F82; /* Almacenamiento */
-    --swatch-6: #3E8C55; /* Cómputo */
-
-    --font-display: ui-monospace, "Cascadia Code", "Cascadia Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-    --font-body: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #10151B; --grid-dot: rgba(232, 236, 239, 0.05); --surface: #171E26;
-      --surface-alt: #1D2530; --text: #E8ECEF; --text-muted: #8D98A4; --border: #2B3641;
-      --accent: #E8A03D; --accent-contrast: #10151B;
-      --swatch-1: #6E97D1; --swatch-2: #9A8AE8; --swatch-3: #4FBFAF; --swatch-6: #6FBB82;
-    }
-  }
-
-  :root[data-theme="dark"] {
-    --bg: #10151B; --grid-dot: rgba(232, 236, 239, 0.05); --surface: #171E26;
-    --surface-alt: #1D2530; --text: #E8ECEF; --text-muted: #8D98A4; --border: #2B3641;
-    --accent: #E8A03D; --accent-contrast: #10151B;
-    --swatch-1: #6E97D1; --swatch-2: #9A8AE8; --swatch-3: #4FBFAF; --swatch-6: #6FBB82;
-  }
-
-  :root[data-theme="light"] {
-    --bg: #EEF1F4; --grid-dot: rgba(20, 26, 34, 0.06); --surface: #FFFFFF;
-    --surface-alt: #F5F7F9; --text: #141A22; --text-muted: #59636F; --border: #D7DDE3;
-    --accent: #B6591A; --accent-contrast: #FFFFFF;
-    --swatch-1: #3E6EA5; --swatch-2: #6A5AC2; --swatch-3: #1F8F82; --swatch-6: #3E8C55;
-  }
-
-  * { box-sizing: border-box; }
-  html { background: var(--bg); }
-  @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
-
-  body {
-    margin: 0;
-    background: radial-gradient(var(--grid-dot) 1px, transparent 1px);
-    background-size: 22px 22px;
-    color: var(--text);
-    font-family: var(--font-body);
-    font-size: 16px;
-    line-height: 1.6;
-    -webkit-font-smoothing: antialiased;
-  }
-
-  a { color: var(--accent); }
-  a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-
-  .sitenav {
-    position: sticky; top: 0; z-index: 20;
-    border-top: 4px solid var(--accent); border-bottom: 1px solid var(--border);
-    background: var(--surface);
-  }
-  .sitenav-inner {
-    max-width: 1180px; margin: 0 auto; padding: 0 32px; height: 52px;
-    display: flex; align-items: center; justify-content: space-between; gap: 24px;
-  }
-  .sitenav-brand { font-family: var(--font-display); font-size: 13px; font-weight: 600; color: var(--text); text-decoration: none; white-space: nowrap; }
-  .sitenav-links { display: flex; gap: 2px; overflow-x: auto; }
-  .sitenav-links a {
-    font-family: var(--font-display); font-size: 12px; text-transform: uppercase;
-    letter-spacing: 0.06em; text-decoration: none; color: var(--text-muted);
-    padding: 8px 12px; white-space: nowrap; border-bottom: 2px solid transparent;
-    transition: color 120ms ease, border-color 120ms ease;
-  }
-  .sitenav-links a:hover { color: var(--text); }
-  .sitenav-links a[aria-current="page"] { color: var(--accent); border-bottom-color: var(--accent); }
-  @media (max-width: 640px) { .sitenav-inner { padding: 0 16px; } .sitenav-brand { display: none; } }
-
-  h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; font-weight: 600; letter-spacing: -0.01em; margin: 0; }
-
-  .subhead { border-bottom: 1px solid var(--border); background: var(--surface); }
-  .subhead-inner { max-width: 900px; margin: 0 auto; padding: 44px 32px 30px; }
-  .breadcrumb { font-family: var(--font-display); font-size: 12px; color: var(--text-muted); letter-spacing: 0.03em; margin: 0 0 14px 0; }
-  .breadcrumb a { color: var(--text-muted); text-decoration: none; }
-  .breadcrumb a:hover { color: var(--accent); }
-  .breadcrumb .sep { margin: 0 8px; color: var(--border); }
-  .subhead .eyebrow { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.12em; font-size: 12px; color: var(--accent); margin: 0 0 10px 0; }
-  .subhead h1 { font-size: clamp(26px, 3.6vw, 36px); max-width: 22ch; }
-  .subhead p.lede { max-width: 64ch; color: var(--text-muted); font-size: 15.5px; margin: 14px 0 0 0; }
-
-  /* Legend of category tags */
-  .legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
-
-  .tag {
-    display: inline-flex; align-items: center; gap: 6px;
-    font-family: var(--font-display); font-size: 10.5px; text-transform: uppercase;
-    letter-spacing: 0.07em; padding: 4px 9px; border: 1px solid var(--border);
-    background: var(--surface-alt); color: var(--text-muted); white-space: nowrap;
-  }
-  .tag::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--tag-color, var(--accent)); flex: none; }
-  .tag-red { --tag-color: var(--swatch-1); }
-  .tag-storage { --tag-color: var(--swatch-3); }
-  .tag-compute { --tag-color: var(--swatch-6); }
-  .tag-hardware { --tag-color: var(--accent); }
-  .tag-doc { --tag-color: var(--swatch-2); }
-
-  .solo-layout { max-width: 900px; margin: 0 auto; padding: 48px 32px 90px; }
-
-  /* Vertical timeline */
-  .timeline { display: flex; flex-direction: column; }
-  .tl-entry { display: grid; grid-template-columns: 96px 22px 1fr; column-gap: 22px; }
-  .tl-date {
-    font-family: var(--font-display); font-size: 12.5px; color: var(--text-muted);
-    text-align: right; padding-top: 3px; white-space: nowrap; font-variant-numeric: tabular-nums;
-  }
-  .tl-rail { position: relative; }
-  .tl-rail::before {
-    content: ""; position: absolute; left: 50%; top: 2px; bottom: -38px; width: 1px;
-    background: var(--border); transform: translateX(-50%);
-  }
-  .tl-entry:last-child .tl-rail::before { display: none; }
-  .tl-dot {
-    position: absolute; left: 50%; top: 6px; width: 10px; height: 10px; border-radius: 50%;
-    background: var(--bg); border: 2px solid var(--accent); transform: translate(-50%, -50%);
-  }
-  .tl-body { padding-bottom: 46px; }
-  .tl-title { font-size: 17px; font-weight: 600; margin: 0 0 8px 0; }
-  .tl-tags { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
-  .tl-desc { color: var(--text-muted); font-size: 14.5px; max-width: 62ch; margin: 0; }
-  .tl-links { margin-top: 10px; display: flex; gap: 18px; flex-wrap: wrap; }
-  .tl-links a { font-family: var(--font-display); font-size: 12px; color: var(--accent); text-decoration: none; }
-  .tl-links a:hover { text-decoration: underline; }
-
-  @media (max-width: 560px) {
-    .tl-entry { grid-template-columns: 64px 18px 1fr; column-gap: 12px; }
-    .tl-date { font-size: 11px; }
-  }
-
-  footer { max-width: 900px; margin: 0 auto; padding: 28px 32px 60px; border-top: 1px solid var(--border); }
-  footer p { font-family: var(--font-display); font-size: 12px; color: var(--text-muted); max-width: 70ch; line-height: 1.7; }
-  footer a { color: var(--accent); }
-</style>
-
-<nav class="sitenav">
+<nav class="sitenav" aria-label="Secciones del sitio">
   <div class="sitenav-inner">
-    <a class="sitenav-brand" href="index.html">Homelab ESXi</a>
-    <div class="sitenav-links">
+    <a class="brand" href="index.html"><span class="led led--on" aria-hidden="true"></span><span>Homelab ESXi</span></a>
+    <div class="navlinks">
       <a href="index.html">Arquitectura</a>
-      <a href="almacenamiento.html">Almacenamiento</a>
       <a href="red.html">Red</a>
+      <a href="almacenamiento.html">Almacenamiento</a>
       <a href="computo.html">Cómputo</a>
+      <a href="publicacion.html">Publicación</a>
       <a href="changelog.html" aria-current="page">Evolución</a>
     </div>
   </div>
 </nav>
 
-<header class="subhead">
-  <div class="subhead-inner">
-    <p class="breadcrumb"><a href="index.html">Homelab ESXi</a><span class="sep">/</span>Evolución</p>
-    <p class="eyebrow">Historial · Cambios · Decisiones</p>
-    <h1>Evolución del laboratorio</h1>
+<header class="masthead">
+  <div class="masthead-inner">
+    <span class="tape">Evolución · Historial</span>
+    <h1>Cada entrada es un cambio real, nunca un plan</h1>
     <p class="lede">
-      El laboratorio no es una foto fija: cada revisión de esta documentación registra un
-      cambio real de infraestructura. Orden cronológico, más reciente arriba, con enlace a
-      la página de detalle correspondiente cuando aplica.
+      El laboratorio no es una foto fija. Este es el registro de lo que ha cambiado, del más reciente
+      al más antiguo, con enlace a la explicación de cada cosa. Lo planificado vive en el frontal de
+      estado de la portada, no aquí.
     </p>
-    <div class="legend">
-      <span class="tag tag-storage">Almacenamiento</span>
-      <span class="tag tag-red">Red</span>
-      <span class="tag tag-compute">Cómputo</span>
-      <span class="tag tag-hardware">Hardware</span>
-      <span class="tag tag-doc">Documentación</span>
-    </div>
   </div>
 </header>
 
-<div class="solo-layout">
-  <div class="timeline">
+<div class="layout">
+  <nav class="toc" aria-label="Años">
+    <a href="#s2026">2026</a>
+  </nav>
 
-    <div class="tl-entry">
-      <div class="tl-date">10/09/2026</div>
-      <div class="tl-rail"><div class="tl-dot"></div></div>
-      <div class="tl-body">
-        <h3 class="tl-title">Pool HDD ampliado a mayor capacidad</h3>
-        <div class="tl-tags"><span class="tag tag-storage">Almacenamiento</span></div>
-        <p class="tl-desc">
-          Los 2 discos 2.5″ del pool HDD se sustituyen por unidades de mayor capacidad. Sin
-          puertos SATA libres en el chasis, la migración se hace liberando un disco a la
-          vez: vdev temporal en stripe para el volcado de datos (con el disco viejo
-          superviviente como copia intacta), verificación de integridad, y reconstrucción
-          del mirror de 2 discos ya con la capacidad nueva. Cero pérdida de datos; datasets,
-          red (NFS/SMB) y librería de Jellyfin preservados sin reconfiguración.
-        </p>
-        <div class="tl-links">
-          <a href="almacenamiento.html#ampliacion-2026">Ver detalle técnico →</a>
-        </div>
-      </div>
-    </div>
-
-    <div class="tl-entry">
-      <div class="tl-date">09/09/2026</div>
-      <div class="tl-rail"><div class="tl-dot"></div></div>
-      <div class="tl-body">
-        <h3 class="tl-title">Hosts del clúster homogeneizados</h3>
-        <div class="tl-tags"><span class="tag tag-hardware">Hardware</span></div>
-        <p class="tl-desc">
-          Los 3 hosts ESXi pasan a compartir la misma CPU (Intel Core i7-8700), sustituyendo
-          la mezcla anterior (1× i7 8ª gen + 2× i5 9ª gen). Con CPUs idénticas ya no hace
-          falta fijar un baseline EVC en vCenter para garantizar compatibilidad de vMotion
-          entre hosts.
-        </p>
-        <div class="tl-links">
-          <a href="index.html#fisica">Ver detalle técnico →</a>
-        </div>
-      </div>
-    </div>
-
-    <div class="tl-entry">
-      <div class="tl-date">07/09/2026</div>
-      <div class="tl-rail"><div class="tl-dot"></div></div>
-      <div class="tl-body">
-        <h3 class="tl-title">Aislamiento físico de la VLAN Multimedia</h3>
-        <div class="tl-tags"><span class="tag tag-red">Red</span></div>
-        <p class="tl-desc">
-          El puerto físico de TrueNAS asignado a la VLAN Multimedia pasa a ser exclusivo —
-          no compartido con gestión, iSCSI ni producción — para que el streaming
-          concurrente de Jellyfin no compita por ancho de banda físico con las VMs de
-          producción. Confirmado también que, por ahora, solo Jellyfin corre en Docker.
-        </p>
-        <div class="tl-links">
-          <a href="red.html#aislamiento">Ver detalle técnico →</a>
-        </div>
-      </div>
-    </div>
-
-    <div class="tl-entry">
-      <div class="tl-date">07/09/2026</div>
-      <div class="tl-rail"><div class="tl-dot"></div></div>
-      <div class="tl-body">
-        <h3 class="tl-title">Jellyfin: GPU y memoria dedicadas</h3>
-        <div class="tl-tags"><span class="tag tag-compute">Cómputo</span></div>
-        <p class="tl-desc">
-          Passthrough de la iGPU Intel (Quick Sync/VAAPI) del host a la VM de Jellyfin vía
-          DirectPath I/O, para transcodificar por hardware en vez de saturar la CPU. RAM de
-          la VM fijada con reservation = limit para blindarla frente a picos de
-          transcodificación. Contrapartida: esa VM pierde vMotion/DRS mientras dure el
-          passthrough.
-        </p>
-        <div class="tl-links">
-          <a href="computo.html#jellyfin-gpu">Ver detalle técnico →</a>
-        </div>
-      </div>
-    </div>
-
-    <div class="tl-entry">
-      <div class="tl-date">07/09/2026</div>
-      <div class="tl-rail"><div class="tl-dot"></div></div>
-      <div class="tl-body">
-        <h3 class="tl-title">Red: 10 categorías de VLAN + construcción física de TrueNAS</h3>
-        <div class="tl-tags">
-          <span class="tag tag-red">Red</span>
-          <span class="tag tag-storage">Almacenamiento</span>
-        </div>
-        <p class="tl-desc">
-          Se documentan formalmente las 10 categorías de VLAN del laboratorio, con la
-          incorporación de Multimedia (separa Jellyfin/ISOs/unidad de red del resto de
-          producción), y la construcción física del nodo TrueNAS: adaptador impreso en 3D
-          para 2 discos de 2.5″ en la única bahía de 3.5″, NIC PCIe de 4 puertos, adaptador
-          PCIe→NVMe para completar el mirror del datastore principal, bahía óptica
-          reconvertida en alojamiento del SSD de sistema, y ventiladores más silenciosos.
-        </p>
-        <div class="tl-links">
-          <a href="red.html#categorias">Ver Red →</a>
-          <a href="almacenamiento.html#construccion">Ver Almacenamiento →</a>
-        </div>
-      </div>
-    </div>
-
-    <div class="tl-entry">
-      <div class="tl-date">21/08/2026</div>
-      <div class="tl-rail"><div class="tl-dot"></div></div>
-      <div class="tl-body">
-        <h3 class="tl-title">Primera publicación de la documentación</h3>
-        <div class="tl-tags"><span class="tag tag-doc">Documentación</span></div>
-        <p class="tl-desc">
-          Se documenta por primera vez la arquitectura del laboratorio: clúster de 3 hosts
-          ESXi (entonces no homogéneos — 1× i7 8ª gen + 2× i5 9ª gen), TrueNAS con 2 pools
-          en espejo, Cisco SG300-28 como columna L3, MikroTik como frontera WAN, y Jellyfin
-          publicado vía Cloudflare Tunnel. Norma editorial fijada desde el primer día: sin
-          IPs, VLANs numéricas, puertos físicos del switch ni credenciales.
-        </p>
-        <div class="tl-links">
-          <a href="index.html">Ver Arquitectura →</a>
-        </div>
-      </div>
-    </div>
-
-  </div>
+  <main id="contenido">
+    <section id="s2026">
+      <ol class="timeline" reversed>
+        <li>
+          <time datetime="2026-09-12">12/09/2026</time>
+          <div>
+            <div class="tags"><span class="tape tape--small">Publicación</span><span class="tape tape--small">Seguridad</span></div>
+            <h3>El servidor multimedia sale a internet por un proxy propio</h3>
+            <p>El túnel de Cloudflare se sustituye por nginx en una DMZ, con certificado automático,
+              firewall en el proxy y ACL en el switch. Antes, el operador retira el CGNAT que impedía
+              recibir conexiones. Probado tramo a tramo, con el túnel como vuelta atrás hasta el final.</p>
+            <a href="publicacion.html">Ver cómo se hizo →</a>
+          </div>
+        </li>
+        <li>
+          <time datetime="2026-09-11">11/09/2026</time>
+          <div>
+            <div class="tags"><span class="tape tape--small">Cómputo</span><span class="tape tape--small">Incidencia</span></div>
+            <h3>Incidencia: VM multimedia sin memoria. Gráfica retirada</h3>
+            <p>La VM se cuelga de madrugada por falta de memoria. Tras el análisis se retira el
+              passthrough de la gráfica integrada, se transcodifica por CPU, la RAM pasa de 4 a 8 GB y se
+              añaden un registro de memoria y el reinicio automático de VMs colgadas en vSphere HA.</p>
+            <a href="computo.html#incidencia">Ver el postmortem →</a>
+          </div>
+        </li>
+        <li>
+          <time datetime="2026-09-11">11/09/2026</time>
+          <div>
+            <div class="tags"><span class="tape tape--small">Red</span><span class="tape tape--small">Seguridad</span></div>
+            <h3>La ACL de la DMZ, rehecha y verificada</h3>
+            <p>Una revisión de la configuración real descubre que la primera ACL dejaba a la DMZ llegar al
+              almacenamiento y a la red doméstica. Se rehace con pruebas antes y después, y la DMZ pasa a
+              usar DNS públicos. Las IPs del equipo de administración quedan reservadas en el DHCP.</p>
+            <a href="red.html#dmz">Ver detalle →</a>
+          </div>
+        </li>
+        <li>
+          <time datetime="2026-09-11">11/09/2026</time>
+          <div>
+            <div class="tags"><span class="tape tape--small">Hardware</span></div>
+            <h3>Llega el switch de reemplazo</h3>
+            <p>Un D-Link DGS-1510-52X (48 × 1 GbE + 4 × SFP+ a 10 GbE) para sustituir al switch actual, que
+              tiene un puerto intermitente y se queda corto con el cuarto host. Inventario completo del
+              switch actual como primer paso de la migración.</p>
+            <a href="red.html#switch">Ver el plan →</a>
+          </div>
+        </li>
+        <li>
+          <time datetime="2026-09-10">10/09/2026</time>
+          <div>
+            <div class="tags"><span class="tape tape--small">Almacenamiento</span></div>
+            <h3>Más capacidad en el pool de discos, sin perder datos</h3>
+            <p>Sin conexiones SATA libres, la ampliación se hace liberando un disco cada vez, con un pool
+              temporal de un solo disco y el disco viejo como copia intacta hasta verificar los datos.</p>
+            <a href="almacenamiento.html#ampliacion">Ver el procedimiento →</a>
+          </div>
+        </li>
+        <li>
+          <time datetime="2026-09-09">09/09/2026</time>
+          <div>
+            <div class="tags"><span class="tape tape--small">Hardware</span></div>
+            <h3>Hosts homogéneos</h3>
+            <p>Los tres hosts pasan a la misma CPU (i7-8700), sustituyendo una mezcla de i7 e i5. vMotion
+              ya no necesitará modo de compatibilidad (EVC).</p>
+            <a href="index.html#fisica">Ver capa física →</a>
+          </div>
+        </li>
+        <li>
+          <time datetime="2026-09-07">07/09/2026</time>
+          <div>
+            <div class="tags"><span class="tape tape--small">Red</span><span class="tape tape--small">Cómputo</span></div>
+            <h3>Puerto dedicado para el vídeo y gráfica para transcodificar</h3>
+            <p>El tráfico multimedia de TrueNAS pasa a un puerto físico propio. La VM multimedia recibe la
+              gráfica integrada por passthrough (retirada el 11/09) y su memoria queda reservada.</p>
+            <a href="red.html#multimedia">Ver detalle →</a>
+          </div>
+        </li>
+        <li>
+          <time datetime="2026-08-21">21/08/2026</time>
+          <div>
+            <div class="tags"><span class="tape tape--small">Documentación</span></div>
+            <h3>Primera publicación de esta documentación</h3>
+            <p>La arquitectura se documenta por primera vez, con una norma desde el primer día: sin IPs,
+              puertos físicos ni credenciales.</p>
+          </div>
+        </li>
+      </ol>
+    </section>
+  </main>
 </div>
 
 <footer>
-  <p>
-    // Esta página registra la evolución de la infraestructura, no solo de la
-    documentación. Cada entrada corresponde a un cambio real ya verificado en producción,
-    nunca a un plan.<br/>
-    // Volver a <a href="index.html">Arquitectura →</a>
-  </p>
+  <div class="footer-inner">
+    <p>Esta web describe la arquitectura y las decisiones de diseño del laboratorio. Se omiten a propósito
+      direcciones IP, puertos físicos, nombres de dominio internos y cualquier credencial.</p>
+    <p>Última revisión: 12/09/2026</p>
+  </div>
 </footer>
+
+<script src="assets/site.js"></script>
+</body>
+</html>

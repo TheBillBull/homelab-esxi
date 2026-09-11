@@ -1,399 +1,198 @@
-<title>Homelab ESXi: Cómputo</title>
-<style>
-  :root {
-    --bg: #EEF1F4;
-    --grid-dot: rgba(20, 26, 34, 0.06);
-    --surface: #FFFFFF;
-    --surface-alt: #F5F7F9;
-    --text: #141A22;
-    --text-muted: #59636F;
-    --border: #D7DDE3;
-    --accent: #B6591A;
-    --accent-contrast: #FFFFFF;
-    --swatch-6: #3E8C55;
-    --font-display: ui-monospace, "Cascadia Code", "Cascadia Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-    --font-body: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
-  }
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Homelab ESXi · Cómputo</title>
+<meta name="description" content="Clúster vSphere con alta disponibilidad, las cargas en producción y el análisis de una incidencia real: una VM que se quedó sin memoria.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23161B21'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%232FBF71'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<a class="skip" href="#contenido">Saltar al contenido</a>
 
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #10151B; --grid-dot: rgba(232, 236, 239, 0.05); --surface: #171E26;
-      --surface-alt: #1D2530; --text: #E8ECEF; --text-muted: #8D98A4; --border: #2B3641;
-      --accent: #E8A03D; --accent-contrast: #10151B; --swatch-6: #6FBB82;
-    }
-  }
-
-  :root[data-theme="dark"] {
-    --bg: #10151B; --grid-dot: rgba(232, 236, 239, 0.05); --surface: #171E26;
-    --surface-alt: #1D2530; --text: #E8ECEF; --text-muted: #8D98A4; --border: #2B3641;
-    --accent: #E8A03D; --accent-contrast: #10151B; --swatch-6: #6FBB82;
-  }
-
-  :root[data-theme="light"] {
-    --bg: #EEF1F4; --grid-dot: rgba(20, 26, 34, 0.06); --surface: #FFFFFF;
-    --surface-alt: #F5F7F9; --text: #141A22; --text-muted: #59636F; --border: #D7DDE3;
-    --accent: #B6591A; --accent-contrast: #FFFFFF; --swatch-6: #3E8C55;
-  }
-
-  * { box-sizing: border-box; }
-  html { background: var(--bg); }
-  @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
-
-  body {
-    margin: 0;
-    background: radial-gradient(var(--grid-dot) 1px, transparent 1px);
-    background-size: 22px 22px;
-    color: var(--text);
-    font-family: var(--font-body);
-    font-size: 16px;
-    line-height: 1.6;
-    -webkit-font-smoothing: antialiased;
-  }
-
-  a { color: var(--accent); }
-  code {
-    font-family: var(--font-display); font-size: 0.9em; background: var(--surface-alt);
-    border: 1px solid var(--border); border-radius: 4px; padding: 0.1em 0.4em;
-  }
-  a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-
-  .sitenav {
-    position: sticky; top: 0; z-index: 20;
-    border-top: 4px solid var(--accent); border-bottom: 1px solid var(--border);
-    background: var(--surface);
-  }
-  .sitenav-inner {
-    max-width: 1180px; margin: 0 auto; padding: 0 32px; height: 52px;
-    display: flex; align-items: center; justify-content: space-between; gap: 24px;
-  }
-  .sitenav-brand { font-family: var(--font-display); font-size: 13px; font-weight: 600; color: var(--text); text-decoration: none; white-space: nowrap; }
-  .sitenav-links { display: flex; gap: 2px; overflow-x: auto; }
-  .sitenav-links a {
-    font-family: var(--font-display); font-size: 12px; text-transform: uppercase;
-    letter-spacing: 0.06em; text-decoration: none; color: var(--text-muted);
-    padding: 8px 12px; white-space: nowrap; border-bottom: 2px solid transparent;
-    transition: color 120ms ease, border-color 120ms ease;
-  }
-  .sitenav-links a:hover { color: var(--text); }
-  .sitenav-links a[aria-current="page"] { color: var(--accent); border-bottom-color: var(--accent); }
-  @media (max-width: 640px) { .sitenav-inner { padding: 0 16px; } .sitenav-brand { display: none; } }
-
-  h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; font-weight: 600; letter-spacing: -0.01em; margin: 0; }
-
-  .subhead { border-bottom: 1px solid var(--border); background: var(--surface); }
-  .subhead-inner { max-width: 1180px; margin: 0 auto; padding: 40px 32px 28px; }
-  .breadcrumb { font-family: var(--font-display); font-size: 12px; color: var(--text-muted); letter-spacing: 0.03em; margin: 0 0 14px 0; }
-  .breadcrumb a { color: var(--text-muted); text-decoration: none; }
-  .breadcrumb a:hover { color: var(--accent); }
-  .breadcrumb .sep { margin: 0 8px; color: var(--border); }
-  .subhead .eyebrow { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.12em; font-size: 12px; color: var(--swatch-6); margin: 0 0 10px 0; }
-  .subhead h1 { font-size: clamp(26px, 3.6vw, 36px); max-width: 22ch; }
-  .subhead p.lede { max-width: 64ch; color: var(--text-muted); font-size: 15.5px; margin: 14px 0 0 0; }
-
-  .layout {
-    max-width: 1180px; margin: 0 auto; padding: 40px 32px 80px;
-    display: grid; grid-template-columns: 208px 1fr; gap: 48px; align-items: start;
-  }
-  .toc { position: sticky; top: 68px; display: flex; flex-direction: column; gap: 2px; }
-  .toc a {
-    font-family: var(--font-display); font-size: 12px; text-transform: uppercase;
-    letter-spacing: 0.06em; text-decoration: none; color: var(--text-muted);
-    padding: 7px 10px; border-left: 2px solid transparent;
-    transition: color 120ms ease, border-color 120ms ease, background 120ms ease;
-  }
-  .toc a:hover { color: var(--text); background: var(--surface-alt); }
-  .toc a.active { color: var(--accent); border-left-color: var(--accent); background: var(--surface-alt); }
-
-  main { min-width: 0; }
-  section { padding-top: 8px; margin-bottom: 64px; scroll-margin-top: 76px; }
-  section .kicker { font-family: var(--font-display); font-size: 12px; color: var(--text-muted); letter-spacing: 0.06em; }
-  section h2 { font-size: 22px; margin: 4px 0 14px 0; }
-  section > p.intro { max-width: 68ch; color: var(--text-muted); margin: 0 0 24px 0; }
-
-  .panel { border: 1px solid var(--border); background: var(--surface); }
-  .scroll-x { overflow-x: auto; }
-  figure { margin: 0; }
-  figcaption {
-    font-family: var(--font-display); font-size: 11.5px; text-transform: uppercase;
-    letter-spacing: 0.06em; color: var(--text-muted); padding: 10px 22px; border-top: 1px solid var(--border);
-  }
-  pre.mermaid { margin: 0; padding: 24px; display: flex; justify-content: center; min-width: 560px; }
-
-  .cards {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1px;
-    background: var(--border); border: 1px solid var(--border);
-  }
-  .card { background: var(--surface); padding: 18px 20px; }
-  .card .card-eyebrow { font-family: var(--font-display); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); }
-  .card h3 { font-size: 16px; margin: 6px 0 14px 0; }
-
-  .split {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 1px;
-    background: var(--border); border: 1px solid var(--border);
-  }
-  .split .half { background: var(--surface); padding: 18px 20px; }
-  .split h4 { font-family: var(--font-display); font-size: 13px; margin: 0 0 8px 0; }
-  .split p { margin: 0; font-size: 14px; color: var(--text-muted); }
-
-  ul.plain { margin: 0; padding: 0; list-style: none; }
-  ul.plain li { position: relative; padding: 6px 0 6px 18px; font-size: 14.5px; color: var(--text-muted); }
-  ul.plain li::before { content: "—"; position: absolute; left: 0; color: var(--accent); }
-
-  .history-mini { border: 1px solid var(--border); background: var(--surface); }
-  .history-row { display: flex; gap: 16px; padding: 14px 20px; border-bottom: 1px solid var(--border); align-items: baseline; flex-wrap: wrap; }
-  .history-row:last-child { border-bottom: none; }
-  .history-row .hdate { font-family: var(--font-display); font-size: 11.5px; color: var(--text-muted); white-space: nowrap; font-variant-numeric: tabular-nums; min-width: 84px; }
-  .history-row .htitle { font-size: 14.5px; flex: 1; min-width: 200px; }
-  .history-row .htitle strong { font-weight: 600; }
-
-  footer { max-width: 1180px; margin: 0 auto; padding: 28px 32px 60px; border-top: 1px solid var(--border); }
-  footer p { font-family: var(--font-display); font-size: 12px; color: var(--text-muted); max-width: 70ch; line-height: 1.7; }
-  footer a { color: var(--accent); }
-
-  @media (max-width: 860px) {
-    .layout { grid-template-columns: 1fr; }
-    .toc {
-      position: static; flex-direction: row; overflow-x: auto; gap: 4px;
-      padding-bottom: 6px; border-bottom: 1px solid var(--border); margin-bottom: 8px;
-    }
-    .toc a { border-left: none; border-bottom: 2px solid transparent; white-space: nowrap; }
-    .toc a.active { border-left-color: transparent; border-bottom-color: var(--accent); }
-    .split { grid-template-columns: 1fr; }
-  }
-</style>
-
-<nav class="sitenav">
+<nav class="sitenav" aria-label="Secciones del sitio">
   <div class="sitenav-inner">
-    <a class="sitenav-brand" href="index.html">Homelab ESXi</a>
-    <div class="sitenav-links">
+    <a class="brand" href="index.html"><span class="led led--on" aria-hidden="true"></span><span>Homelab ESXi</span></a>
+    <div class="navlinks">
       <a href="index.html">Arquitectura</a>
-      <a href="almacenamiento.html">Almacenamiento</a>
       <a href="red.html">Red</a>
+      <a href="almacenamiento.html">Almacenamiento</a>
       <a href="computo.html" aria-current="page">Cómputo</a>
+      <a href="publicacion.html">Publicación</a>
       <a href="changelog.html">Evolución</a>
     </div>
   </div>
 </nav>
 
-<header class="subhead">
-  <div class="subhead-inner">
-    <p class="breadcrumb"><a href="index.html">Homelab ESXi</a><span class="sep">/</span>Cómputo</p>
-    <p class="eyebrow">Clúster · Cargas de trabajo · Jellyfin</p>
-    <h1>Cómputo</h1>
+<header class="masthead">
+  <div class="masthead-inner">
+    <span class="tape">Cómputo · vSphere</span>
+    <h1>Un clúster que se recupera solo, y una incidencia que lo demostró necesario</h1>
     <p class="lede">
-      Cómo el clúster reparte las VMs, qué corre en él, y el caso particular de Jellyfin:
-      GPU dedicada por passthrough, memoria fijada, y publicación hacia internet sin abrir
-      un solo puerto.
+      vCenter gestiona los hosts como un único clúster con alta disponibilidad. Aquí están las cargas
+      que corren en él y el análisis completo de la primera incidencia seria: una VM que se quedó sin
+      memoria de madrugada.
     </p>
   </div>
 </header>
 
 <div class="layout">
-  <nav class="toc" id="toc">
-    <a href="#virtualizacion">Clúster y virtualización</a>
+  <nav class="toc" id="toc" aria-label="En esta página">
+    <a href="#cluster">Clúster</a>
     <a href="#cargas">Cargas de trabajo</a>
-    <a href="#jellyfin-gpu">Jellyfin: GPU y memoria</a>
-    <a href="#acceso">Acceso remoto</a>
-    <a href="#historial">Evolución de este componente</a>
+    <a href="#multimedia">Servidor multimedia</a>
+    <a href="#incidencia">Incidencia</a>
   </nav>
 
-  <main>
+  <main id="contenido">
 
-    <section id="virtualizacion">
-      <p class="kicker">01</p>
-      <h2>Clúster y virtualización</h2>
+    <section id="cluster">
+      <span class="tape tape--small">Clúster</span>
+      <h2>Qué hace el clúster ante cada fallo</h2>
       <p class="intro">
-        vCenter gestiona los 3 hosts como un único clúster, con un switch distribuido (vDS)
-        en vez de switches estándar por host — coherente con el diseño de NIC en trunk de
-        la capa física (ver <a href="index.html#fisica">capa física</a>).
+        La red de las VMs se gestiona desde un switch distribuido (vDS) a nivel de clúster, no host a
+        host. Así responde vSphere HA a cada tipo de fallo:
       </p>
-      <div class="cards">
-        <div class="card">
-          <div class="card-eyebrow">Cluster</div>
-          <h3>HA + DRS</h3>
-          <p style="color:var(--text-muted); font-size:14px; margin:0;">Activados y verificados en
-            funcionamiento: el clúster reubica VMs automáticamente ante fallo de host o
-            desequilibrio de carga.</p>
-        </div>
-        <div class="card">
-          <div class="card-eyebrow">Networking</div>
-          <h3>vDS</h3>
-          <p style="color:var(--text-muted); font-size:14px; margin:0;">Switch distribuido:
-            la configuración de red se gestiona a nivel de clúster, no host a host.</p>
-        </div>
-        <div class="card">
-          <div class="card-eyebrow">Storage compartido</div>
-          <h3>Sin vSAN (aún)</h3>
-          <p style="color:var(--text-muted); font-size:14px; margin:0;">El almacenamiento
-            compartido del clúster viene de TrueNAS por iSCSI, no de vSAN — pendiente de evaluar.</p>
-        </div>
+      <div class="panel scroll-x">
+        <table class="datatable">
+          <thead><tr><th>Si pasa esto…</th><th>El clúster hace esto</th><th>Estado</th></tr></thead>
+          <tbody>
+            <tr><td>Se cae un host</td><td>Arranca sus VMs en los demás</td><td><span class="state"><span class="led led--on" aria-hidden="true"></span>Activo</span></td></tr>
+            <tr><td>Un host pierde el almacenamiento (PDL / APD)</td><td>Apaga esas VMs y las arranca en un host que sí lo ve</td><td><span class="state"><span class="led led--on" aria-hidden="true"></span>Activo</span></td></tr>
+            <tr><td>Una VM se cuelga (deja de responder su sistema operativo)</td><td>La reinicia, tras 60 s sin señal y sin actividad de disco ni red; máximo 3 veces al día</td><td><span class="state"><span class="led led--on" aria-hidden="true"></span>Activo</span></td></tr>
+            <tr><td>Un host pierde la red de gestión pero sigue vivo</td><td>Deja las VMs encendidas: el almacenamiento va por otra red</td><td><span class="state"><span class="led led--on" aria-hidden="true"></span>Decisión</span></td></tr>
+            <tr><td>Hay que vaciar un host o repartir carga</td><td>Mover VMs en caliente (vMotion) y que DRS equilibre</td><td><span class="state"><span class="led led--plan" aria-hidden="true"></span>Planificado</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note">
+        <span class="tape tape--small">Pendiente</span>
+        <p>DRS está activado, pero todavía no hay red de vMotion, así que no puede mover VMs en caliente.
+          Se configurará cuando el cuarto host esté dentro, una sola vez para los cuatro.</p>
       </div>
     </section>
 
     <section id="cargas">
-      <p class="kicker">02</p>
-      <h2>Cargas de trabajo</h2>
-      <p class="intro">Dos VMs de producción, cada una con un propósito bien delimitado.</p>
-      <div class="cards">
-        <div class="card">
-          <div class="card-eyebrow">VM · Windows Server</div>
-          <h3>Directorio activo + DNS</h3>
-          <ul class="plain">
-            <li>Controlador de dominio (Active Directory)</li>
-            <li>Zona DNS interna del laboratorio</li>
-          </ul>
-        </div>
-        <div class="card">
-          <div class="card-eyebrow">VM · Ubuntu Server</div>
-          <h3>Jellyfin sobre Docker</h3>
-          <ul class="plain">
-            <li>Servidor multimedia personal, orquestado con Docker Compose</li>
-            <li>App, caché y carátulas en el datastore NVMe</li>
-            <li>Media en el pool HDD vía NFS</li>
-            <li>Transcodificación por hardware (iGPU Quick Sync, passthrough)</li>
-          </ul>
-        </div>
+      <span class="tape tape--small">Cargas de trabajo</span>
+      <h2>Qué corre hoy en el clúster</h2>
+      <div class="panel scroll-x">
+        <table class="datatable">
+          <thead><tr><th>VM</th><th>Sistema</th><th>Función</th><th>Segmento</th></tr></thead>
+          <tbody>
+            <tr><td>vCenter</td><td>VCSA</td><td>Gestión del clúster</td><td>Gestión</td></tr>
+            <tr><td>DNS</td><td>Windows Server</td><td>DNS interno del laboratorio</td><td>Gestión</td></tr>
+            <tr><td>Servidor multimedia</td><td>Ubuntu Server + Docker</td><td>Jellyfin: biblioteca de vídeo para la familia</td><td>Servidores</td></tr>
+            <tr><td>Proxy público</td><td>Ubuntu Server</td><td>nginx con TLS: la única puerta desde internet</td><td>DMZ</td></tr>
+          </tbody>
+        </table>
       </div>
     </section>
 
-    <section id="jellyfin-gpu">
-      <p class="kicker">03</p>
-      <h2>Jellyfin: GPU y memoria dedicadas</h2>
+    <section id="multimedia">
+      <span class="tape tape--small">Servidor multimedia</span>
+      <h2>Estabilidad antes que potencia</h2>
+      <div class="prose">
+        <p>
+          Jellyfin corre en Docker dentro de una VM con 4 vCPU y 8 GB de RAM. Su sistema, caché y
+          carátulas viven en el pool NVMe; la biblioteca llega por NFS desde el pool de discos.
+        </p>
+        <p>
+          Hasta septiembre de 2026 la VM tenía la gráfica integrada del host (Intel Quick Sync) pasada por
+          PCI passthrough, para transcodificar por hardware. Funcionaba, pero con peajes: la consola de
+          la VM se congelaba, hacían falta parámetros de arranque para domar el driver, y la VM quedaba
+          anclada a su host, sin poder moverse ni ser rearrancada en otro por HA.
+        </p>
+        <p>
+          Tras la incidencia de abajo, <strong>la gráfica se retiró</strong>. Ahora transcodifica la CPU.
+          Solo un usuario lo necesita, cuando ve contenido fuera de casa con mala cobertura, y la prueba
+          fue clara: una transcodificación a calidad de móvil ocupa unos dos tercios de un núcleo de los
+          cuatro de la VM. Sobra margen.
+        </p>
+      </div>
+      <div class="note">
+        <span class="tape tape--small">Qué se ganó</span>
+        <p>Un sospechoso menos, HA completo para la VM (ya puede arrancar en cualquier host), la consola
+          funcionando y una configuración más simple. El cambio se hizo paso a paso: primero Jellyfin sin
+          aceleración, luego el contenedor sin el dispositivo gráfico (probado con la gráfica aún en la
+          VM) y por último la gráfica fuera y la RAM ampliada. Una cosa cada vez.</p>
+      </div>
+    </section>
+
+    <section id="incidencia">
+      <span class="tape tape--small">Postmortem</span>
+      <h2>Incidencia: el servidor multimedia se quedó sin memoria</h2>
       <p class="intro">
-        Con la biblioteca creciendo, transcodificar por software empezaba a saturar la CPU
-        del host. Para evitarlo se pasó la iGPU (Quick Sync) del host por PCI passthrough
-        directamente a la VM, y se fijó la RAM de esa VM para que un pico de transcodificación
-        no compita por memoria con el resto del clúster.
+        Una mañana, Jellyfin no respondía: ni desde internet, ni desde casa, ni por SSH. Así se
+        investigó, de fuera hacia dentro.
       </p>
-      <figure class="panel">
-        <div class="scroll-x">
-          <pre class="mermaid">
-flowchart LR
-    subgraph HOST["Host ESXi"]
-      IGPU["iGPU Intel<br/>Quick Sync"]
-    end
-    IGPU -->|"PCI passthrough<br/>DirectPath I/O"| VM["VM Ubuntu Server"]
-    subgraph VM2["dentro de la VM"]
-      DRI["/dev/dri"]
-      DOCKER["Contenedor Docker<br/>Jellyfin"]
-      DRI -->|"grupo render/video"| DOCKER
-    end
-    VM --> VM2
-    NVME["Datastore NVMe<br/>config + caché + carátulas"] --> DOCKER
-    NFS["Pool HDD · NFS<br/>biblioteca multimedia"] --> DOCKER
-          </pre>
-        </div>
-        <figcaption>Fig. 1 — Passthrough de GPU y volúmenes del contenedor de Jellyfin</figcaption>
-      </figure>
 
-      <div class="split" style="margin-top: 24px;">
-        <div class="half">
-          <h4>Passthrough de la iGPU</h4>
-          <p>El host que aloja la VM reserva su iGPU en exclusiva vía PCI passthrough
-            (DirectPath I/O): el hypervisor deja de gestionarla y el control pasa por
-            completo a la VM. Dentro de Ubuntu el dispositivo aparece como
-            <code>/dev/dri</code>; se dio permiso al usuario del contenedor (grupo
-            render/video) para que Jellyfin use Quick Sync (VAAPI) sin correr como root.
-            Contrapartida: mientras la iGPU esté pasada por passthrough, esa VM concreta
-            pierde vMotion/DRS y queda anclada a ese host — el resto del clúster sigue
-            con HA normal.</p>
-        </div>
-        <div class="half">
-          <h4>Memoria fijada</h4>
-          <p>En vSphere se igualaron reservation y limit de RAM para la VM: le garantiza
-            memoria mínima disponible siempre (sin swap ni contención con otras VMs) y
-            evita que un pico de transcodificación le quite RAM al resto del clúster.
-            Separa a Jellyfin del pool de memoria compartido, a cambio de reservar esa RAM
-            de forma fija aunque la VM esté inactiva.</p>
-        </div>
+      <div class="prose">
+        <h3>Acotar</h3>
+        <p>
+          Desde la red de administración, la puerta de enlace del segmento y el almacenamiento del mismo
+          segmento respondían; la VM no. El problema estaba en la VM, no en la red. En vCenter, la VM
+          figuraba encendida, pero con las VMware Tools sin responder y sin IP. Las Tools hablan con el
+          host por dentro, sin usar la red: el sistema operativo estaba colgado. El registro de eventos
+          de vCenter no mostraba reinicios ni actuaciones de HA desde hacía días.
+        </p>
+        <p>
+          Tras un reinicio forzado (sin Tools no hay reinicio ordenado), los registros del arranque
+          anterior contaron la historia.
+        </p>
       </div>
-    </section>
 
-    <section id="acceso">
-      <p class="kicker">04</p>
-      <h2>Acceso remoto</h2>
-      <p class="intro">
-        Jellyfin se publica hacia fuera con un túnel de Cloudflare: sin abrir un solo puerto
-        en el router MikroTik. El dominio se gestiona con el DNS de Cloudflare, que además
-        actúa como capa de proxy inverso frente al contenedor.
-      </p>
-      <figure class="panel">
-        <div class="scroll-x">
-          <pre class="mermaid">
-flowchart LR
-    U["Usuario<br/>(cualquier red)"] --> CF["Cloudflare<br/>DNS + Tunnel"]
-    CF -->|"conexión saliente<br/>sin puertos abiertos"| CFD["cloudflared<br/>contenedor Docker"]
-    CFD --> JF["Jellyfin<br/>Ubuntu Server · Docker"]
-          </pre>
-        </div>
-        <figcaption>Fig. 2 — Publicación de Jellyfin vía Cloudflare Tunnel</figcaption>
-      </figure>
-    </section>
-
-    <section id="historial">
-      <p class="kicker">05</p>
-      <h2>Evolución de este componente</h2>
-      <p class="intro">Cambios relevantes de cómputo, más recientes primero.</p>
-      <div class="history-mini">
-        <div class="history-row">
-          <span class="hdate">09/09/2026</span>
-          <span class="htitle"><strong>Hosts del clúster homogeneizados</strong> — los 3 pasan a Intel Core i7-8700; ya no hace falta fijar EVC en vCenter.</span>
-        </div>
-        <div class="history-row">
-          <span class="hdate">07/09/2026</span>
-          <span class="htitle"><strong>Jellyfin: GPU y memoria dedicadas</strong> — passthrough de iGPU (Quick Sync) y RAM con reservation=limit.</span>
-        </div>
+      <div class="panel scroll-x">
+        <table class="datatable">
+          <thead><tr><th>Hora</th><th>Qué registra el sistema</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">03:09</td><td>Única anomalía previa: una tarea del driver gráfico acapara la CPU buscando pantallas que no existen</td></tr>
+            <tr><td class="mono">03:18</td><td>Primer síntoma: el servidor web de la aplicación avisa de falta de recursos</td></tr>
+            <tr><td class="mono">03:29</td><td>El kernel se queda sin memoria y mata a Jellyfin, <strong>que solo ocupaba unos kilobytes</strong></td></tr>
+            <tr><td class="mono">03:57</td><td>Cae el conector de acceso externo. Docker rearranca los servicios y el kernel los vuelve a matar</td></tr>
+            <tr><td class="mono">06:46</td><td>Ni el propio registro del sistema consigue memoria: cuelgue total</td></tr>
+          </tbody>
+        </table>
       </div>
-      <p class="intro" style="margin-top: 16px; margin-bottom: 0;">
-        <a href="changelog.html">Ver la evolución completa del laboratorio →</a>
-      </p>
+
+      <div class="prose" style="margin-top:22px">
+        <h3>Qué se descartó</h3>
+        <ul>
+          <li><strong>La red y el firewall:</strong> el fallo estaba dentro de la VM.</li>
+          <li><strong>Los usuarios:</strong> nadie reproducía nada a esas horas (no hay rastro de sesiones).</li>
+          <li><strong>Las tareas nocturnas de Jellyfin</strong> (miniaturas, capítulos): terminaron en un segundo, sin trabajo.</li>
+          <li><strong>Un proceso comiéndose la RAM:</strong> los procesos que el kernel mataba apenas usaban memoria. La tenía algo que no cuenta como memoria de un proceso.</li>
+        </ul>
+        <h3>Causa probable y decisión</h3>
+        <p>
+          El principal sospechoso es el driver de la gráfica en passthrough: la memoria de vídeo la
+          gestiona el kernel y no aparece como memoria de ningún proceso. No quedó demostrado al 100 %.
+          Como la prioridad es la estabilidad, se retiró la gráfica, se subió la RAM de 4 a 8 GB y se
+          dejaron tres medidas para que no vuelva a pasar desapercibido:
+        </p>
+        <ul>
+          <li>Un registro de memoria cada 5 minutos, para ver la curva si se repite.</li>
+          <li>El reinicio automático de VMs colgadas en vSphere HA, para que la caída dure minutos y no horas.</li>
+          <li>Seguimiento: si la memoria se mantiene estable durante semanas, la hipótesis queda confirmada.</li>
+        </ul>
+      </div>
     </section>
 
   </main>
 </div>
 
 <footer>
-  <p>
-    // Esta página describe el clúster de cómputo y las cargas de trabajo del laboratorio.
-    Se omiten intencionadamente direcciones IP, identificadores numéricos de VLAN, puertos
-    físicos del switch y cualquier credencial.<br/>
-    // Historial completo de cambios: <a href="changelog.html">página de evolución →</a>
-  </p>
+  <div class="footer-inner">
+    <p>Esta web describe la arquitectura y las decisiones de diseño del laboratorio. Se omiten a propósito
+      direcciones IP, puertos físicos, nombres de dominio internos y cualquier credencial. Los
+      identificadores de VLAN son ilustrativos.</p>
+    <p>Última revisión: 12/09/2026 · <a href="changelog.html">Historial completo</a></p>
+  </div>
 </footer>
 
-<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-<script>
-  (function () {
-    function initMermaid() {
-      if (typeof mermaid === "undefined") return false;
-      var isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      var themeAttr = document.documentElement.getAttribute("data-theme");
-      if (themeAttr) isDark = themeAttr === "dark";
-      mermaid.initialize({
-        startOnLoad: true,
-        theme: isDark ? "dark" : "default",
-        securityLevel: "loose",
-        fontFamily: "ui-monospace, Consolas, monospace"
-      });
-      return true;
-    }
-    if (!initMermaid()) { window.addEventListener("load", initMermaid); }
-  })();
-
-  (function () {
-    var links = Array.prototype.slice.call(document.querySelectorAll("#toc a"));
-    var map = {};
-    links.forEach(function (a) { map[a.getAttribute("href").slice(1)] = a; });
-    var observer = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        var link = map[entry.target.id];
-        if (!link) return;
-        if (entry.isIntersecting) {
-          links.forEach(function (a) { a.classList.remove("active"); });
-          link.classList.add("active");
-        }
-      });
-    }, { rootMargin: "-20% 0px -70% 0px" });
-    document.querySelectorAll("main section[id]").forEach(function (s) { observer.observe(s); });
-  })();
-</script>
+<script src="assets/site.js"></script>
+</body>
+</html>
