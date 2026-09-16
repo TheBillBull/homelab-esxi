@@ -52,7 +52,6 @@
         <li><span class="led led--on" role="img" aria-label="En servicio"></span><span class="name">Almacenamiento compartido</span><span class="what">iSCSI con dos caminos</span></li>
         <li><span class="led led--on" role="img" aria-label="En servicio"></span><span class="name">Red segmentada</span><span class="what">routing L3 en el switch</span></li>
         <li><span class="led led--on" role="img" aria-label="En servicio"></span><span class="name">Publicación a internet</span><span class="what">proxy propio en DMZ</span></li>
-        <li><span class="led led--busy" role="img" aria-label="En curso"></span><span class="name">Renovación del switch</span><span class="what">48 × 1 GbE + 4 × 10 GbE</span></li>
         <li><span class="led led--busy" role="img" aria-label="En curso"></span><span class="name">Cuarto host</span><span class="what">hardware idéntico</span></li>
         <li><span class="led led--plan" role="img" aria-label="Planificado"></span><span class="name">Migración en caliente</span><span class="what">vMotion · DRS efectivo</span></li>
         <li><span class="led led--plan" role="img" aria-label="Planificado"></span><span class="name">Red a 10 GbE</span><span class="what">borde, núcleo y hosts</span></li>
@@ -143,10 +142,8 @@ flowchart TB
         <div class="card">
           <span class="tape tape--small">Núcleo de red</span>
           <h3>Switch de capa 3</h3>
-          <div class="spec"><span class="k">Actual</span><span class="dots"></span><span class="v">Cisco SG300-28</span></div>
-          <div class="spec"><span class="k">Sustituto</span><span class="dots"></span><span class="v">D-Link DGS-1510-52X</span></div>
-          <div class="spec"><span class="k">Puertos</span><span class="dots"></span><span class="v">48 × 1 GbE + 4 × SFP+</span></div>
-          <p style="margin-top:10px">Cambio en curso: más puertos para el cuarto host y enlaces de 10 GbE para el futuro.</p>
+          <div class="spec"><span class="k">Modelo</span><span class="dots"></span><span class="v">Cisco SG300-28</span></div>
+          <div class="spec"><span class="k">Puertos</span><span class="dots"></span><span class="v">28 × 1 GbE</span></div>
         </div>
         <div class="card">
           <span class="tape tape--small">Borde</span>

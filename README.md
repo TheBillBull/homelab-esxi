@@ -11,7 +11,7 @@ capa 3 y un servicio publicado en internet a través de un reverse proxy propio 
 | Fichero | Contenido |
 |---|---|
 | `index.html` | Arquitectura: estado del laboratorio, topología, capa física, origen del hardware y método de trabajo |
-| `red.html` | Plan de VLANs, qué se enruta, almacenamiento con dos caminos, DMZ con su ACL y renovación del switch |
+| `red.html` | Plan de VLANs, qué se enruta, almacenamiento con dos caminos y DMZ con su ACL |
 | `almacenamiento.html` | Construcción de TrueNAS, pools y protocolos, datastores y una ampliación de capacidad |
 | `computo.html` | Clúster y alta disponibilidad, cargas de trabajo y el postmortem de una incidencia |
 | `publicacion.html` | Del túnel de Cloudflare al reverse proxy propio: recorrido, capas de protección y pruebas |

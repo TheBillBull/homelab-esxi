@@ -48,7 +48,6 @@
     <a href="#iscsi">Almacenamiento</a>
     <a href="#dmz">DMZ</a>
     <a href="#multimedia">Tráfico multimedia</a>
-    <a href="#switch">Renovación del switch</a>
   </nav>
 
   <main id="contenido">
@@ -191,30 +190,6 @@
           están en la misma subred, así que la lectura de la biblioteca ni siquiera pasa por el router
           del switch.
         </p>
-      </div>
-    </section>
-
-    <section id="switch">
-      <span class="tape tape--small">En curso</span>
-      <h2>Renovación del switch de núcleo</h2>
-      <div class="prose">
-        <p>
-          El switch actual tiene 28 puertos, uno de ellos intermitente, y el cuarto host los deja sin
-          margen. El sustituto (48 × 1 GbE + 4 × SFP+ a 10 GbE) se está preparando así:
-        </p>
-      </div>
-      <ol class="path">
-        <li><strong>Inventario</strong><span>Configuración completa del switch actual, mapa de cables y puertos, MTU del almacenamiento y VLANs en uso. Nada de memoria.</span></li>
-        <li><strong>Preparación aparte</strong><span>El nuevo se configura desconectado del laboratorio: tendrá las mismas IPs que el actual y no pueden convivir.</span></li>
-        <li><strong>Réplica exacta</strong><span>Misma configuración y misma numeración de puertos, para que las etiquetas de los cables sigan valiendo. Nada de rediseños a la vez.</span></li>
-        <li><strong>Cambio de cables</strong><span>Uno a uno, según el mapa. El switch viejo queda intacto como vuelta atrás.</span></li>
-        <li><strong>Pruebas</strong><span>Caminos de almacenamiento, VMs, DMZ, servicio publicado e internet: la misma batería de siempre.</span></li>
-      </ol>
-      <div class="note">
-        <span class="tape tape--small">Hoja de ruta · 10 GbE</span>
-        <p>La conexión a internet ya da más de 1 Gb/s, así que el cuello de botella es la cadena interna.
-          El switch nuevo es el primer eslabón a 10 GbE; después irán el router de borde y las tarjetas
-          de los hosts, de segunda mano y comprobando antes que estén soportadas en ESXi 8.</p>
       </div>
     </section>
 
