@@ -49,6 +49,50 @@
     <section id="s2026">
       <ol class="timeline" reversed>
         <li>
+          <time datetime="2026-09-18">18/09/2026</time>
+          <div>
+            <div class="tags"><span class="tape tape--small">Hardware</span><span class="tape tape--small">Cómputo</span></div>
+            <h3>Entra el cuarto host</h3>
+            <p>Instalado, en vCenter y con el almacenamiento completo desde el primer día: dos caminos iSCSI,
+              jumbo frames y Round Robin. Queda en mantenimiento hasta unirlo al switch distribuido. El alta
+              falló al principio porque su reloj iba dos años y medio atrás y rechazaba el certificado de vCenter.</p>
+            <a href="index.html#fisica">Ver capa física →</a>
+          </div>
+        </li>
+        <li>
+          <time datetime="2026-09-16">16/09/2026</time>
+          <div>
+            <div class="tags"><span class="tape tape--small">Almacenamiento</span><span class="tape tape--small">Seguridad</span></div>
+            <h3>iSCSI cerrado a su red y a sus hosts, y con los dos caminos trabajando</h3>
+            <p>El almacenamiento ofrecía los discos por todas sus interfaces y a cualquier iniciador. Ahora solo
+              por la red del iSCSI y solo a los hosts del clúster. Además: los dos caminos reparten carga (Round
+              Robin), jumbo frames de extremo a extremo y corregido el ARP flux que mandaba ambos caminos a la
+              misma tarjeta. Todo sin cortes y comprobado desde los dos extremos.</p>
+            <a href="red.html#iscsi">Ver detalle →</a>
+          </div>
+        </li>
+        <li>
+          <time datetime="2026-09-16">16/09/2026</time>
+          <div>
+            <div class="tags"><span class="tape tape--small">Operación</span></div>
+            <h3>Toda la plataforma en hora</h3>
+            <p>Los hosts arrastraban la hora mal y sin NTP. Al corregirla, el controlador de dominio, que no
+              tenía fuente de hora propia, saltó con su host casi diez años hacia delante. Se devuelve a la hora
+              real y se le da NTP propio. Lección: antes de tocar la hora de un host, que las VMs críticas no
+              dependan de él para la suya.</p>
+          </div>
+        </li>
+        <li>
+          <time datetime="2026-09-15">15/09/2026</time>
+          <div>
+            <div class="tags"><span class="tape tape--small">Publicación</span></div>
+            <h3>DNS dinámico propio</h3>
+            <p>Un reinicio del router del operador cambia la IP pública y el servicio deja de ser accesible.
+              Se añade un servicio que comprueba la IP cada 5 minutos y actualiza el registro DNS solo si cambia.</p>
+            <a href="publicacion.html#pendiente">Ver detalle →</a>
+          </div>
+        </li>
+        <li>
           <time datetime="2026-09-12">12/09/2026</time>
           <div>
             <div class="tags"><span class="tape tape--small">Publicación</span><span class="tape tape--small">Seguridad</span></div>
@@ -82,12 +126,12 @@
           </div>
         </li>
         <li>
-          <time datetime="2026-09-10">10/09/2026</time>
+          <time datetime="2026-09-09">09/09/2026</time>
           <div>
             <div class="tags"><span class="tape tape--small">Almacenamiento</span></div>
-            <h3>Más capacidad en el pool de discos, sin perder datos</h3>
-            <p>Sin conexiones SATA libres, la ampliación se hace liberando un disco cada vez, con un pool
-              temporal de un solo disco y el disco viejo como copia intacta hasta verificar los datos.</p>
+            <h3>Seis veces más capacidad en el pool de discos, sin perder datos</h3>
+            <p>El espejo de dos discos de 1 TB pasa a un único disco de 6 TB. Sin pérdida de datos y sin
+              tocar ningún servicio, pero sin redundancia hasta que llegue el segundo disco.</p>
             <a href="almacenamiento.html#ampliacion">Ver el procedimiento →</a>
           </div>
         </li>
@@ -129,7 +173,7 @@
   <div class="footer-inner">
     <p>Esta web describe la arquitectura y las decisiones de diseño del laboratorio. Se omiten a propósito
       direcciones IP, puertos físicos, nombres de dominio internos y cualquier credencial.</p>
-    <p>Última revisión: 12/09/2026</p>
+    <p>Última revisión: 18/09/2026</p>
   </div>
 </footer>
 

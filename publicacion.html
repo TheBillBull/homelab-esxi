@@ -133,7 +133,7 @@
         <table class="datatable">
           <thead><tr><th>Tarea</th><th>Por qué</th><th>Estado</th></tr></thead>
           <tbody>
-            <tr><td>DNS dinámico</td><td>Si el operador cambia la IP pública, el nombre tiene que actualizarse solo</td><td><span class="state"><span class="led led--busy" aria-hidden="true"></span>En curso</span></td></tr>
+            <tr><td>DNS dinámico</td><td>El operador cambia la IP pública, también al reiniciar su router. Un servicio propio la comprueba cada 5 minutos y actualiza el registro DNS si cambia</td><td><span class="state"><span class="led led--on" aria-hidden="true"></span>En servicio</span></td></tr>
             <tr><td>Retirar el túnel</td><td>Ya no recibe tráfico, pero sigue existiendo</td><td><span class="state"><span class="led led--busy" aria-hidden="true"></span>En curso</span></td></tr>
             <tr><td>Bloqueo de intentos repetidos</td><td>Cortar a quien falle el acceso una y otra vez</td><td><span class="state"><span class="led led--plan" aria-hidden="true"></span>Planificado</span></td></tr>
             <tr><td>Registros más limpios</td><td>Que el proxy no guarde en sus registros datos de sesión que viajan en las direcciones del vídeo</td><td><span class="state"><span class="led led--plan" aria-hidden="true"></span>Planificado</span></td></tr>
@@ -149,7 +149,7 @@
   <div class="footer-inner">
     <p>Esta web describe la arquitectura y las decisiones de diseño del laboratorio. Se omiten a propósito
       direcciones IP, puertos físicos, nombres de dominio y cualquier credencial.</p>
-    <p>Última revisión: 12/09/2026 · <a href="changelog.html">Historial completo</a></p>
+    <p>Última revisión: 18/09/2026 · <a href="changelog.html">Historial completo</a></p>
   </div>
 </footer>
 

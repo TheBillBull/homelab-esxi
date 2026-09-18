@@ -31,7 +31,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <span class="tape">Almacenamiento · TrueNAS</span>
-    <h1>Dos pools en espejo dentro de un chasis pensado para un disco</h1>
+    <h1>Dos pools dentro de un chasis pensado para un disco</h1>
     <p class="lede">
       El nodo de almacenamiento es el mismo modelo SFF que los hosts. Dentro caben cinco discos y
       cinco tarjetas de red, y sirve tanto los discos de todas las VMs como la biblioteca multimedia,
@@ -64,7 +64,7 @@
             <tr><td>M.2 nativo</td><td>NVMe de 1 TB: una mitad del espejo rápido</td></tr>
             <tr><td>PCIe 1</td><td>Tarjeta de red de 4 puertos (con la integrada, 5 interfaces)</td></tr>
             <tr><td>PCIe 2</td><td>Adaptador a NVMe: la otra mitad del espejo rápido</td></tr>
-            <tr><td>Bahía de 3,5″</td><td>Adaptador impreso en 3D para dos discos de 2,5″: el espejo de capacidad</td></tr>
+            <tr><td>Bahía de 3,5″</td><td>Disco de 6 TB: el pool de capacidad. Antes, un adaptador impreso en 3D con dos discos de 2,5″ en espejo</td></tr>
             <tr><td>Bahía óptica</td><td>El lector de DVD se retiró para alojar el SSD del sistema operativo. Solo sistema, nunca datos</td></tr>
           </tbody>
         </table>
@@ -88,7 +88,7 @@ flowchart LR
     subgraph NAS["TrueNAS"]
         direction TB
         P1["Pool rápido · espejo<br/>2 × NVMe"]
-        P2["Pool de capacidad · espejo<br/>2 × HDD 2,5″"]
+        P2["Pool de capacidad<br/>1 × HDD 6 TB"]
     end
     P1 -->|"iSCSI · dos caminos"| DS["Datastores del clúster<br/>discos de todas las VMs"]
     P2 -->|"NFS"| JF["Servidor multimedia<br/>biblioteca"]
@@ -138,24 +138,23 @@ flowchart LR
 
     <section id="ampliacion">
       <span class="tape tape--small">Caso práctico</span>
-      <h2>Ampliar un espejo sin puertos libres</h2>
+      <h2>Seis veces más capacidad, a cambio de la redundancia</h2>
       <p class="intro">
-        Los dos discos del pool de capacidad se cambiaron por otros más grandes. El problema: la bahía
-        con el adaptador solo tiene dos conexiones SATA y las dos estaban ocupadas, así que no se podía
-        añadir el disco nuevo al lado del viejo y dejar que el espejo se reconstruyera.
+        El pool de capacidad era un espejo de dos discos de 1 TB y se quedaba corto para la biblioteca.
+        La bahía no tiene sitio para más discos, así que la ampliación se hizo con uno solo, más grande.
       </p>
       <ol class="path">
-        <li><strong>Liberar un disco</strong><span>Se retira uno de los discos viejos. Sus datos siguen completos en el otro.</span></li>
-        <li><strong>Disco nuevo, sin espejo</strong><span>El primer disco nuevo entra como pool temporal de un solo disco.</span></li>
-        <li><strong>Copiar y verificar</strong><span>Los datos se copian del disco viejo al nuevo y se comprueba su integridad. El viejo sigue intacto como copia de seguridad.</span></li>
-        <li><strong>Espejo restaurado</strong><span>Solo entonces sale el segundo disco viejo y entra el segundo nuevo, que se une en espejo.</span></li>
+        <li><strong>Disco nuevo en el pool</strong><span>Un disco de 6 TB entra en el pool existente y ZFS copia en él todos los datos, sin detener ningún servicio.</span></li>
+        <li><strong>Verificar</strong><span>La copia termina con cero errores, comprobado en el propio registro de ZFS.</span></li>
+        <li><strong>Retirar los viejos</strong><span>Solo entonces salen los dos discos de 1 TB. El pool queda en un único disco de 6 TB.</span></li>
       </ol>
       <div class="note">
-        <span class="tape tape--small">Resultado</span>
-        <p>Cero pérdida de datos y más capacidad en el mismo espacio físico. Los datasets, las
-          comparticiones NFS/SMB y la ruta de la biblioteca quedaron igual: ningún servicio necesitó
-          cambios. Queda un dataset heredado del pool anterior con unos pocos ficheros sin importancia;
-          se aceptó antes que reconstruir el pool entero solo para eliminarlo.</p>
+        <span class="tape tape--small">Resultado · y su precio</span>
+        <p>Cero pérdida de datos y seis veces más capacidad. Los datasets, las comparticiones NFS/SMB y la
+          ruta de la biblioteca quedaron igual: ningún servicio necesitó cambios. <strong>El precio es la
+          redundancia:</strong> si ese disco falla, se pierde la biblioteca (los discos de las VMs están en el
+          pool NVMe y no se ven afectados). Es una decisión consciente y temporal: el siguiente paso es un
+          segundo disco de 6 TB para volver al espejo.</p>
       </div>
     </section>
 
@@ -167,7 +166,7 @@ flowchart LR
     <p>Esta web describe la arquitectura y las decisiones de diseño del laboratorio. Se omiten a propósito
       direcciones IP, puertos físicos, nombres de dominio internos y cualquier credencial. Los
       identificadores de VLAN son ilustrativos.</p>
-    <p>Última revisión: 12/09/2026 · <a href="changelog.html">Historial completo</a></p>
+    <p>Última revisión: 18/09/2026 · <a href="changelog.html">Historial completo</a></p>
   </div>
 </footer>
 

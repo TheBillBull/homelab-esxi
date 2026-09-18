@@ -113,10 +113,21 @@
           independientes hasta el mismo LUN, no una redundancia solo lógica.
         </p>
         <p>
-          Todo el almacenamiento trabaja con MTU estándar (1500) de extremo a extremo. Es un dato que
-          se comprueba antes de cualquier cambio de switch: si un lado usara jumbo frames y el switch
-          nuevo no, los hosts perderían los discos de las VMs.
+          Los dos caminos trabajan a la vez: cada disco reparte su tráfico entre ambos (Round Robin), y si
+          uno cae, el otro sigue solo. Hasta septiembre cada disco usaba un único camino y el otro esperaba
+          de reserva.
         </p>
+      </div>
+      <div class="panel scroll-x">
+        <table class="datatable">
+          <thead><tr><th>Ajuste</th><th>Qué se hizo</th><th>Cómo se comprobó</th></tr></thead>
+          <tbody>
+            <tr><td>Solo por su red</td><td>El almacenamiento anunciaba los discos por todas sus interfaces, y los hosts acababan usando también la red de gestión. Ahora solo los ofrece por las dos subredes del iSCSI</td><td>Sesiones por host antes y después, vistas desde el almacenamiento y desde cada host</td></tr>
+            <tr><td>Solo para sus hosts</td><td>Lista de iniciadores con el nombre iSCSI exacto de cada host, en lugar de "cualquiera"</td><td>Los nombres se copian de las sesiones activas, no se teclean; caminos activos en cada host tras el cambio</td></tr>
+            <tr><td>Jumbo frames</td><td>MTU 9000 de extremo a extremo en la red del iSCSI: almacenamiento, switch y hosts</td><td>Ping de 9000 bytes sin fragmentar por cada camino y cada host</td></tr>
+            <tr><td>Cada camino por su tarjeta</td><td>Con las dos interfaces del almacenamiento en el mismo segmento, Linux contestaba por cualquiera de ellas (ARP flux) y los hosts mandaban los dos caminos a la misma tarjeta. Corregido para que cada interfaz responda solo por su dirección</td><td>Tabla de vecinos de cada host antes y después</td></tr>
+          </tbody>
+        </table>
       </div>
     </section>
 
@@ -201,7 +212,7 @@
     <p>Esta web describe la arquitectura y las decisiones de diseño del laboratorio. Se omiten a propósito
       direcciones IP, puertos físicos, nombres de dominio internos y cualquier credencial. Los
       identificadores de VLAN son ilustrativos.</p>
-    <p>Última revisión: 12/09/2026 · <a href="changelog.html">Historial completo</a></p>
+    <p>Última revisión: 18/09/2026 · <a href="changelog.html">Historial completo</a></p>
   </div>
 </footer>
 
