@@ -50,6 +50,36 @@
       <ol class="timeline" reversed>
         <li>
           <div>
+            <div class="tags"><span class="tape tape--small">Cómputo</span></div>
+            <h3>Migración en caliente en marcha</h3>
+            <p>Cada host estrena una interfaz dedicada a vMotion, en su propia VLAN y con tramas grandes. Con DRS en
+              automático, ya se puede vaciar un host y trabajar en él sin apagar nada. Probado de dos formas: moviendo
+              una VM con un ping en marcha (un paquete perdido) y vaciando un host entero en modo mantenimiento,
+              incluido el propio vCenter.</p>
+            <a href="computo.html#cluster">Ver detalle →</a>
+          </div>
+        </li>
+        <li>
+          <div>
+            <div class="tags"><span class="tape tape--small">Operación</span><span class="tape tape--small">Incidencia</span></div>
+            <h3>Incidencia: un apagón enseña dónde faltaba el SAI</h3>
+            <p>Corte de luz en el edificio. Los hosts aguantaron con el SAI, pero el switch no estaba protegido: sin
+              red no hay almacenamiento, así que los hosts perdieron los discos y el clúster reinició las máquinas.
+              Dos de ellas quedaron con su sistema de archivos en solo lectura, respondiendo pero sin poder escribir.
+              Se diagnosticó por capas, de fuera hacia dentro, y se resolvió reiniciándolas. Lecciones: el switch va
+              al SAI, y después de un corte no basta con que un servicio conteste.</p>
+          </div>
+        </li>
+        <li>
+          <div>
+            <div class="tags"><span class="tape tape--small">Almacenamiento</span></div>
+            <h3>El pool de capacidad pasa a 16 TB</h3>
+            <p>Segunda ampliación del mismo pool, con el procedimiento ya conocido y sin parar la biblioteca.</p>
+            <a href="almacenamiento.html#ampliacion">Ver el procedimiento →</a>
+          </div>
+        </li>
+        <li>
+          <div>
             <div class="tags"><span class="tape tape--small">Hardware</span><span class="tape tape--small">Cómputo</span></div>
             <h3>Entra el cuarto host</h3>
             <p>Instalado, en vCenter y con el almacenamiento completo desde el primer día: dos caminos iSCSI,

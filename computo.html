@@ -65,14 +65,17 @@
             <tr><td>Un host pierde el almacenamiento (PDL / APD)</td><td>Apaga esas VMs y las arranca en un host que sí lo ve</td><td><span class="state"><span class="led led--on" aria-hidden="true"></span>Activo</span></td></tr>
             <tr><td>Una VM se cuelga (deja de responder su sistema operativo)</td><td>La reinicia, tras 60 s sin señal y sin actividad de disco ni red; máximo 3 veces al día</td><td><span class="state"><span class="led led--on" aria-hidden="true"></span>Activo</span></td></tr>
             <tr><td>Un host pierde la red de gestión pero sigue vivo</td><td>Deja las VMs encendidas: el almacenamiento va por otra red</td><td><span class="state"><span class="led led--on" aria-hidden="true"></span>Decisión</span></td></tr>
-            <tr><td>Hay que vaciar un host o repartir carga</td><td>Mover VMs en caliente (vMotion) y que DRS equilibre</td><td><span class="state"><span class="led led--plan" aria-hidden="true"></span>Planificado</span></td></tr>
+            <tr><td>Hay que vaciar un host o repartir carga</td><td>Mover VMs en caliente (vMotion) y que DRS equilibre</td><td><span class="state"><span class="led led--on" aria-hidden="true"></span>Activo</span></td></tr>
           </tbody>
         </table>
       </div>
       <div class="note">
-        <span class="tape tape--small">Pendiente</span>
-        <p>DRS está activado, pero todavía no hay red de vMotion, así que no puede mover VMs en caliente.
-          Se configurará cuando el cuarto host esté dentro, una sola vez para los cuatro.</p>
+        <span class="tape tape--small">Cómo se saca un host de servicio</span>
+        <p>Cada host tiene una interfaz dedicada a vMotion, en su propia VLAN y con tramas grandes, y DRS trabaja en
+          modo automático. Para tocar un host se le pone en <strong>modo mantenimiento</strong>: el clúster mueve sus
+          máquinas a los demás mientras siguen encendidas, el host queda vacío y se trabaja en él sin apagar nada.
+          Comprobado moviendo una VM con un ping en marcha: <strong>se pierde un paquete</strong>, el corte dura
+          milisegundos. vCenter, que también es una VM del clúster, se migra a sí mismo sin intervenir.</p>
       </div>
     </section>
 

@@ -64,7 +64,7 @@
             <tr><td>M.2 nativo</td><td>NVMe de 1 TB: una mitad del espejo rápido</td></tr>
             <tr><td>PCIe 1</td><td>Tarjeta de red de 4 puertos (con la integrada, 5 interfaces)</td></tr>
             <tr><td>PCIe 2</td><td>Adaptador a NVMe: la otra mitad del espejo rápido</td></tr>
-            <tr><td>Bahía de 3,5″</td><td>Disco de 6 TB: el pool de capacidad. Antes, un adaptador impreso en 3D con dos discos de 2,5″ en espejo</td></tr>
+            <tr><td>Bahía de 3,5″</td><td>Disco de 16 TB: el pool de capacidad. Antes, uno de 6 TB y, antes aún, un adaptador impreso en 3D con dos discos de 2,5″ en espejo</td></tr>
             <tr><td>Bahía óptica</td><td>El lector de DVD se retiró para alojar el SSD del sistema operativo. Solo sistema, nunca datos</td></tr>
           </tbody>
         </table>
@@ -88,7 +88,7 @@ flowchart LR
     subgraph NAS["TrueNAS"]
         direction TB
         P1["Pool rápido · espejo<br/>2 × NVMe"]
-        P2["Pool de capacidad<br/>1 × HDD 6 TB"]
+        P2["Pool de capacidad<br/>1 × HDD 16 TB"]
     end
     P1 -->|"iSCSI · dos caminos"| DS["Datastores del clúster<br/>discos de todas las VMs"]
     P2 -->|"NFS"| JF["Servidor multimedia<br/>biblioteca"]
@@ -138,23 +138,25 @@ flowchart LR
 
     <section id="ampliacion">
       <span class="tape tape--small">Caso práctico</span>
-      <h2>Seis veces más capacidad, a cambio de la redundancia</h2>
+      <h2>De 2 TB a 16 TB, a cambio de la redundancia</h2>
       <p class="intro">
-        El pool de capacidad era un espejo de dos discos de 1 TB y se quedaba corto para la biblioteca.
-        La bahía no tiene sitio para más discos, así que la ampliación se hizo con uno solo, más grande.
+        El pool de capacidad era un espejo de dos discos de 1 TB y se quedaba corto para la biblioteca. La bahía no
+        tiene sitio para más discos, así que se amplió con uno solo, más grande; primero a 6 TB y después a 16 TB,
+        con el mismo procedimiento las dos veces y sin parar ningún servicio.
       </p>
       <ol class="path">
-        <li><strong>Disco nuevo en el pool</strong><span>Un disco de 6 TB entra en el pool existente y ZFS copia en él todos los datos, sin detener ningún servicio.</span></li>
+        <li><strong>Disco nuevo en el pool</strong><span>El disco entra en el pool existente y ZFS copia en él todos los datos mientras la biblioteca sigue en servicio.</span></li>
         <li><strong>Verificar</strong><span>La copia termina con cero errores, comprobado en el propio registro de ZFS.</span></li>
-        <li><strong>Retirar los viejos</strong><span>Solo entonces salen los dos discos de 1 TB. El pool queda en un único disco de 6 TB.</span></li>
+        <li><strong>Retirar el viejo</strong><span>Solo entonces sale el disco anterior. El pool queda en un único disco, ya con la capacidad nueva.</span></li>
       </ol>
       <div class="note">
         <span class="tape tape--small">Resultado · y su precio</span>
-        <p>Cero pérdida de datos y seis veces más capacidad. Los datasets, las comparticiones NFS/SMB y la
+        <p>Cero pérdida de datos y ocho veces la capacidad original. Los datasets, las comparticiones NFS/SMB y la
           ruta de la biblioteca quedaron igual: ningún servicio necesitó cambios. <strong>El precio es la
           redundancia:</strong> si ese disco falla, se pierde la biblioteca (los discos de las VMs están en el
-          pool NVMe y no se ven afectados). Es una decisión consciente y temporal: el siguiente paso es un
-          segundo disco de 6 TB para volver al espejo.</p>
+          pool NVMe y no se ven afectados). Es una decisión consciente: para una biblioteca que se puede recuperar,
+          el espejo duplica el gasto sin aportar protección frente a un borrado o un cifrado malicioso. Lo que sí
+          hace falta, y es el siguiente paso, es una <strong>copia fuera del clúster y desconectada</strong>.</p>
       </div>
     </section>
 
