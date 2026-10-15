@@ -50,6 +50,7 @@
     <a href="#apagon">Vivos pero sin poder escribir</a>
     <a href="#relojes">Un reloj en 2036</a>
     <a href="#almacenamiento">Caminos donde no tocaba</a>
+    <a href="#acl">Bloquearme a mí mismo</a>
     <a href="#tropiezos">Tropiezos y despistes</a>
     <a href="#reglas">Las reglas que quedaron</a>
   </nav>
@@ -226,6 +227,34 @@
         <p>La redundancia se comprueba, no se dibuja. Dos tarjetas, dos cables y dos redes no garantizan dos
           caminos: hay que mirar las sesiones desde el servidor y las rutas desde el cliente. Ya puestos, se
           activó el reparto de carga entre ambas y tramas grandes de extremo a extremo, con su prueba.</p>
+      </div>
+    </section>
+
+    <section id="acl">
+      <span class="tape tape--small">Autoinfligida</span>
+      <h2>La lista de control, aplicada a la red equivocada</h2>
+      <p class="intro">
+        Las mejores incidencias para aprender no son las que te pasan: son las que provocas tú. Esta duró
+        poco y enseñó mucho.
+      </p>
+      <div class="panel scroll-x">
+        <table class="datatable">
+          <tbody>
+            <tr><td style="width:22%"><strong>Qué se estaba haciendo</strong></td><td>Añadir un permiso a la lista de control del segmento expuesto, para poder vigilar esa máquina.</td></tr>
+            <tr><td><strong>El error</strong></td><td>Ese switch no deja modificar una lista mientras está aplicada: hay que quitarla, cambiarla y volver a aplicarla. Al volver a aplicarla se seleccionó <strong>la red equivocada</strong>: la del enlace con el router de borde.</td></tr>
+            <tr><td><strong>Qué pasó</strong></td><td>Todas las reglas hablaban de una única dirección de origen, así que el resto del tráfico cayó en el "denegar todo" final. El laboratorio se quedó <strong>sin internet, sin servicios publicados y sin acceso remoto</strong>: todo el tráfico de casa entra justo por ahí.</td></tr>
+            <tr><td><strong>Cómo se salía</strong></td><td>Dos vías, las dos por fuera de la red bloqueada: la <strong>consola física</strong> del switch, o un cable del portátil a un puerto de otro segmento, que sí tiene pasarela y no está filtrado.</td></tr>
+            <tr><td><strong>Arreglo</strong></td><td>Quitar la aplicación de la red equivocada, volver a aplicarla en la correcta y guardar la configuración. Después, comprobar las reglas una a una y los dos servicios desde internet.</td></tr>
+            <tr><td><strong>Lección</strong></td><td>Cuando configuras el equipo que te da el acceso, <strong>ten pensada la vía de rescate antes de empezar</strong>. Y verifica la aplicación de una regla en la misma pantalla, antes de cerrarla.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note">
+        <span class="tape tape--small">De la misma tarde: dos filtros en serie</span>
+        <p>Aun con la lista arreglada, la vigilancia seguía sin funcionar. Faltaba el <strong>cortafuegos de la
+          propia máquina</strong>, que tiene todo cerrado salvo lo imprescindible. Los dos filtros descartan en
+          silencio y producen el mismo síntoma, así que se comprueba capa por capa: primero que el camino
+          exista, después que el destino escuche, y solo entonces que la aplicación responda.</p>
       </div>
     </section>
 

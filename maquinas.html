@@ -47,6 +47,7 @@
     <a href="#servicios">Lo que entrega</a>
     <a href="#vms">Máquinas virtuales</a>
     <a href="#fisico">Equipos físicos</a>
+    <a href="#vigilancia">Vigilancia</a>
     <a href="#capacidad">Capacidad</a>
     <a href="#criterio">Criterio de reparto</a>
   </nav>
@@ -157,7 +158,7 @@
           <h3>Servidor de contenedores</h3>
           <div class="spec"><span class="k">Sistema</span><span class="dots"></span><span class="v">Ubuntu Server + Docker</span></div>
           <div class="spec"><span class="k">Recursos</span><span class="dots"></span><span class="v">2 vCPU · 4 GB</span></div>
-          <div class="spec"><span class="k">Inquilinos</span><span class="dots"></span><span class="v">base de datos de notas</span></div>
+          <div class="spec"><span class="k">Inquilinos</span><span class="dots"></span><span class="v">notas · monitorización</span></div>
           <p>La casa común de los servicios internos pequeños, cada uno en su propia definición. El primero
             es la base de datos que sincroniza mis notas; lo que venga después se añade al lado, sin
             levantar otra máquina.</p>
@@ -224,6 +225,33 @@
           <strong>La alimentación ininterrumpida es provisional</strong>, y además dejó fuera al switch.
           Un corte de luz lo demostró del peor modo posible: está contado en
           <a href="incidencias.html">Incidencias</a>.</p>
+      </div>
+    </section>
+
+    <section id="vigilancia">
+      <span class="tape tape--small">Vigilancia</span>
+      <h2>Cómo sé que todo esto está bien</h2>
+      <p class="intro">
+        Durante meses me enteraba de los problemas porque alguien se quejaba. Eso se acabó: ahora el
+        laboratorio se mira a sí mismo y avisa al móvil cuando algo se tuerce.
+      </p>
+      <div class="panel scroll-x">
+        <table class="datatable">
+          <thead><tr><th>Se vigila</th><th>Cómo</th><th>Por qué precisamente eso</th></tr></thead>
+          <tbody>
+            <tr><td>Recursos de cada máquina</td><td>Un recolector dentro de cada sistema</td><td>CPU, memoria, discos y red, con tres meses de historial para ver tendencias</td></tr>
+            <tr><td><strong>Disco en solo lectura</strong></td><td>Misma vía</td><td>Un corte de luz dejó dos servicios respondiendo pero incapaces de escribir. Ahora salta en dos minutos</td></tr>
+            <tr><td>Que los servicios contesten</td><td>Peticiones reales, no solo "el proceso está vivo"</td><td>El proceso puede estar arriba y el servicio roto</td></tr>
+            <tr><td>Caducidad de los certificados</td><td>Un script propio que lee la fecha del fichero</td><td>La renovación es automática, pero también puede fallar. Avisa con tres semanas</td></tr>
+            <tr><td>Avisos</td><td>Mensajería al móvil, agrupados y con aviso de recuperación</td><td>Si avisa de más, se ignora. Si no avisa de la recuperación, no sabes si hay que ir</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note">
+        <span class="tape tape--small">Lo que todavía no se puede vigilar desde dentro</span>
+        <p>Si el servicio <strong>se ve desde internet</strong>. Al preguntar por el nombre público desde la
+          propia red, el router no devuelve el tráfico hacia dentro, así que la comprobación falla aunque
+          todo funcione. Para responder esa pregunta hace falta un vigía en otra red: está en la lista.</p>
       </div>
     </section>
 
