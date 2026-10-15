@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Homelab ESXi · Evolución</title>
-<meta name="description" content="Historial de cambios reales de infraestructura del homelab, del más reciente al más antiguo.">
+<meta name="description" content="Cómo ha crecido el laboratorio, por fases: del hardware reacondicionado al clúster con alta disponibilidad, la publicación a internet y los servicios propios.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23161B21'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%232FBF71'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,10 +19,12 @@
     <a class="brand" href="index.html"><span class="led led--on" aria-hidden="true"></span><span>Homelab ESXi</span></a>
     <div class="navlinks">
       <a href="index.html">Arquitectura</a>
+      <a href="maquinas.html">Máquinas</a>
       <a href="red.html">Red</a>
       <a href="almacenamiento.html">Almacenamiento</a>
-      <a href="computo.html">Cómputo</a>
+      <a href="computo.html">Clúster</a>
       <a href="publicacion.html">Publicación</a>
+      <a href="incidencias.html">Incidencias</a>
       <a href="changelog.html" aria-current="page">Evolución</a>
     </div>
   </div>
@@ -30,180 +32,154 @@
 
 <header class="masthead">
   <div class="masthead-inner">
-    <span class="tape">Evolución · Historial</span>
-    <h1>Cada entrada es un cambio real, nunca un plan</h1>
+    <span class="tape">Evolución · Cómo se ha construido</span>
+    <h1>De cuatro ordenadores de oficina a un clúster con usuarios reales</h1>
     <p class="lede">
-      El laboratorio no es una foto fija. Este es el registro de lo que ha cambiado, del más reciente
-      al más antiguo, con enlace a la explicación de cada cosa. Lo planificado vive en el frontal de
-      estado de la portada, no aquí.
+      Ninguna de estas fases estaba planificada desde el principio: cada una salió de una necesidad o de
+      un problema. Esta página cuenta el orden en que ocurrieron las cosas y qué aportó cada paso; lo que
+      se rompió por el camino está en <a href="incidencias.html">Incidencias</a>.
     </p>
   </div>
 </header>
 
 <div class="layout">
-  <nav class="toc" aria-label="En esta página">
-    <a href="#historial">Historial</a>
+  <nav class="toc" id="toc" aria-label="En esta página">
+    <a href="#f1">1 · El hardware</a>
+    <a href="#f2">2 · El clúster</a>
+    <a href="#f3">3 · Salir a internet</a>
+    <a href="#f4">4 · Endurecer y operar</a>
+    <a href="#f5">5 · Servicios propios</a>
+    <a href="#siguiente">Lo que viene</a>
   </nav>
 
   <main id="contenido">
-    <section id="historial">
-      <ol class="timeline" reversed>
-        <li>
-          <div>
-            <div class="tags"><span class="tape tape--small">Servicios</span><span class="tape tape--small">Publicación</span></div>
-            <h3>Servidor de contenedores y sincronización de notas propia</h3>
-            <p>Una máquina nueva reúne los servicios internos pequeños, cada uno en su propia definición de contenedor.
-              El primero sustituye a un servicio de pago: la sincronización de mis notas entre portátil, móvil y tableta,
-              <strong>cifrada en origen</strong>, publicada por el mismo proxy y con una sola regla más en el switch.
-              Por el camino, dos tropiezos típicos: una puerta de enlace mal tecleada que dejaba la máquina sin salida,
-              y la interfaz del switch colgándose a mitad de un cambio de reglas.</p>
-            <a href="publicacion.html#segundo">Ver cómo se hizo →</a>
-          </div>
-        </li>
-        <li>
-          <div>
-            <div class="tags"><span class="tape tape--small">Cómputo</span></div>
-            <h3>Migración en caliente en marcha</h3>
-            <p>Cada host estrena una interfaz dedicada a vMotion, en su propia VLAN y con tramas grandes. Con DRS en
-              automático, ya se puede vaciar un host y trabajar en él sin apagar nada. Probado de dos formas: moviendo
-              una VM con un ping en marcha (un paquete perdido) y vaciando un host entero en modo mantenimiento,
-              incluido el propio vCenter.</p>
-            <a href="computo.html#cluster">Ver detalle →</a>
-          </div>
-        </li>
-        <li>
-          <div>
-            <div class="tags"><span class="tape tape--small">Operación</span><span class="tape tape--small">Incidencia</span></div>
-            <h3>Incidencia: un apagón enseña dónde faltaba el SAI</h3>
-            <p>Corte de luz en el edificio. Los hosts aguantaron con el SAI, pero el switch no estaba protegido: sin
-              red no hay almacenamiento, así que los hosts perdieron los discos y el clúster reinició las máquinas.
-              Dos de ellas quedaron con su sistema de archivos en solo lectura, respondiendo pero sin poder escribir.
-              Se diagnosticó por capas, de fuera hacia dentro, y se resolvió reiniciándolas. Lecciones: el switch va
-              al SAI, y después de un corte no basta con que un servicio conteste.</p>
-          </div>
-        </li>
-        <li>
-          <div>
-            <div class="tags"><span class="tape tape--small">Almacenamiento</span></div>
-            <h3>El pool de capacidad pasa a 16 TB</h3>
-            <p>Segunda ampliación del mismo pool, con el procedimiento ya conocido y sin parar la biblioteca.</p>
-            <a href="almacenamiento.html#ampliacion">Ver el procedimiento →</a>
-          </div>
-        </li>
-        <li>
-          <div>
-            <div class="tags"><span class="tape tape--small">Hardware</span><span class="tape tape--small">Cómputo</span></div>
-            <h3>Entra el cuarto host</h3>
-            <p>Instalado, en vCenter y con el almacenamiento completo desde el primer día: dos caminos iSCSI,
-              jumbo frames y Round Robin. Queda en mantenimiento hasta unirlo al switch distribuido. El alta
-              falló al principio porque su reloj iba dos años y medio atrás y rechazaba el certificado de vCenter.</p>
-            <a href="index.html#fisica">Ver capa física →</a>
-          </div>
-        </li>
-        <li>
-          <div>
-            <div class="tags"><span class="tape tape--small">Almacenamiento</span><span class="tape tape--small">Seguridad</span></div>
-            <h3>iSCSI cerrado a su red y a sus hosts, y con los dos caminos trabajando</h3>
-            <p>El almacenamiento ofrecía los discos por todas sus interfaces y a cualquier iniciador. Ahora solo
-              por la red del iSCSI y solo a los hosts del clúster. Además: los dos caminos reparten carga (Round
-              Robin), jumbo frames de extremo a extremo y corregido el ARP flux que mandaba ambos caminos a la
-              misma tarjeta. Todo sin cortes y comprobado desde los dos extremos.</p>
-            <a href="red.html#iscsi">Ver detalle →</a>
-          </div>
-        </li>
-        <li>
-          <div>
-            <div class="tags"><span class="tape tape--small">Operación</span></div>
-            <h3>Toda la plataforma en hora</h3>
-            <p>Los hosts arrastraban la hora mal y sin NTP. Al corregirla, el controlador de dominio, que no
-              tenía fuente de hora propia, saltó con su host casi diez años hacia delante. Se devuelve a la hora
-              real y se le da NTP propio. Lección: antes de tocar la hora de un host, que las VMs críticas no
-              dependan de él para la suya.</p>
-          </div>
-        </li>
-        <li>
-          <div>
-            <div class="tags"><span class="tape tape--small">Publicación</span></div>
-            <h3>DNS dinámico propio</h3>
-            <p>Un reinicio del router del operador cambia la IP pública y el servicio deja de ser accesible.
-              Se añade un servicio que comprueba la IP cada 5 minutos y actualiza el registro DNS solo si cambia.</p>
-            <a href="publicacion.html#pendiente">Ver detalle →</a>
-          </div>
-        </li>
-        <li>
-          <div>
-            <div class="tags"><span class="tape tape--small">Publicación</span><span class="tape tape--small">Seguridad</span></div>
-            <h3>El servidor multimedia sale a internet por un proxy propio</h3>
-            <p>El túnel de Cloudflare se sustituye por nginx en una DMZ, con certificado automático,
-              firewall en el proxy y ACL en el switch. Antes, el operador retira el CGNAT que impedía
-              recibir conexiones. Probado tramo a tramo, con el túnel como vuelta atrás hasta el final.</p>
-            <a href="publicacion.html">Ver cómo se hizo →</a>
-          </div>
-        </li>
-        <li>
-          <div>
-            <div class="tags"><span class="tape tape--small">Cómputo</span><span class="tape tape--small">Incidencia</span></div>
-            <h3>Incidencia: VM multimedia sin memoria. Gráfica retirada</h3>
-            <p>La VM se cuelga de madrugada por falta de memoria. Tras el análisis se retira el
-              passthrough de la gráfica integrada, se transcodifica por CPU, la RAM pasa de 4 a 8 GB y se
-              añaden un registro de memoria y el reinicio automático de VMs colgadas en vSphere HA.</p>
-            <a href="computo.html#incidencia">Ver el postmortem →</a>
-          </div>
-        </li>
-        <li>
-          <div>
-            <div class="tags"><span class="tape tape--small">Red</span><span class="tape tape--small">Seguridad</span></div>
-            <h3>La ACL de la DMZ, rehecha y verificada</h3>
-            <p>Una revisión de la configuración real descubre que la primera ACL dejaba a la DMZ llegar al
-              almacenamiento y a la red doméstica. Se rehace con pruebas antes y después, y la DMZ pasa a
-              usar DNS públicos. Las IPs del equipo de administración quedan reservadas en el DHCP.</p>
-            <a href="red.html#dmz">Ver detalle →</a>
-          </div>
-        </li>
-        <li>
-          <div>
-            <div class="tags"><span class="tape tape--small">Almacenamiento</span></div>
-            <h3>Seis veces más capacidad en el pool de discos, sin perder datos</h3>
-            <p>El espejo de dos discos de 1 TB pasa a un único disco de 6 TB. Sin pérdida de datos y sin
-              tocar ningún servicio, pero sin redundancia hasta que llegue el segundo disco.</p>
-            <a href="almacenamiento.html#ampliacion">Ver el procedimiento →</a>
-          </div>
-        </li>
-        <li>
-          <div>
-            <div class="tags"><span class="tape tape--small">Hardware</span></div>
-            <h3>Hosts homogéneos</h3>
-            <p>Los tres hosts pasan a la misma CPU (i7-8700), sustituyendo una mezcla de i7 e i5. vMotion
-              ya no necesitará modo de compatibilidad (EVC).</p>
-            <a href="index.html#fisica">Ver capa física →</a>
-          </div>
-        </li>
-        <li>
-          <div>
-            <div class="tags"><span class="tape tape--small">Red</span><span class="tape tape--small">Cómputo</span></div>
-            <h3>Puerto dedicado para el vídeo y gráfica para transcodificar</h3>
-            <p>El tráfico multimedia de TrueNAS pasa a un puerto físico propio. La VM multimedia recibe la
-              gráfica integrada por passthrough (más tarde retirada) y su memoria queda reservada.</p>
-            <a href="red.html#multimedia">Ver detalle →</a>
-          </div>
-        </li>
-        <li>
-          <div>
-            <div class="tags"><span class="tape tape--small">Documentación</span></div>
-            <h3>Primera publicación de esta documentación</h3>
-            <p>La arquitectura se documenta por primera vez, con una norma desde el primer día: sin IPs,
-              puertos físicos ni credenciales.</p>
-          </div>
-        </li>
+
+    <section id="f1">
+      <span class="tape tape--small">Fase 1</span>
+      <h2>Hardware de oficina, puesto a punto</h2>
+      <p class="intro">
+        El punto de partida son ordenadores pequeños reacondicionados. Antes de instalar nada hubo que
+        igualarlos y hacerlos aptos para funcionar todo el día.
+      </p>
+      <ol class="path">
+        <li><strong>Procesadores iguales en todos los nodos</strong><span>Sustituyendo una mezcla de gamas. Esto es lo que permite mover máquinas en caliente sin modos de compatibilidad.</span></li>
+        <li><strong>Memoria, discos y refrigeración</strong><span>Memoria al máximo que admite cada equipo, discos rápidos, ventiladores silenciosos y pasta térmica nueva, porque esto no se apaga por la noche.</span></li>
+        <li><strong>Un nodo dedicado al almacenamiento</strong><span>El mismo formato pequeño, aprovechando hasta el hueco del lector de discos para meter el disco de sistema.</span></li>
+        <li><strong>Red de verdad</strong><span>Cinco interfaces por equipo, para separar gestión, almacenamiento y máquinas en lugar de meterlo todo por un cable.</span></li>
       </ol>
+      <div class="note">
+        <span class="tape tape--small">Qué aportó</span>
+        <p>Nodos intercambiables. A partir de aquí, cualquier máquina virtual puede ejecutarse en cualquier
+          equipo, que es la base de todo lo demás.</p>
+      </div>
     </section>
+
+    <section id="f2">
+      <span class="tape tape--small">Fase 2</span>
+      <h2>Almacenamiento compartido y clúster</h2>
+      <p class="intro">
+        Con el hardware listo, el salto importante: que los discos de las máquinas no vivan dentro de cada
+        servidor, sino en un sitio que todos ven.
+      </p>
+      <ol class="path">
+        <li><strong>Almacenamiento por bloques con dos caminos</strong><span>Dos rutas físicas independientes entre cada nodo y el almacenamiento, por tarjetas y redes separadas.</span></li>
+        <li><strong>Alta disponibilidad</strong><span>Si un nodo cae, sus máquinas arrancan en los demás. Si una máquina se cuelga por dentro, se reinicia sola.</span></li>
+        <li><strong>Red segmentada</strong><span>Gestión, almacenamiento, servidores y zona expuesta, cada uno en su segmento, con el switch haciendo de router entre ellos.</span></li>
+        <li><strong>Más capacidad para la biblioteca</strong><span>Dos ampliaciones del almacén de datos grandes, las dos en caliente y sin perder nada: primero a 6 TB y después a 16 TB.</span></li>
+      </ol>
+      <div class="note">
+        <span class="tape tape--small">Qué aportó</span>
+        <p>Dejó de haber "el servidor donde está tal cosa". A partir de aquí, el hardware es sustituible y
+          la infraestructura empieza a parecerse a la de un sitio serio.</p>
+      </div>
+    </section>
+
+    <section id="f3">
+      <span class="tape tape--small">Fase 3</span>
+      <h2>Salir a internet sin depender de nadie</h2>
+      <p class="intro">
+        El servicio de vídeo se publicaba a través de un túnel de terceros, que además no está pensado
+        para vídeo. La alternativa fue montar la puerta en casa.
+      </p>
+      <ol class="path">
+        <li><strong>Una zona expuesta de verdad</strong><span>El proxy vive aislado en su propio segmento, con una lista de control que le impide hablar con el resto del laboratorio.</span></li>
+        <li><strong>Certificados automáticos</strong><span>Emisión y renovación sin intervención, validando por DNS.</span></li>
+        <li><strong>DNS dinámico propio</strong><span>El operador cambia la IP pública cuando quiere; un servicio propio la vigila y actualiza el nombre en minutos.</span></li>
+        <li><strong>Pruebas de dentro hacia fuera</strong><span>Cada tramo validado antes de abrir el siguiente, con el túnel antiguo intacto como vuelta atrás hasta el final.</span></li>
+      </ol>
+      <div class="note">
+        <span class="tape tape--small">Qué aportó</span>
+        <p>Control completo del camino: certificados, registros de acceso y reglas propias. Y un servicio que
+          usa gente que no sabe nada de todo esto, que es la mejor prueba de que funciona.
+          Está contado al detalle en <a href="publicacion.html">Publicación</a>.</p>
+      </div>
+    </section>
+
+    <section id="f4">
+      <span class="tape tape--small">Fase 4</span>
+      <h2>Endurecer lo que ya funcionaba</h2>
+      <p class="intro">
+        La fase menos vistosa y la que más se parece a un trabajo real: revisar lo que ya estaba montado y
+        comprobar que de verdad hace lo que dice.
+      </p>
+      <ol class="path">
+        <li><strong>Almacenamiento cerrado</strong><span>Dejó de responder por la red de gestión y de aceptar a cualquiera: solo sus dos redes y solo los nodos del clúster.</span></li>
+        <li><strong>Los dos caminos, trabajando de verdad</strong><span>Se descubrió que ambos acababan entrando por la misma tarjeta. Corregido, con reparto de carga y tramas grandes comprobadas de extremo a extremo.</span></li>
+        <li><strong>Toda la plataforma en hora</strong><span>Sincronización con servidores públicos en nodos, almacenamiento y dominio. Un reloj mal puesto rompe autenticación y certificados.</span></li>
+        <li><strong>Cuarto nodo</strong><span>Montado con la configuración definitiva desde el primer arranque, y añadido al clúster sin tocar lo que ya funcionaba.</span></li>
+        <li><strong>Migración en caliente</strong><span>Con eso, por fin se puede vaciar un nodo y trabajar en él sin apagar ningún servicio.</span></li>
+      </ol>
+      <div class="note">
+        <span class="tape tape--small">Qué aportó</span>
+        <p>La diferencia entre "montado" y "operable". Aquí es donde el laboratorio pasó de funcionar a
+          poder mantenerse.</p>
+      </div>
+    </section>
+
+    <section id="f5">
+      <span class="tape tape--small">Fase 5</span>
+      <h2>Servicios propios, no solo infraestructura</h2>
+      <p class="intro">
+        Con la base estable, empieza lo divertido: sustituir servicios de pago por servicios propios.
+      </p>
+      <ol class="path">
+        <li><strong>Una máquina para contenedores</strong><span>Los servicios internos pequeños viven juntos, cada uno en su propia definición, en lugar de levantar una máquina por cada cosa.</span></li>
+        <li><strong>Sincronización de notas propia</strong><span>Sustituye a un servicio de suscripción. Mantiene al día portátil, móvil y tableta, con las notas cifradas antes de salir del dispositivo.</span></li>
+        <li><strong>Publicar lo siguiente ya cuesta una tarde</strong><span>Reutilizando proxy, certificados y DNS dinámico: lo único nuevo fue una regla en el switch.</span></li>
+      </ol>
+      <div class="note">
+        <span class="tape tape--small">Qué aportó</span>
+        <p>La prueba de que la inversión en infraestructura se amortiza: el primer servicio costó semanas,
+          el segundo una tarde.</p>
+      </div>
+    </section>
+
+    <section id="siguiente">
+      <span class="tape tape--small">Lo que viene</span>
+      <h2>Siguiente fase</h2>
+      <div class="panel scroll-x">
+        <table class="datatable">
+          <thead><tr><th>Trabajo</th><th>Por qué</th><th>Estado</th></tr></thead>
+          <tbody>
+            <tr><td>Alimentación ininterrumpida que cubra también la red</td><td>Un corte de luz demostró que proteger los servidores y dejar fuera el switch no sirve de nada</td><td><span class="state"><span class="led led--busy" aria-hidden="true"></span>En curso</span></td></tr>
+            <tr><td>Copias de seguridad con copia desconectada</td><td>Instantáneas y réplica para lo que importa, y una copia fuera del clúster que ningún cifrado malicioso pueda tocar</td><td><span class="state"><span class="led led--plan" aria-hidden="true"></span>Planificado</span></td></tr>
+            <tr><td>Almacén de archivos para la familia</td><td>Documentos personales accesibles desde fuera, con cuotas y usuarios</td><td><span class="state"><span class="led led--plan" aria-hidden="true"></span>Planificado</span></td></tr>
+            <tr><td>Segundo controlador de dominio</td><td>Hoy el directorio y el DNS interno son un punto único de fallo</td><td><span class="state"><span class="led led--plan" aria-hidden="true"></span>Planificado</span></td></tr>
+            <tr><td>Switch de núcleo con más puertos y 10 GbE</td><td>Tres equipos de segunda mano seguidos vinieron defectuosos; se retoma con material nuevo</td><td><span class="state"><span class="led led--plan" aria-hidden="true"></span>Aparcado</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
   </main>
 </div>
 
 <footer>
   <div class="footer-inner">
     <p>Esta web describe la arquitectura y las decisiones de diseño del laboratorio. Se omiten a propósito
-      direcciones IP, puertos físicos, nombres de dominio internos y cualquier credencial.</p>
+      direcciones IP, puertos físicos, nombres de dominio internos y cualquier credencial. Los
+      identificadores de VLAN son ilustrativos.</p>
+    <p><a href="incidencias.html">Incidencias y diagnóstico</a></p>
   </div>
 </footer>
 

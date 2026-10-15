@@ -19,10 +19,12 @@
     <a class="brand" href="index.html"><span class="led led--on" aria-hidden="true"></span><span>Homelab ESXi</span></a>
     <div class="navlinks">
       <a href="index.html" aria-current="page">Arquitectura</a>
+      <a href="maquinas.html">Máquinas</a>
       <a href="red.html">Red</a>
       <a href="almacenamiento.html">Almacenamiento</a>
-      <a href="computo.html">Cómputo</a>
+      <a href="computo.html">Clúster</a>
       <a href="publicacion.html">Publicación</a>
+      <a href="incidencias.html">Incidencias</a>
       <a href="changelog.html">Evolución</a>
     </div>
   </div>
@@ -33,9 +35,9 @@
     <span class="tape">Homelab · Virtualización</span>
     <h1>Un clúster ESXi con hardware reacondicionado, gestionado como si fuera producción</h1>
     <p class="lede">
-      Cuatro hosts ESXi con almacenamiento compartido en TrueNAS, red segmentada
-      en un switch de capa 3 y un servicio multimedia publicado en internet a través de un proxy
-      propio en DMZ. Cada cambio se comprueba antes y después, y queda registrado.
+      Cuatro nodos ESXi con almacenamiento compartido, red segmentada en un switch de capa 3 y
+      servicios publicados en internet por un proxy propio. Lo usa gente de verdad: vídeo para la familia
+      y la sincronización de mis notas. Cada cambio se comprueba antes y después, y queda escrito.
     </p>
 
     <div class="faceplate" role="group" aria-labelledby="estado-titulo">
@@ -48,13 +50,11 @@
         </div>
       </div>
       <ul class="faceplate-grid">
-        <li><span class="led led--on" role="img" aria-label="En servicio"></span><span class="name">Clúster vSphere</span><span class="what">HA · reinicio de VMs colgadas</span></li>
-        <li><span class="led led--on" role="img" aria-label="En servicio"></span><span class="name">Almacenamiento compartido</span><span class="what">iSCSI · dos caminos activos</span></li>
-        <li><span class="led led--on" role="img" aria-label="En servicio"></span><span class="name">Red segmentada</span><span class="what">routing L3 en el switch</span></li>
-        <li><span class="led led--on" role="img" aria-label="En servicio"></span><span class="name">Publicación a internet</span><span class="what">proxy propio en DMZ</span></li>
-        <li><span class="led led--on" role="img" aria-label="En servicio"></span><span class="name">Servicios propios</span><span class="what">contenedores · sincronización de notas</span></li>
-        <li><span class="led led--on" role="img" aria-label="En servicio"></span><span class="name">Cuarto host</span><span class="what">en servicio · igual que el resto</span></li>
-        <li><span class="led led--on" role="img" aria-label="En servicio"></span><span class="name">Migración en caliente</span><span class="what">vMotion · DRS repartiendo carga</span></li>
+        <li><span class="led led--on" role="img" aria-label="En servicio"></span><span class="name">Clúster de cuatro nodos</span><span class="what">alta disponibilidad · migración en caliente</span></li>
+        <li><span class="led led--on" role="img" aria-label="En servicio"></span><span class="name">Almacenamiento compartido</span><span class="what">dos caminos activos · tramas grandes</span></li>
+        <li><span class="led led--on" role="img" aria-label="En servicio"></span><span class="name">Red segmentada</span><span class="what">routing en el switch · zona expuesta aislada</span></li>
+        <li><span class="led led--on" role="img" aria-label="En servicio"></span><span class="name">Servicios publicados</span><span class="what">vídeo · sincronización de notas</span></li>
+        <li><span class="led led--busy" role="img" aria-label="En curso"></span><span class="name">Copias de seguridad</span><span class="what">con copia desconectada</span></li>
         <li><span class="led led--plan" role="img" aria-label="Planificado"></span><span class="name">Red a 10 GbE</span><span class="what">borde, núcleo y hosts</span></li>
         <li><span class="led led--plan" role="img" aria-label="Planificado"></span><span class="name">vSAN · NSX</span><span class="what">por evaluar</span></li>
       </ul>
@@ -117,57 +117,42 @@ flowchart TB
       <span class="tape tape--small">Capa física</span>
       <h2>Equipos pequeños, un clúster completo</h2>
       <p class="intro">
-        Todo el cómputo y el almacenamiento corre en Lenovo ThinkCentre de formato pequeño (SFF), M720s y un M920s.
-        Silenciosos, de bajo consumo y ampliables lo justo para lo que hace falta.
+        Todo el cómputo y el almacenamiento corre en ordenadores de oficina reacondicionados, de formato
+        pequeño: silenciosos, de bajo consumo y ampliables lo justo para lo que hace falta.
       </p>
-
       <div class="cards">
         <div class="card">
-          <span class="tape tape--small">Hosts ESXi · ×4</span>
-          <h3>Nodos del clúster</h3>
-          <div class="spec"><span class="k">CPU</span><span class="dots"></span><span class="v">i7-8700 · 6C/12T</span></div>
-          <div class="spec"><span class="k">RAM</span><span class="dots"></span><span class="v">64 GB</span></div>
-          <div class="spec"><span class="k">Disco local</span><span class="dots"></span><span class="v">500 GB NVMe</span></div>
-          <div class="spec"><span class="k">Red</span><span class="dots"></span><span class="v">5 × 1 GbE</span></div>
-          <div class="spec"><span class="k">Hipervisor</span><span class="dots"></span><span class="v">ESXi 8</span></div>
+          <span class="tape tape--small">Cómputo</span>
+          <h3>Cuatro nodos</h3>
+          <div class="spec"><span class="k">Procesador</span><span class="dots"></span><span class="v">6C/12T, el mismo en todos</span></div>
+          <div class="spec"><span class="k">Memoria</span><span class="dots"></span><span class="v">64 GB por nodo</span></div>
+          <div class="spec"><span class="k">Red</span><span class="dots"></span><span class="v">5 × 1 GbE por nodo</span></div>
+          <p>Procesador idéntico a propósito: así las máquinas se mueven en caliente entre nodos sin modos
+            de compatibilidad.</p>
         </div>
         <div class="card">
           <span class="tape tape--small">Almacenamiento</span>
-          <h3>TrueNAS</h3>
-          <div class="spec"><span class="k">CPU</span><span class="dots"></span><span class="v">i5-9400 · 9.ª gen</span></div>
-          <div class="spec"><span class="k">RAM</span><span class="dots"></span><span class="v">32 GB</span></div>
-          <div class="spec"><span class="k">Pool rápido</span><span class="dots"></span><span class="v">2 × 1 TB NVMe, espejo</span></div>
-          <div class="spec"><span class="k">Pool capacidad</span><span class="dots"></span><span class="v">1 × HDD 16 TB, sin espejo</span></div>
+          <h3>Un nodo dedicado</h3>
+          <div class="spec"><span class="k">Disco rápido</span><span class="dots"></span><span class="v">2 × 1 TB NVMe, espejo</span></div>
+          <div class="spec"><span class="k">Capacidad</span><span class="dots"></span><span class="v">1 × 16 TB</span></div>
           <div class="spec"><span class="k">Red</span><span class="dots"></span><span class="v">5 × 1 GbE</span></div>
+          <p>Sirve los discos de todas las máquinas por bloques y la biblioteca por ficheros, cada cosa por
+            su protocolo y por su red.</p>
         </div>
         <div class="card">
-          <span class="tape tape--small">Núcleo de red</span>
-          <h3>Switch de capa 3</h3>
-          <div class="spec"><span class="k">Modelo</span><span class="dots"></span><span class="v">Cisco SG300-28</span></div>
-          <div class="spec"><span class="k">Puertos</span><span class="dots"></span><span class="v">28 × 1 GbE</span></div>
-        </div>
-        <div class="card">
-          <span class="tape tape--small">Borde</span>
-          <h3>Router MikroTik</h3>
-          <p>Salida a internet con NAT y publicación del único servicio expuesto. Delante está el router
-            del operador; detrás, el switch de núcleo por un enlace de tránsito dedicado.</p>
+          <span class="tape tape--small">Red</span>
+          <h3>Núcleo y borde</h3>
+          <div class="spec"><span class="k">Switch</span><span class="dots"></span><span class="v">28 puertos, capa 3</span></div>
+          <div class="spec"><span class="k">Router de borde</span><span class="dots"></span><span class="v">enlace dedicado</span></div>
+          <div class="spec"><span class="k">Segmentos</span><span class="dots"></span><span class="v">gestión · datos · expuesto</span></div>
+          <p>El switch enruta entre segmentos; el router de borde separa la casa del laboratorio y publica
+            hacia internet.</p>
         </div>
       </div>
-
       <div class="note">
-        <span class="tape tape--small">Decisión</span>
-        <p>Los hosts comparten exactamente la misma CPU. Así vMotion no necesita un modo de
-          compatibilidad (EVC) en vCenter, y el cuarto host lleva la misma CPU para mantenerlo.</p>
-      </div>
-
-      <div class="prose">
-        <p>
-          Cada host reparte sus cinco tarjetas de red en dos grupos. <strong>Tres van en trunk</strong>
-          (802.1Q, VLANs etiquetadas) hacia el switch distribuido de vSphere, que es donde se decide qué
-          VLAN recibe cada VM. <strong>Dos van dedicadas al almacenamiento</strong>, sin etiquetar, una
-          por cada camino iSCSI: si falla un cable, una tarjeta o un puerto del switch, los discos de las
-          VMs siguen accesibles por el otro.
-        </p>
+        <span class="tape tape--small">Inventario completo</span>
+        <p>Qué hay exactamente, qué máquinas virtuales corren encima y qué servicios entrega cada una, en
+          <a href="maquinas.html">Máquinas y servicios</a>.</p>
       </div>
     </section>
 
@@ -227,6 +212,12 @@ flowchart TB
       <span class="tape tape--small">Explorar</span>
       <h2>Cada pieza en su página</h2>
       <div class="explore">
+        <a href="maquinas.html">
+          <span class="tape tape--small">Inventario</span>
+          <h3>Máquinas y servicios</h3>
+          <p>Qué equipos hay, qué máquinas virtuales corren encima y qué entrega el clúster a quien lo usa.</p>
+          <span class="go">Ver inventario →</span>
+        </a>
         <a href="red.html">
           <span class="tape tape--small">Red</span>
           <h3>Segmentación y DMZ</h3>
@@ -240,10 +231,16 @@ flowchart TB
           <span class="go">Ver detalle →</span>
         </a>
         <a href="computo.html">
-          <span class="tape tape--small">Cómputo</span>
-          <h3>Clúster y cargas</h3>
-          <p>Alta disponibilidad, las VMs en producción y una incidencia real con su análisis.</p>
+          <span class="tape tape--small">Clúster</span>
+          <h3>Cuatro nodos, uno solo</h3>
+          <p>Qué hace ante cada tipo de fallo, cómo se mueve una máquina encendida y cómo se vacía un nodo.</p>
           <span class="go">Ver detalle →</span>
+        </a>
+        <a href="incidencias.html">
+          <span class="tape tape--small">Incidencias</span>
+          <h3>Lo que se ha roto</h3>
+          <p>Fallos reales: síntoma, lo que parecía, la causa de verdad, el arreglo y la regla que quedó.</p>
+          <span class="go">Ver incidencias →</span>
         </a>
         <a href="publicacion.html">
           <span class="tape tape--small">Publicación</span>
@@ -253,9 +250,9 @@ flowchart TB
         </a>
         <a href="changelog.html">
           <span class="tape tape--small">Evolución</span>
-          <h3>Historial de cambios</h3>
-          <p>Cada cambio real de infraestructura, fechado, con enlace a su explicación.</p>
-          <span class="go">Ver historial →</span>
+          <h3>Cómo se ha construido</h3>
+          <p>Las cinco fases del laboratorio, qué aportó cada una y qué queda por hacer.</p>
+          <span class="go">Ver evolución →</span>
         </a>
       </div>
     </section>

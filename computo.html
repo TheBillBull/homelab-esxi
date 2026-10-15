@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Homelab ESXi · Cómputo</title>
-<meta name="description" content="Clúster vSphere con alta disponibilidad, las cargas en producción y el análisis de una incidencia real: una VM que se quedó sin memoria.">
+<title>Homelab ESXi · Clúster</title>
+<meta name="description" content="Cómo se comporta el clúster: alta disponibilidad ante cada tipo de fallo, migración en caliente, modo mantenimiento y reparto de carga entre cuatro nodos.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23161B21'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%232FBF71'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,10 +19,12 @@
     <a class="brand" href="index.html"><span class="led led--on" aria-hidden="true"></span><span>Homelab ESXi</span></a>
     <div class="navlinks">
       <a href="index.html">Arquitectura</a>
+      <a href="maquinas.html">Máquinas</a>
       <a href="red.html">Red</a>
       <a href="almacenamiento.html">Almacenamiento</a>
-      <a href="computo.html" aria-current="page">Cómputo</a>
+      <a href="computo.html" aria-current="page">Clúster</a>
       <a href="publicacion.html">Publicación</a>
+      <a href="incidencias.html">Incidencias</a>
       <a href="changelog.html">Evolución</a>
     </div>
   </div>
@@ -30,157 +32,113 @@
 
 <header class="masthead">
   <div class="masthead-inner">
-    <span class="tape">Cómputo · vSphere</span>
-    <h1>Un clúster que se recupera solo, y una incidencia que lo demostró necesario</h1>
+    <span class="tape">Clúster · vSphere</span>
+    <h1>Cuatro nodos que se comportan como uno solo</h1>
     <p class="lede">
-      vCenter gestiona los hosts como un único clúster con alta disponibilidad. Aquí están las cargas
-      que corren en él y el análisis completo de la primera incidencia seria: una VM que se quedó sin
-      memoria de madrugada.
+      Las máquinas no pertenecen a un servidor concreto: viven en el almacenamiento compartido y el
+      clúster decide dónde se ejecutan. Eso permite que una avería no se note y que yo pueda apagar un
+      nodo entero a media tarde sin avisar a nadie.
     </p>
   </div>
 </header>
 
 <div class="layout">
   <nav class="toc" id="toc" aria-label="En esta página">
-    <a href="#cluster">Clúster</a>
-    <a href="#cargas">Cargas de trabajo</a>
-    <a href="#multimedia">Servidor multimedia</a>
-    <a href="#incidencia">Incidencia</a>
+    <a href="#fallos">Ante cada fallo</a>
+    <a href="#migracion">Migración en caliente</a>
+    <a href="#mantenimiento">Sacar un nodo de servicio</a>
+    <a href="#margen">Cuánto margen hay</a>
   </nav>
 
   <main id="contenido">
 
-    <section id="cluster">
-      <span class="tape tape--small">Clúster</span>
+    <section id="fallos">
+      <span class="tape tape--small">Alta disponibilidad</span>
       <h2>Qué hace el clúster ante cada fallo</h2>
       <p class="intro">
-        La red de las VMs se gestiona desde un switch distribuido (vDS) a nivel de clúster, no host a
-        host. Así responde vSphere HA a cada tipo de fallo:
+        La red de las máquinas se gestiona a nivel de clúster, no servidor por servidor. Así responde a
+        cada tipo de avería, y por qué en un caso la respuesta correcta es <em>no hacer nada</em>.
       </p>
       <div class="panel scroll-x">
         <table class="datatable">
           <thead><tr><th>Si pasa esto…</th><th>El clúster hace esto</th><th>Estado</th></tr></thead>
           <tbody>
-            <tr><td>Se cae un host</td><td>Arranca sus VMs en los demás</td><td><span class="state"><span class="led led--on" aria-hidden="true"></span>Activo</span></td></tr>
-            <tr><td>Un host pierde el almacenamiento (PDL / APD)</td><td>Apaga esas VMs y las arranca en un host que sí lo ve</td><td><span class="state"><span class="led led--on" aria-hidden="true"></span>Activo</span></td></tr>
-            <tr><td>Una VM se cuelga (deja de responder su sistema operativo)</td><td>La reinicia, tras 60 s sin señal y sin actividad de disco ni red; máximo 3 veces al día</td><td><span class="state"><span class="led led--on" aria-hidden="true"></span>Activo</span></td></tr>
-            <tr><td>Un host pierde la red de gestión pero sigue vivo</td><td>Deja las VMs encendidas: el almacenamiento va por otra red</td><td><span class="state"><span class="led led--on" aria-hidden="true"></span>Decisión</span></td></tr>
-            <tr><td>Hay que vaciar un host o repartir carga</td><td>Mover VMs en caliente (vMotion) y que DRS equilibre</td><td><span class="state"><span class="led led--on" aria-hidden="true"></span>Activo</span></td></tr>
+            <tr><td>Se cae un nodo entero</td><td>Arranca sus máquinas en los demás</td><td><span class="state"><span class="led led--on" aria-hidden="true"></span>Activo</span></td></tr>
+            <tr><td>Un nodo pierde el almacenamiento</td><td>Apaga esas máquinas y las arranca donde sí se ve el disco</td><td><span class="state"><span class="led led--on" aria-hidden="true"></span>Activo</span></td></tr>
+            <tr><td>Una máquina se cuelga por dentro</td><td>La reinicia, tras un minuto sin señal de vida y sin actividad de disco ni de red</td><td><span class="state"><span class="led led--on" aria-hidden="true"></span>Activo</span></td></tr>
+            <tr><td>Un nodo pierde la red de gestión, pero sigue vivo</td><td><strong>Deja sus máquinas encendidas</strong>: el almacenamiento va por otra red y siguen funcionando</td><td><span class="state"><span class="led led--on" aria-hidden="true"></span>Decisión</span></td></tr>
+            <tr><td>Hay que vaciar un nodo o repartir carga</td><td>Mueve máquinas en caliente y equilibra solo</td><td><span class="state"><span class="led led--on" aria-hidden="true"></span>Activo</span></td></tr>
           </tbody>
         </table>
       </div>
       <div class="note">
-        <span class="tape tape--small">Cómo se saca un host de servicio</span>
-        <p>Cada host tiene una interfaz dedicada a vMotion, en su propia VLAN y con tramas grandes, y DRS trabaja en
-          modo automático. Para tocar un host se le pone en <strong>modo mantenimiento</strong>: el clúster mueve sus
-          máquinas a los demás mientras siguen encendidas, el host queda vacío y se trabaja en él sin apagar nada.
-          Comprobado moviendo una VM con un ping en marcha: <strong>se pierde un paquete</strong>, el corte dura
-          milisegundos. vCenter, que también es una VM del clúster, se migra a sí mismo sin intervenir.</p>
+        <span class="tape tape--small">Por qué dos almacenes mínimos y vacíos</span>
+        <p>Cuando un nodo deja de responder por la red, el resto necesita distinguir entre "se ha caído" y
+          "solo se ha quedado sin red de gestión". Para eso los nodos dejan señales en dos almacenes
+          compartidos diminutos: si el nodo sigue escribiendo ahí, está vivo y sus máquinas no se tocan.
+          Arrancarlas en otro sitio mientras siguen corriendo sería mucho peor que la avería.</p>
       </div>
     </section>
 
-    <section id="cargas">
-      <span class="tape tape--small">Cargas de trabajo</span>
-      <h2>Qué corre hoy en el clúster</h2>
-      <div class="panel scroll-x">
-        <table class="datatable">
-          <thead><tr><th>VM</th><th>Sistema</th><th>Función</th><th>Segmento</th></tr></thead>
-          <tbody>
-            <tr><td>vCenter</td><td>VCSA</td><td>Gestión del clúster</td><td>Gestión</td></tr>
-            <tr><td>DNS</td><td>Windows Server</td><td>DNS interno del laboratorio</td><td>Gestión</td></tr>
-            <tr><td>Servidor multimedia</td><td>Ubuntu Server + Docker</td><td>Jellyfin: biblioteca de vídeo para la familia</td><td>Servidores</td></tr>
-            <tr><td>Proxy público</td><td>Ubuntu Server</td><td>nginx con TLS: la única puerta desde internet</td><td>DMZ</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <section id="multimedia">
-      <span class="tape tape--small">Servidor multimedia</span>
-      <h2>Estabilidad antes que potencia</h2>
+    <section id="migracion">
+      <span class="tape tape--small">Migración en caliente</span>
+      <h2>Mover una máquina encendida sin que nadie lo note</h2>
       <div class="prose">
         <p>
-          Jellyfin corre en Docker dentro de una VM con 4 vCPU y 8 GB de RAM. Su sistema, caché y
-          carátulas viven en el pool NVMe; la biblioteca llega por NFS desde el pool de discos.
+          Cada nodo tiene una interfaz dedicada solo a esto, en su propio segmento de red y con tramas
+          grandes, para que la memoria de la máquina viaje rápido. El clúster copia esa memoria mientras
+          la máquina sigue funcionando y, al final, hace el cambio en un instante.
         </p>
         <p>
-          Al principio la VM tenía la gráfica integrada del host (Intel Quick Sync) pasada por
-          PCI passthrough, para transcodificar por hardware. Funcionaba, pero con peajes: la consola de
-          la VM se congelaba, hacían falta parámetros de arranque para domar el driver, y la VM quedaba
-          anclada a su host, sin poder moverse ni ser rearrancada en otro por HA.
-        </p>
-        <p>
-          Tras la incidencia de abajo, <strong>la gráfica se retiró</strong>. Ahora transcodifica la CPU.
-          Solo un usuario lo necesita, cuando ve contenido fuera de casa con mala cobertura, y la prueba
-          fue clara: una transcodificación a calidad de móvil ocupa unos dos tercios de un núcleo de los
-          cuatro de la VM. Sobra margen.
+          <strong>La prueba:</strong> mover una máquina de un nodo a otro con un ping en marcha contra
+          ella. Resultado, <strong>un paquete perdido</strong>. Para quien la estaba usando, nada.
         </p>
       </div>
       <div class="note">
-        <span class="tape tape--small">Qué se ganó</span>
-        <p>Un sospechoso menos, HA completo para la VM (ya puede arrancar en cualquier host), la consola
-          funcionando y una configuración más simple. El cambio se hizo paso a paso: primero Jellyfin sin
-          aceleración, luego el contenedor sin el dispositivo gráfico (probado con la gráfica aún en la
-          VM) y por último la gráfica fuera y la RAM ampliada. Una cosa cada vez.</p>
+        <span class="tape tape--small">Detalle curioso</span>
+        <p>La propia gestión del clúster es una máquina virtual que vive dentro de él. Cuando toca vaciar su
+          nodo, <strong>se migra a sí misma</strong>: la interfaz web parpadea unos segundos y vuelve, con
+          la migración ya hecha.</p>
       </div>
     </section>
 
-    <section id="incidencia">
-      <span class="tape tape--small">Postmortem</span>
-      <h2>Incidencia: el servidor multimedia se quedó sin memoria</h2>
+    <section id="mantenimiento">
+      <span class="tape tape--small">Operación</span>
+      <h2>Cómo se saca un nodo de servicio</h2>
       <p class="intro">
-        Una mañana, Jellyfin no respondía: ni desde internet, ni desde casa, ni por SSH. Así se
-        investigó, de fuera hacia dentro.
+        Es el procedimiento que de verdad se usa cada vez que hay que tocar hardware, actualizar o mover
+        un equipo de sitio. Y es el motivo de montar un clúster y no cuatro servidores sueltos.
       </p>
+      <ol class="path">
+        <li><strong>Modo mantenimiento</strong><span>Se marca el nodo. El clúster empieza a vaciarlo por su cuenta.</span></li>
+        <li><strong>Las máquinas se van solas</strong><span>Una a una, en caliente, a los nodos que quedan. Nadie las apaga.</span></li>
+        <li><strong>El nodo queda vacío</strong><span>Ya se puede apagar, abrir, cambiarle memoria o actualizarlo sin prisa.</span></li>
+        <li><strong>Vuelve al servicio</strong><span>Se saca del modo mantenimiento y vuelve a admitir carga.</span></li>
+      </ol>
+      <div class="note">
+        <span class="tape tape--small">Lo que no hace solo</span>
+        <p>Al volver, las máquinas <strong>no regresan</strong> a su nodo original: el reparto de carga solo
+          las mueve si hay desequilibrio real. Es lo correcto, aunque al principio sorprenda: mover por
+          mover también cuesta.</p>
+      </div>
+    </section>
 
+    <section id="margen">
+      <span class="tape tape--small">Capacidad</span>
+      <h2>Cuánto margen hay de verdad</h2>
       <div class="prose">
-        <h3>Acotar</h3>
         <p>
-          Desde la red de administración, la puerta de enlace del segmento y el almacenamiento del mismo
-          segmento respondían; la VM no. El problema estaba en la VM, no en la red. En vCenter, la VM
-          figuraba encendida, pero con las VMware Tools sin responder y sin IP. Las Tools hablan con el
-          host por dentro, sin usar la red: el sistema operativo estaba colgado. El registro de eventos
-          de vCenter no mostraba reinicios ni actuaciones de HA desde hacía días.
+          Cuatro nodos con la misma memoria y el mismo procesador. El clúster reserva capacidad para
+          <strong>perder uno entero</strong> y poder arrancar en los demás todo lo que ese nodo llevaba.
+          Hoy, con la carga real del laboratorio, el margen es enorme: lo que corre encima cabe de sobra
+          en un solo nodo.
         </p>
         <p>
-          Tras un reinicio forzado (sin Tools no hay reinicio ordenado), los registros del arranque
-          anterior contaron la historia.
+          Ese margen no es derroche, es lo que permite que un mantenimiento no se convierta en una parada,
+          y lo que deja sitio para los servicios que vayan entrando. El detalle de qué hay y qué hace cada
+          pieza está en <a href="maquinas.html">Máquinas y servicios</a>; cuando algo ha fallado, está
+          contado en <a href="incidencias.html">Incidencias</a>.
         </p>
-      </div>
-
-      <div class="panel scroll-x">
-        <table class="datatable">
-          <thead><tr><th>Hora</th><th>Qué registra el sistema</th></tr></thead>
-          <tbody>
-            <tr><td class="mono">03:09</td><td>Única anomalía previa: una tarea del driver gráfico acapara la CPU buscando pantallas que no existen</td></tr>
-            <tr><td class="mono">03:18</td><td>Primer síntoma: el servidor web de la aplicación avisa de falta de recursos</td></tr>
-            <tr><td class="mono">03:29</td><td>El kernel se queda sin memoria y mata a Jellyfin, <strong>que solo ocupaba unos kilobytes</strong></td></tr>
-            <tr><td class="mono">03:57</td><td>Cae el conector de acceso externo. Docker rearranca los servicios y el kernel los vuelve a matar</td></tr>
-            <tr><td class="mono">06:46</td><td>Ni el propio registro del sistema consigue memoria: cuelgue total</td></tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="prose" style="margin-top:22px">
-        <h3>Qué se descartó</h3>
-        <ul>
-          <li><strong>La red y el firewall:</strong> el fallo estaba dentro de la VM.</li>
-          <li><strong>Los usuarios:</strong> nadie reproducía nada a esas horas (no hay rastro de sesiones).</li>
-          <li><strong>Las tareas nocturnas de Jellyfin</strong> (miniaturas, capítulos): terminaron en un segundo, sin trabajo.</li>
-          <li><strong>Un proceso comiéndose la RAM:</strong> los procesos que el kernel mataba apenas usaban memoria. La tenía algo que no cuenta como memoria de un proceso.</li>
-        </ul>
-        <h3>Causa probable y decisión</h3>
-        <p>
-          El principal sospechoso es el driver de la gráfica en passthrough: la memoria de vídeo la
-          gestiona el kernel y no aparece como memoria de ningún proceso. No quedó demostrado al 100 %.
-          Como la prioridad es la estabilidad, se retiró la gráfica, se subió la RAM de 4 a 8 GB y se
-          dejaron tres medidas para que no vuelva a pasar desapercibido:
-        </p>
-        <ul>
-          <li>Un registro de memoria cada 5 minutos, para ver la curva si se repite.</li>
-          <li>El reinicio automático de VMs colgadas en vSphere HA, para que la caída dure minutos y no horas.</li>
-          <li>Seguimiento: si la memoria se mantiene estable durante semanas, la hipótesis queda confirmada.</li>
-        </ul>
       </div>
     </section>
 

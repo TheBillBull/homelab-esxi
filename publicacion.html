@@ -19,10 +19,12 @@
     <a class="brand" href="index.html"><span class="led led--on" aria-hidden="true"></span><span>Homelab ESXi</span></a>
     <div class="navlinks">
       <a href="index.html">Arquitectura</a>
+      <a href="maquinas.html">Máquinas</a>
       <a href="red.html">Red</a>
       <a href="almacenamiento.html">Almacenamiento</a>
-      <a href="computo.html">Cómputo</a>
+      <a href="computo.html">Clúster</a>
       <a href="publicacion.html" aria-current="page">Publicación</a>
+      <a href="incidencias.html">Incidencias</a>
       <a href="changelog.html">Evolución</a>
     </div>
   </div>
@@ -31,52 +33,26 @@
 <header class="masthead">
   <div class="masthead-inner">
     <span class="tape">Publicación · Reverse proxy · TLS</span>
-    <h1>De un túnel prestado a una puerta propia</h1>
+    <h1>Una sola puerta a internet, y todo lo demás cerrado</h1>
     <p class="lede">
-      El servidor multimedia tiene que funcionar desde cualquier sitio para usuarios que no son
-      técnicos: abrir la app y entrar, sin VPN ni nada que instalar. Durante meses eso lo resolvió un
-      túnel de Cloudflare. Hoy lo resuelve un proxy propio en una DMZ.
+      Dos servicios del laboratorio se usan desde fuera de casa. Los dos entran por la misma máquina, en
+      un segmento aislado que no puede hablar con el resto, y cada uno solo alcanza lo que necesita. Esto
+      es el recorrido completo de una petición, las capas que se cruza y cómo se comprobó cada una.
     </p>
   </div>
 </header>
 
 <div class="layout">
   <nav class="toc" id="toc" aria-label="En esta página">
-    <a href="#antes">Por qué cambiar</a>
-    <a href="#recorrido">Recorrido</a>
+    <a href="#recorrido">Cómo llega una petición</a>
     <a href="#capas">Capas de protección</a>
+    <a href="#segundo">Un segundo servicio</a>
+    <a href="#antes">Por qué se cambió</a>
     <a href="#pruebas">Cómo se probó</a>
-    <a href="#segundo">Segundo servicio</a>
     <a href="#pendiente">Lo que falta</a>
   </nav>
 
   <main id="contenido">
-
-    <section id="antes">
-      <span class="tape tape--small">Por qué cambiar</span>
-      <h2>El túnel funcionaba, pero no era para vídeo</h2>
-      <div class="prose">
-        <p>
-          Un túnel de Cloudflare publica un servicio sin abrir puertos: la conexión la abre el
-          laboratorio hacia fuera. Es cómodo, pero todo el tráfico pasa por la red de Cloudflare, y sus
-          condiciones de uso gratuitas no contemplan servir vídeo de forma continuada. Para un servidor
-          multimedia, era cuestión de tiempo que fuera un problema.
-        </p>
-        <p>
-          La alternativa obvia, un proxy propio, tenía un obstáculo: la conexión de casa estaba detrás
-          de un <strong>CGNAT</strong> del operador. Con CGNAT el router no tiene una IP pública
-          propia; se comparte con otros clientes, y desde internet nadie puede iniciar una conexión hacia
-          casa. Se comprobó comparando la IP del router con la IP con la que se sale a internet: no
-          coincidían, y la del router estaba en el rango reservado para CGNAT. Se pidió al operador una
-          IP pública y el camino quedó libre.
-        </p>
-        <p>
-          ¿Por qué no una VPN, que es más segura? Porque exige instalar y activar algo en cada móvil o
-          televisor, y los usuarios de este servicio no son de trastear. La seguridad se pone detrás, no
-          se les pide a ellos.
-        </p>
-      </div>
-    </section>
 
     <section id="recorrido">
       <span class="tape tape--small">Recorrido</span>
@@ -114,19 +90,6 @@
       </div>
     </section>
 
-    <section id="pruebas">
-      <span class="tape tape--small">Pruebas</span>
-      <h2>Cómo se probó, de dentro hacia fuera</h2>
-      <p class="intro">Cada tramo se validó antes de abrir el siguiente, y el túnel antiguo siguió funcionando hasta el final como vuelta atrás.</p>
-      <ol class="path">
-        <li><strong>Desde el propio proxy</strong><span>Petición al servicio con el nombre correcto: responde, con certificado válido. Petición sin nombre: rechazada.</span></li>
-        <li><strong>Desde el equipo de administración</strong><span>El nombre forzado hacia el proxy solo en ese equipo, sin tocar el DNS público. El servicio carga y reproduce, y el registro del proxy lo confirma. La primera vez no fue así: el navegador seguía entrando por el túnel, y solo el registro vacío lo delató.</span></li>
-        <li><strong>Desde internet, por IP</strong><span>Con un móvil sin wifi, contra la IP pública: el proxy rechaza el cifrado (llega y no se deja engañar), y los contadores del router de borde suben.</span></li>
-        <li><strong>Cambio de DNS</strong><span>El nombre pasa del túnel a la IP de casa, comprobado contra dos resolvedores públicos.</span></li>
-        <li><strong>Desde internet, de verdad</strong><span>El móvil con datos reproduce un vídeo, transcodificado, y el registro del proxy muestra la IP del operador móvil.</span></li>
-      </ol>
-    </section>
-
     <section id="segundo">
       <span class="tape tape--small">Segundo servicio</span>
       <h2>La misma puerta, otro servicio detrás</h2>
@@ -153,6 +116,45 @@
           Se separa en otra máquina solo cuando hay motivo: hardware dedicado, disponibilidad distinta, exposición a
           internet o consumo alto. Una máquina por contenedor multiplica el mantenimiento sin aportar nada.</p>
       </div>
+    </section>
+
+    <section id="antes">
+      <span class="tape tape--small">Por qué cambiar</span>
+      <h2>El túnel funcionaba, pero no era para vídeo</h2>
+      <div class="prose">
+        <p>
+          Un túnel de Cloudflare publica un servicio sin abrir puertos: la conexión la abre el
+          laboratorio hacia fuera. Es cómodo, pero todo el tráfico pasa por la red de Cloudflare, y sus
+          condiciones de uso gratuitas no contemplan servir vídeo de forma continuada. Para un servidor
+          multimedia, era cuestión de tiempo que fuera un problema.
+        </p>
+        <p>
+          La alternativa obvia, un proxy propio, tenía un obstáculo: la conexión de casa estaba detrás
+          de un <strong>CGNAT</strong> del operador. Con CGNAT el router no tiene una IP pública
+          propia; se comparte con otros clientes, y desde internet nadie puede iniciar una conexión hacia
+          casa. Se comprobó comparando la IP del router con la IP con la que se sale a internet: no
+          coincidían, y la del router estaba en el rango reservado para CGNAT. Se pidió al operador una
+          IP pública y el camino quedó libre.
+        </p>
+        <p>
+          ¿Por qué no una VPN, que es más segura? Porque exige instalar y activar algo en cada móvil o
+          televisor, y los usuarios de este servicio no son de trastear. La seguridad se pone detrás, no
+          se les pide a ellos.
+        </p>
+      </div>
+    </section>
+
+    <section id="pruebas">
+      <span class="tape tape--small">Pruebas</span>
+      <h2>Cómo se probó, de dentro hacia fuera</h2>
+      <p class="intro">Cada tramo se validó antes de abrir el siguiente, y el túnel antiguo siguió funcionando hasta el final como vuelta atrás.</p>
+      <ol class="path">
+        <li><strong>Desde el propio proxy</strong><span>Petición al servicio con el nombre correcto: responde, con certificado válido. Petición sin nombre: rechazada.</span></li>
+        <li><strong>Desde el equipo de administración</strong><span>El nombre forzado hacia el proxy solo en ese equipo, sin tocar el DNS público. El servicio carga y reproduce, y el registro del proxy lo confirma. La primera vez no fue así: el navegador seguía entrando por el túnel, y solo el registro vacío lo delató.</span></li>
+        <li><strong>Desde internet, por IP</strong><span>Con un móvil sin wifi, contra la IP pública: el proxy rechaza el cifrado (llega y no se deja engañar), y los contadores del router de borde suben.</span></li>
+        <li><strong>Cambio de DNS</strong><span>El nombre pasa del túnel a la IP de casa, comprobado contra dos resolvedores públicos.</span></li>
+        <li><strong>Desde internet, de verdad</strong><span>El móvil con datos reproduce un vídeo, transcodificado, y el registro del proxy muestra la IP del operador móvil.</span></li>
+      </ol>
     </section>
 
     <section id="pendiente">

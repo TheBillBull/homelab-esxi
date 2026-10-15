@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Homelab ESXi · Máquinas y servicios</title>
+<meta name="description" content="Inventario del laboratorio: los equipos físicos, las máquinas virtuales que corren encima y lo que el clúster entrega de verdad a quien lo usa.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23161B21'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%232FBF71'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<a class="skip" href="#contenido">Saltar al contenido</a>
+
+<nav class="sitenav" aria-label="Secciones del sitio">
+  <div class="sitenav-inner">
+    <a class="brand" href="index.html"><span class="led led--on" aria-hidden="true"></span><span>Homelab ESXi</span></a>
+    <div class="navlinks">
+      <a href="index.html">Arquitectura</a>
+      <a href="maquinas.html" aria-current="page">Máquinas</a>
+      <a href="red.html">Red</a>
+      <a href="almacenamiento.html">Almacenamiento</a>
+      <a href="computo.html">Clúster</a>
+      <a href="publicacion.html">Publicación</a>
+      <a href="incidencias.html">Incidencias</a>
+      <a href="changelog.html">Evolución</a>
+    </div>
+  </div>
+</nav>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <span class="tape">Inventario · Qué hay dentro</span>
+    <h1>Siete equipos, cinco máquinas virtuales y tres servicios que usa gente de verdad</h1>
+    <p class="lede">
+      El laboratorio no es un montón de cajas encendidas: es un clúster que da vídeo a la familia,
+      sincroniza mis notas desde cualquier sitio y sostiene el dominio interno. Esto es todo lo que hay,
+      qué hace cada pieza y qué pasa si falta.
+    </p>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="toc" id="toc" aria-label="En esta página">
+    <a href="#servicios">Lo que entrega</a>
+    <a href="#vms">Máquinas virtuales</a>
+    <a href="#fisico">Equipos físicos</a>
+    <a href="#capacidad">Capacidad</a>
+    <a href="#criterio">Criterio de reparto</a>
+  </nav>
+
+  <main id="contenido">
+
+    <section id="servicios">
+      <span class="tape tape--small">Lo que entrega</span>
+      <h2>Empezando por el final: para qué sirve todo esto</h2>
+      <p class="intro">
+        Un laboratorio sin usuarios es un juguete. Estos servicios los usa gente que no sabe ni que existe
+        un clúster detrás, y esa es la prueba de que funciona.
+      </p>
+      <div class="panel scroll-x">
+        <table class="datatable">
+          <thead><tr><th>Servicio</th><th>Quién lo usa</th><th>Qué exige</th><th>Estado</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>Vídeo bajo demanda</strong></td>
+              <td>Familia, desde casa y desde fuera, en móvil y en televisión</td>
+              <td>Que funcione abriendo la app, sin VPN ni configuraciones. Son personas mayores</td>
+              <td><span class="state"><span class="led led--on" aria-hidden="true"></span>En servicio</span></td>
+            </tr>
+            <tr>
+              <td><strong>Sincronización de notas</strong></td>
+              <td>Yo, entre portátil, móvil y tableta</td>
+              <td>Al instante y cifrada en origen: ahí vive la documentación del laboratorio</td>
+              <td><span class="state"><span class="led led--on" aria-hidden="true"></span>En servicio</span></td>
+            </tr>
+            <tr>
+              <td><strong>Dominio y nombres internos</strong></td>
+              <td>Los propios servidores y el equipo de administración</td>
+              <td>Resolver nombres y autenticar; es la pieza de la que dependen las demás</td>
+              <td><span class="state"><span class="led led--on" aria-hidden="true"></span>En servicio</span></td>
+            </tr>
+            <tr>
+              <td><strong>Almacén de archivos para la familia</strong></td>
+              <td>Unas diez personas, fuera de casa</td>
+              <td>Subir y descargar documentos personales, con cuotas y copia de seguridad</td>
+              <td><span class="state"><span class="led led--plan" aria-hidden="true"></span>Planificado</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note">
+        <span class="tape tape--small">La consecuencia</span>
+        <p>Tener usuarios reales cambia las decisiones. Nada de "lo arreglo el fin de semana": los cambios
+          se hacen con una vuelta atrás preparada, a horas en las que nadie mira una película, y
+          comprobando después que el servicio sigue respondiendo desde internet, no solo desde mi mesa.</p>
+      </div>
+    </section>
+
+    <section id="vms">
+      <span class="tape tape--small">Máquinas virtuales</span>
+      <h2>Lo que corre encima del clúster</h2>
+      <p class="intro">
+        Cinco máquinas, cada una con un trabajo. Todas viven en el almacenamiento compartido, así que
+        cualquiera puede arrancar en cualquier host.
+      </p>
+      <div class="cards">
+
+        <div class="card">
+          <span class="tape tape--small">Gestión</span>
+          <h3>Gestión del clúster</h3>
+          <div class="spec"><span class="k">Sistema</span><span class="dots"></span><span class="v">Appliance del fabricante</span></div>
+          <div class="spec"><span class="k">Memoria</span><span class="dots"></span><span class="v">20 GB</span></div>
+          <div class="spec"><span class="k">Segmento</span><span class="dots"></span><span class="v">Gestión</span></div>
+          <p>Gobierna los cuatro hosts como un único clúster: alta disponibilidad, reparto de carga y
+            migración en caliente. Curiosidad: es una máquina virtual del propio clúster, así que se migra
+            a sí misma cuando hay que vaciar su host.</p>
+        </div>
+
+        <div class="card">
+          <span class="tape tape--small">Directorio</span>
+          <h3>Dominio y DNS interno</h3>
+          <div class="spec"><span class="k">Sistema</span><span class="dots"></span><span class="v">Windows Server</span></div>
+          <div class="spec"><span class="k">Memoria</span><span class="dots"></span><span class="v">4 GB</span></div>
+          <div class="spec"><span class="k">Segmento</span><span class="dots"></span><span class="v">Gestión</span></div>
+          <p>Controlador de dominio y servidor de nombres del laboratorio. Es el punto único de fallo que
+            más me preocupa: un segundo controlador está en la lista. El segmento expuesto a internet
+            <strong>no</strong> lo usa, a propósito.</p>
+        </div>
+
+        <div class="card">
+          <span class="tape tape--small">DMZ</span>
+          <h3>Proxy de publicación</h3>
+          <div class="spec"><span class="k">Sistema</span><span class="dots"></span><span class="v">Ubuntu Server</span></div>
+          <div class="spec"><span class="k">Servicios</span><span class="dots"></span><span class="v">nginx · TLS · DNS dinámico</span></div>
+          <div class="spec"><span class="k">Segmento</span><span class="dots"></span><span class="v">DMZ</span></div>
+          <p>La única pieza que escucha desde internet. Descifra el tráfico, lo reenvía a quien
+            corresponde y nada más: una lista de control en el switch le impide hablar con el resto del
+            laboratorio.</p>
+        </div>
+
+        <div class="card">
+          <span class="tape tape--small">Servidores</span>
+          <h3>Servidor multimedia</h3>
+          <div class="spec"><span class="k">Sistema</span><span class="dots"></span><span class="v">Ubuntu Server + contenedor</span></div>
+          <div class="spec"><span class="k">Recursos</span><span class="dots"></span><span class="v">4 vCPU · 8 GB</span></div>
+          <div class="spec"><span class="k">Biblioteca</span><span class="dots"></span><span class="v">por red, solo lectura</span></div>
+          <p>Sirve el vídeo a la familia. Su sistema y su caché van en disco rápido; la biblioteca la monta
+            por red desde el nodo de almacenamiento, y además <strong>en solo lectura</strong>: si alguien
+            entrara por el servicio publicado, no podría borrar la colección.</p>
+        </div>
+
+        <div class="card">
+          <span class="tape tape--small">Servidores</span>
+          <h3>Servidor de contenedores</h3>
+          <div class="spec"><span class="k">Sistema</span><span class="dots"></span><span class="v">Ubuntu Server + Docker</span></div>
+          <div class="spec"><span class="k">Recursos</span><span class="dots"></span><span class="v">2 vCPU · 4 GB</span></div>
+          <div class="spec"><span class="k">Inquilinos</span><span class="dots"></span><span class="v">base de datos de notas</span></div>
+          <p>La casa común de los servicios internos pequeños, cada uno en su propia definición. El primero
+            es la base de datos que sincroniza mis notas; lo que venga después se añade al lado, sin
+            levantar otra máquina.</p>
+        </div>
+
+      </div>
+      <div class="note">
+        <span class="tape tape--small">Una máquina más, que no se toca</span>
+        <p>El clúster despliega por su cuenta una máquina de servicios internos, diminuta, que mantiene vivo
+          el reparto de carga aunque la gestión se caiga. No se renombra, no se apaga y no se borra: si
+          desaparece, el clúster la vuelve a crear.</p>
+      </div>
+    </section>
+
+    <section id="fisico">
+      <span class="tape tape--small">Equipos físicos</span>
+      <h2>Siete cajas y ningún servidor de rack</h2>
+      <p class="intro">
+        Todo es hardware de oficina reacondicionado, silencioso y de bajo consumo. Ninguna pieza salió de
+        una tienda lista para usar.
+      </p>
+      <div class="panel scroll-x">
+        <table class="datatable">
+          <thead><tr><th>Equipo</th><th>Qué hace</th><th>Lo que lleva dentro</th><th>Estado</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>Hosts 1 a 4</strong></td>
+              <td>Nodos del clúster: ejecutan las máquinas virtuales</td>
+              <td class="mono">6 núcleos / 12 hilos · 64 GB · NVMe 500 GB · 5 × 1 GbE</td>
+              <td><span class="state"><span class="led led--on" aria-hidden="true"></span>En servicio</span></td>
+            </tr>
+            <tr>
+              <td><strong>Nodo de almacenamiento</strong></td>
+              <td>Sirve los discos de todas las máquinas y la biblioteca multimedia</td>
+              <td class="mono">6 núcleos · 32 GB · 2 × 1 TB NVMe espejo + 16 TB · 5 × 1 GbE</td>
+              <td><span class="state"><span class="led led--on" aria-hidden="true"></span>En servicio</span></td>
+            </tr>
+            <tr>
+              <td><strong>Switch de núcleo</strong></td>
+              <td>Separa el tráfico en segmentos y enruta entre ellos</td>
+              <td class="mono">28 × 1 GbE · capa 3 · tramas grandes</td>
+              <td><span class="state"><span class="led led--on" aria-hidden="true"></span>En servicio</span></td>
+            </tr>
+            <tr>
+              <td><strong>Router de borde</strong></td>
+              <td>Frontera entre la red de casa y el laboratorio; publica hacia internet</td>
+              <td class="mono">enlace dedicado al switch</td>
+              <td><span class="state"><span class="led led--on" aria-hidden="true"></span>En servicio</span></td>
+            </tr>
+            <tr>
+              <td><strong>Alimentación ininterrumpida</strong></td>
+              <td>Aguanta los cortes de luz mientras el equipo se apaga ordenadamente</td>
+              <td class="mono">pendiente de sustituir por uno que cubra la red</td>
+              <td><span class="state"><span class="led led--busy" aria-hidden="true"></span>Provisional</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note">
+        <span class="tape tape--small">Dos detalles honestos</span>
+        <p><strong>Los cuatro hosts no son idénticos:</strong> uno es de otra serie del mismo fabricante.
+          Comparten procesador, que es lo que importa para mover máquinas en caliente sin modos de
+          compatibilidad, así que el clúster no nota la diferencia.<br>
+          <strong>La alimentación ininterrumpida es provisional</strong>, y además dejó fuera al switch.
+          Un corte de luz lo demostró del peor modo posible: está contado en
+          <a href="incidencias.html">Incidencias</a>.</p>
+      </div>
+    </section>
+
+    <section id="capacidad">
+      <span class="tape tape--small">Capacidad</span>
+      <h2>Cuánto hay y cuánto se usa</h2>
+      <div class="cards">
+        <div class="card">
+          <span class="tape tape--small">Cómputo</span>
+          <h3>Cuatro nodos</h3>
+          <div class="spec"><span class="k">Núcleos físicos</span><span class="dots"></span><span class="v">24</span></div>
+          <div class="spec"><span class="k">Hilos</span><span class="dots"></span><span class="v">48</span></div>
+          <div class="spec"><span class="k">Memoria total</span><span class="dots"></span><span class="v">256 GB</span></div>
+          <p>Sobra capacidad a propósito: con cuatro nodos, el clúster aguanta la caída de uno entero y
+            sigue arrancando todas las máquinas en los demás.</p>
+        </div>
+        <div class="card">
+          <span class="tape tape--small">Disco rápido</span>
+          <h3>Pool NVMe en espejo</h3>
+          <div class="spec"><span class="k">Para</span><span class="dots"></span><span class="v">discos de las VMs</span></div>
+          <div class="spec"><span class="k">Redundancia</span><span class="dots"></span><span class="v">espejo de dos discos</span></div>
+          <div class="spec"><span class="k">Reparto</span><span class="dots"></span><span class="v">cuatro almacenes</span></div>
+          <p>Separado por uso: máquinas de servicio, servidor multimedia y dos almacenes mínimos que el
+            clúster usa para saber si un nodo sigue vivo cuando se queda sin red de gestión.</p>
+        </div>
+        <div class="card">
+          <span class="tape tape--small">Capacidad</span>
+          <h3>Biblioteca</h3>
+          <div class="spec"><span class="k">Tamaño</span><span class="dots"></span><span class="v">16 TB</span></div>
+          <div class="spec"><span class="k">Ocupado</span><span class="dots"></span><span class="v">menos de una quinta parte</span></div>
+          <div class="spec"><span class="k">Redundancia</span><span class="dots"></span><span class="v">ninguna, a propósito</span></div>
+          <p>Un solo disco grande en vez de un espejo: para contenido que se puede recuperar, duplicar el
+            gasto no compensa. Lo que sí hace falta, y es el siguiente paso, es una copia fuera del clúster
+            y desconectada.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="criterio">
+      <span class="tape tape--small">Criterio</span>
+      <h2>Cuándo merece la pena otra máquina</h2>
+      <p class="intro">
+        La pregunta se repite cada vez que entra un servicio nuevo: ¿va con los demás o se monta aparte?
+        Una máquina por contenedor multiplica el mantenimiento sin aportar nada, así que hay regla.
+      </p>
+      <div class="panel scroll-x">
+        <table class="datatable">
+          <thead><tr><th>Se separa cuando…</th><th>Caso real</th></tr></thead>
+          <tbody>
+            <tr><td>Necesita hardware dedicado</td><td>El servidor multimedia, cuando tenía la gráfica del host asignada</td></tr>
+            <tr><td>Tiene otra disponibilidad</td><td>Ese mismo: lo usa la familia, y no quiero reiniciarlo por tocar otra cosa</td></tr>
+            <tr><td>Está expuesto a internet</td><td>El proxy, solo y aislado en su propio segmento</td></tr>
+            <tr><td>Consume mucho o es ruidoso</td><td>Todavía ninguno; sería el caso de una base de datos grande</td></tr>
+            <tr><td>En cualquier otro caso</td><td>Va al servidor de contenedores, con su propia definición</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <p>Esta web describe la arquitectura y las decisiones de diseño del laboratorio. Se omiten a propósito
+      direcciones IP, puertos físicos, nombres de dominio internos y cualquier credencial. Los
+      identificadores de VLAN son ilustrativos.</p>
+    <p><a href="changelog.html">Historial completo</a></p>
+  </div>
+</footer>
+
+<script src="assets/site.js"></script>
+</body>
+</html>

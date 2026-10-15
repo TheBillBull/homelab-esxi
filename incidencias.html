@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Homelab ESXi · Incidencias</title>
+<meta name="description" content="Fallos reales del laboratorio y cómo se resolvieron: síntoma, qué parecía, causa real, arreglo y la regla que quedó para la próxima vez.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23161B21'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%232FBF71'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<a class="skip" href="#contenido">Saltar al contenido</a>
+
+<nav class="sitenav" aria-label="Secciones del sitio">
+  <div class="sitenav-inner">
+    <a class="brand" href="index.html"><span class="led led--on" aria-hidden="true"></span><span>Homelab ESXi</span></a>
+    <div class="navlinks">
+      <a href="index.html">Arquitectura</a>
+      <a href="maquinas.html">Máquinas</a>
+      <a href="red.html">Red</a>
+      <a href="almacenamiento.html">Almacenamiento</a>
+      <a href="computo.html">Clúster</a>
+      <a href="publicacion.html">Publicación</a>
+      <a href="incidencias.html" aria-current="page">Incidencias</a>
+      <a href="changelog.html">Evolución</a>
+    </div>
+  </div>
+</nav>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <span class="tape">Incidencias · Diagnóstico</span>
+    <h1>Lo que se ha roto, y cómo se encontró la causa</h1>
+    <p class="lede">
+      Un laboratorio donde nunca falla nada es un laboratorio donde no se toca nada. Aquí está lo que se
+      rompió de verdad: el síntoma, lo que parecía al principio, lo que era, cómo se arregló y la regla
+      que quedó escrita para la próxima vez.
+    </p>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="toc" id="toc" aria-label="En esta página">
+    <a href="#metodo">Cómo se diagnostica</a>
+    <a href="#switch">Un switch que no reenviaba</a>
+    <a href="#memoria">Sin memoria de madrugada</a>
+    <a href="#apagon">Vivos pero sin poder escribir</a>
+    <a href="#relojes">Un reloj en 2036</a>
+    <a href="#almacenamiento">Caminos donde no tocaba</a>
+    <a href="#tropiezos">Tropiezos y despistes</a>
+    <a href="#reglas">Las reglas que quedaron</a>
+  </nav>
+
+  <main id="contenido">
+
+    <section id="metodo">
+      <span class="tape tape--small">Método</span>
+      <h2>Siempre igual: acotar antes de tocar</h2>
+      <p class="intro">
+        El orden importa más que la intuición. Casi todas estas incidencias se resolvieron con la misma
+        secuencia, y casi todas empezaron con una hipótesis equivocada.
+      </p>
+      <ol class="path">
+        <li><strong>Reproducir y delimitar</strong><span>¿Falla desde fuera y desde dentro? ¿Para todos o para uno? Cada respuesta descarta media infraestructura.</span></li>
+        <li><strong>Comprobar, no suponer</strong><span>Un comando que devuelve un dato vale más que una pantalla de configuración que dice lo que debería pasar.</span></li>
+        <li><strong>Mirar desde los dos extremos</strong><span>El cliente dice una cosa y el servidor otra; la verdad suele estar en el contraste.</span></li>
+        <li><strong>Un cambio cada vez</strong><span>Con dos cambios a la vez no se sabe cuál arregló (o rompió) nada.</span></li>
+        <li><strong>Dejarlo escrito</strong><span>Síntoma, causa y evidencia. La memoria se borra; la documentación no.</span></li>
+      </ol>
+    </section>
+
+    <section id="switch">
+      <span class="tape tape--small">Hardware</span>
+      <h2>Un switch nuevo que no reenviaba el tráfico</h2>
+      <div class="panel scroll-x">
+        <table class="datatable">
+          <tbody>
+            <tr><td style="width:22%"><strong>Síntoma</strong></td><td>Tras cambiar el switch de núcleo por otro con más puertos, el laboratorio funcionaba a ratos: unas máquinas se veían y otras no, y la cosa cambiaba al mover un cable.</td></tr>
+            <tr><td><strong>Qué parecía</strong></td><td>Una configuración mal copiada: etiquetas de segmento, enlaces troncales, algún puerto en el modo equivocado.</td></tr>
+            <tr><td><strong>Qué era</strong></td><td>El equipo estaba averiado. En pruebas de banco, fuera del laboratorio, <strong>la mitad de los puertos no pasaba tráfico</strong>, con un patrón que no dependía de la configuración.</td></tr>
+            <tr><td><strong>Arreglo</strong></td><td>Devolver el equipo y volver al switch anterior, que seguía configurado e intacto.</td></tr>
+            <tr><td><strong>Lección</strong></td><td>Antes de reescribir una configuración por tercera vez, hay que plantearse si el hardware está bien. Y un equipo nuevo se prueba <strong>fuera</strong> del entorno de producción, no sustituyendo al que funciona.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note">
+        <span class="tape tape--small">Y no fue el único</span>
+        <p>Vinieron dos más, y ninguno llegó a entrar. El último arrancaba bien, pero <strong>tras apagarlo
+          no volvía a encender hasta pasado un cuarto de hora</strong>: un fallo de alimentación que una
+          prueba de cinco arranques en frío destapó en diez minutos. Un equipo que no sobrevive a un corte
+          de luz no puede ser el núcleo de nada. Conclusión práctica: se abandona la búsqueda de switch de
+          segunda mano.</p>
+      </div>
+    </section>
+
+    <section id="memoria">
+      <span class="tape tape--small">Postmortem</span>
+      <h2>El servidor multimedia se quedó sin memoria de madrugada</h2>
+      <p class="intro">
+        Una mañana el servicio no respondía: ni desde internet, ni desde casa, ni por consola remota.
+        Nadie lo estaba usando a esas horas.
+      </p>
+      <div class="prose">
+        <h3>Acotar</h3>
+        <p>
+          Desde la red de administración respondían la puerta de enlace del segmento y el almacenamiento,
+          pero no la máquina. El problema estaba dentro de ella, no en la red. En la gestión del clúster
+          figuraba encendida, pero sin responder por el canal interno que no usa la red: el sistema
+          operativo estaba colgado.
+        </p>
+        <p>Tras un reinicio forzado, los registros del arranque anterior contaron la historia.</p>
+      </div>
+      <div class="panel scroll-x">
+        <table class="datatable">
+          <thead><tr><th>Hora</th><th>Qué registra el sistema</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">03:09</td><td>Única anomalía previa: una tarea del controlador gráfico acapara la CPU buscando pantallas que no existen</td></tr>
+            <tr><td class="mono">03:18</td><td>Primer síntoma: el servidor web de la aplicación avisa de falta de recursos</td></tr>
+            <tr><td class="mono">03:29</td><td>El núcleo del sistema se queda sin memoria y mata al servicio, <strong>que solo ocupaba unos kilobytes</strong></td></tr>
+            <tr><td class="mono">03:57</td><td>Los contenedores rearrancan y vuelven a morir, uno tras otro</td></tr>
+            <tr><td class="mono">06:46</td><td>Ni el propio registro del sistema consigue memoria: cuelgue total</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="prose" style="margin-top:22px">
+        <h3>Qué se descartó</h3>
+        <ul>
+          <li><strong>La red y el cortafuegos:</strong> el fallo era interno.</li>
+          <li><strong>Los usuarios:</strong> no había ninguna sesión a esas horas.</li>
+          <li><strong>Las tareas nocturnas:</strong> terminaron en un segundo, sin trabajo que hacer.</li>
+          <li><strong>Un proceso comiéndose la memoria:</strong> los procesos que el sistema mataba apenas usaban. La memoria la tenía algo que no cuenta como memoria de proceso.</li>
+        </ul>
+        <h3>Causa probable y decisión</h3>
+        <p>
+          El principal sospechoso es el controlador de la tarjeta gráfica asignada directamente a la
+          máquina: esa memoria la gestiona el núcleo y no aparece atribuida a ningún proceso. No quedó
+          demostrado al cien por cien, y así está escrito. Como la prioridad era la estabilidad, se retiró
+          la gráfica, se dobló la memoria y se dejaron medidas para detectarlo si vuelve: un registro
+          periódico de memoria y el reinicio automático de máquinas colgadas.
+        </p>
+      </div>
+      <div class="note">
+        <span class="tape tape--small">Lo que se ganó por el camino</span>
+        <p>Sin la gráfica asignada, esa máquina dejó de estar anclada a un host concreto: ahora puede
+          migrar en caliente y el clúster puede rearrancarla en cualquier nodo. Un problema de estabilidad
+          acabó mejorando la disponibilidad.</p>
+      </div>
+    </section>
+
+    <section id="apagon">
+      <span class="tape tape--small">Operación</span>
+      <h2>Servicios vivos que no podían escribir</h2>
+      <div class="panel scroll-x">
+        <table class="datatable">
+          <tbody>
+            <tr><td style="width:22%"><strong>Síntoma</strong></td><td>Tras un corte de luz en el edificio, el servicio de vídeo funcionaba dentro de casa pero no desde internet. Poco después, el proxy devolvía un error de puerta de enlace.</td></tr>
+            <tr><td><strong>Qué parecía</strong></td><td>Problema de publicación: IP pública cambiada, DNS desactualizado o el operador metiendo la conexión detrás de una red compartida.</td></tr>
+            <tr><td><strong>Qué se comprobó</strong></td><td>El nombre público apuntaba a la IP correcta, el router tenía IP pública propia y el proxy respondía dentro de la red. La publicación estaba bien.</td></tr>
+            <tr><td><strong>Qué era</strong></td><td>Los equipos estaban protegidos por la alimentación ininterrumpida, <strong>pero el switch no</strong>. Sin red no hay almacenamiento: las máquinas perdieron sus discos en caliente y el sistema de ficheros se remontó en <strong>solo lectura</strong> para protegerse. Los servicios figuraban como sanos y no podían escribir ni una línea.</td></tr>
+            <tr><td><strong>Arreglo</strong></td><td>Reiniciar las máquinas afectadas, que arrancaron limpias, y comprobar una por una el estado del sistema de ficheros. El servidor Windows salió intacto.</td></tr>
+            <tr><td><strong>Lección</strong></td><td>Que un servicio responda no significa que esté sano. Y la alimentación ininterrumpida tiene que cubrir <strong>la red</strong>, no solo los servidores: sin switch, el clúster se queda sin discos igual que si lo apagaras.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="relojes">
+      <span class="tape tape--small">Tiempo</span>
+      <h2>Un reloj que saltó diez años hacia delante</h2>
+      <div class="panel scroll-x">
+        <table class="datatable">
+          <tbody>
+            <tr><td style="width:22%"><strong>Síntoma</strong></td><td>Al revisar la hora del laboratorio, los hosts llevaban <strong>años</strong> de desfase y ninguno sincronizaba con un servidor de tiempo.</td></tr>
+            <tr><td><strong>Qué pasó al corregirlo</strong></td><td>Al poner en hora el primer host, el controlador de dominio que corría en él <strong>saltó al año 2036</strong>. El salto fue exactamente del mismo tamaño que la corrección del host.</td></tr>
+            <tr><td><strong>Por qué</strong></td><td>Esa máquina no tenía fuente de hora propia: tomaba la del host. Al mover el reloj del host, se llevó por delante al servidor que da la hora a todo el dominio.</td></tr>
+            <tr><td><strong>Arreglo</strong></td><td>Devolver la hora a mano, configurar el servicio de tiempo del dominio contra servidores públicos, desactivar la sincronización con el host y repasar después la salud del directorio, que quedó limpia.</td></tr>
+            <tr><td><strong>Lección</strong></td><td><strong>Antes de tocar la hora de un host, dar fuente de hora propia a sus máquinas críticas.</strong> Un reloj mal puesto no solo descoloca registros: rompe autenticación y certificados.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note">
+        <span class="tape tape--small">La misma causa, otro síntoma</span>
+        <p>Semanas después, un host recién instalado fue rechazado al unirlo al clúster con un error de
+          certificado. Su reloj estaba dos años atrás, así que el certificado que le enviaban "todavía no
+          era válido". Dos minutos de reloj y entró a la primera.</p>
+      </div>
+    </section>
+
+    <section id="almacenamiento">
+      <span class="tape tape--small">Almacenamiento</span>
+      <h2>Dos caminos que no eran dos caminos</h2>
+      <div class="prose">
+        <p>
+          El almacenamiento por bloques se conecta por <strong>dos rutas físicas independientes</strong>,
+          cada una por su tarjeta y su red. Esa es la teoría. Al comprobarlo de verdad aparecieron dos
+          problemas encadenados, y ninguno se veía en los diagramas.
+        </p>
+      </div>
+      <div class="panel scroll-x">
+        <table class="datatable">
+          <thead><tr><th>Lo que se encontró</th><th>Por qué pasaba</th><th>Cómo se arregló</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>El almacenamiento respondía también por la red de gestión, y los hosts la estaban usando sin saberlo</td>
+              <td>El servicio escuchaba en <strong>todas</strong> sus direcciones y las anunciaba a los clientes, que se conectaban por donde podían</td>
+              <td>Limitar el servicio a las dos redes de almacenamiento y permitir solo a los hosts del clúster, por su identificador</td>
+            </tr>
+            <tr>
+              <td>Un camino de datos salía por la red de gestión y atravesaba el router del laboratorio</td>
+              <td>Consecuencia del punto anterior: si lo anuncias, alguien lo usa</td>
+              <td>Al cerrar el servicio, esas rutas murieron solas; se limpiaron los restos en cada host</td>
+            </tr>
+            <tr>
+              <td>Los dos caminos acababan entrando por la <strong>misma</strong> tarjeta del almacenamiento</td>
+              <td>Con las dos interfaces en el mismo segmento, el sistema respondía a las preguntas de red por cualquiera de ellas</td>
+              <td>Ajustar el sistema para que cada tarjeta responda solo por su dirección, y vaciar la tabla de vecinos de los hosts</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note">
+        <span class="tape tape--small">Lección</span>
+        <p>La redundancia se comprueba, no se dibuja. Dos tarjetas, dos cables y dos redes no garantizan dos
+          caminos: hay que mirar las sesiones desde el servidor y las rutas desde el cliente. Ya puestos, se
+          activó el reparto de carga entre ambas y tramas grandes de extremo a extremo, con su prueba.</p>
+      </div>
+    </section>
+
+    <section id="tropiezos">
+      <span class="tape tape--small">Tropiezos</span>
+      <h2>Despistes que cuestan una tarde</h2>
+      <p class="intro">
+        No todo son incidencias de manual. Estos son los fallos tontos, los que de verdad se repiten, y
+        cómo se detectaron.
+      </p>
+      <div class="panel scroll-x">
+        <table class="datatable">
+          <thead><tr><th>Qué pasó</th><th>Cómo se vio</th><th>Qué se aprendió</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>Una máquina nueva llegaba a su propio segmento, pero no salía a ninguna parte</td>
+              <td>La tabla de rutas estaba vacía: la puerta de enlace tenía <strong>un dígito de más</strong>, escrito durante la instalación</td>
+              <td>Al configurar red a mano, comprobar la ruta por defecto antes de dar la máquina por buena</td>
+            </tr>
+            <tr>
+              <td>Dos almacenes de datos con los nombres intercambiados</td>
+              <td>Comparando el identificador del disco en el almacenamiento con el que mostraba el clúster</td>
+              <td>Al crear un almacén, elegir el disco por su identificador, no por tamaño ni por orden en la lista</td>
+            </tr>
+            <tr>
+              <td>La interfaz del switch se quedó colgada a mitad de un cambio de reglas</td>
+              <td>Al recuperarla, el cambio <strong>sí</strong> se había aplicado y el filtro seguía activo</td>
+              <td>Tras un cuelgue, no repetir el cambio a ciegas: primero mirar en qué estado quedó</td>
+            </tr>
+            <tr>
+              <td>Una lista de control que parecía la que tocaba, y no lo era</td>
+              <td>En el switch convivían dos listas con nombres parecidos; la que estaba en uso era la otra</td>
+              <td>Comprobar siempre qué configuración está <strong>aplicada</strong>, no solo cuál existe</td>
+            </tr>
+            <tr>
+              <td>La gestión del clúster avisaba de falta de memoria</td>
+              <td>Dentro de la máquina, consumo al límite de lo asignado</td>
+              <td>Las alarmas del propio sistema suelen tener razón; se le amplió la memoria y se fue el aviso</td>
+            </tr>
+            <tr>
+              <td>Un cable de consola que no servía para el equipo nuevo</td>
+              <td>Caracteres sin sentido en pantalla, con cualquier velocidad</td>
+              <td>Antes de culpar a la configuración, probar el otro puerto de consola del equipo</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="reglas">
+      <span class="tape tape--small">Conclusiones</span>
+      <h2>Las reglas que quedaron escritas</h2>
+      <div class="prose">
+        <ul>
+          <li><strong>Comprobar antes de tocar.</strong> Ninguna instrucción se da sobre un supuesto: primero se mira el estado real de lo que se va a cambiar.</li>
+          <li><strong>Un servicio que responde no está necesariamente sano.</strong> Después de un corte, revisar también si puede escribir.</li>
+          <li><strong>La redundancia se verifica desde los dos extremos.</strong> Lo que dice el cliente y lo que dice el servidor.</li>
+          <li><strong>Antes de tocar la hora, asegurar la hora de lo que depende de ella.</strong></li>
+          <li><strong>El hardware también falla.</strong> Si una configuración correcta no funciona, sospechar del equipo y probarlo fuera.</li>
+          <li><strong>Una vuelta atrás preparada</strong> antes de empezar, y un límite de tiempo para decidir usarla.</li>
+          <li><strong>Lo que no está escrito, no existe.</strong> Cada incidencia acaba en la documentación, con la evidencia que la demuestra.</li>
+        </ul>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <p>Esta web describe la arquitectura y las decisiones de diseño del laboratorio. Se omiten a propósito
+      direcciones IP, puertos físicos, nombres de dominio internos y cualquier credencial. Los
+      identificadores de VLAN son ilustrativos.</p>
+    <p><a href="changelog.html">Historial completo</a></p>
+  </div>
+</footer>
+
+<script src="assets/site.js"></script>
+</body>
+</html>
