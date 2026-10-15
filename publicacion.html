@@ -46,6 +46,7 @@
     <a href="#recorrido">Recorrido</a>
     <a href="#capas">Capas de protección</a>
     <a href="#pruebas">Cómo se probó</a>
+    <a href="#segundo">Segundo servicio</a>
     <a href="#pendiente">Lo que falta</a>
   </nav>
 
@@ -124,6 +125,34 @@
         <li><strong>Cambio de DNS</strong><span>El nombre pasa del túnel a la IP de casa, comprobado contra dos resolvedores públicos.</span></li>
         <li><strong>Desde internet, de verdad</strong><span>El móvil con datos reproduce un vídeo, transcodificado, y el registro del proxy muestra la IP del operador móvil.</span></li>
       </ol>
+    </section>
+
+    <section id="segundo">
+      <span class="tape tape--small">Segundo servicio</span>
+      <h2>La misma puerta, otro servicio detrás</h2>
+      <div class="prose">
+        <p>
+          Montada la puerta, publicar lo siguiente cuesta una tarde. El segundo servicio es la
+          <strong>sincronización de mis notas</strong>: una base de datos propia que sustituye a un servicio de pago,
+          y que mantiene al día el portátil, el móvil y la tableta.
+        </p>
+        <p>
+          Reutiliza todo lo que ya existía: el mismo proxy, el mismo certificado automático y el mismo DNS dinámico
+          (el nombre nuevo es un alias del primero, así que al cambiar la IP pública se actualizan los dos a la vez).
+          Lo único que hubo que abrir fue una regla más en el switch, del proxy a esa máquina y solo a su puerto.
+        </p>
+        <p>
+          <strong>Las notas viajan cifradas desde el propio dispositivo.</strong> El servidor guarda bloques que no puede
+          leer: aunque alguien entrara en él, no vería el contenido. Es lo razonable cuando la documentación del
+          laboratorio vive dentro.
+        </p>
+      </div>
+      <div class="note">
+        <span class="tape tape--small">Decisión</span>
+        <p>Los servicios internos pequeños van juntos en una máquina de contenedores, cada uno en su propia definición.
+          Se separa en otra máquina solo cuando hay motivo: hardware dedicado, disponibilidad distinta, exposición a
+          internet o consumo alto. Una máquina por contenedor multiplica el mantenimiento sin aportar nada.</p>
+      </div>
     </section>
 
     <section id="pendiente">
