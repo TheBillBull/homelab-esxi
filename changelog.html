@@ -33,7 +33,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <span class="tape">Evolución · Cómo se ha construido</span>
-    <h1>De cuatro ordenadores de oficina a un clúster con usuarios reales</h1>
+    <h1>De tres ordenadores de oficina a un clúster de cuatro nodos con usuarios reales</h1>
     <p class="lede">
       Ninguna de estas fases estaba planificada desde el principio: cada una salió de una necesidad o de
       un problema. Esta página cuenta el orden en que ocurrieron las cosas y qué aportó cada paso; lo que
@@ -147,6 +147,8 @@
         <li><strong>Sincronización de notas propia</strong><span>Sustituye a un servicio de suscripción. Mantiene al día portátil, móvil y tableta, con las notas cifradas antes de salir del dispositivo.</span></li>
         <li><strong>Publicar lo siguiente ya cuesta una tarde</strong><span>Reutilizando proxy, certificados y DNS dinámico: lo único nuevo fue una regla en el switch.</span></li>
         <li><strong>Monitorización y avisos</strong><span>Métricas de cada máquina con tres meses de historial, comprobación de que los servicios responden, vigilancia de la caducidad de los certificados y avisos al móvil. Hasta entonces, los problemas se descubrían porque alguien se quejaba.</span></li>
+        <li><strong>Las cuatro capas, vigiladas</strong><span>Después llegaron el clúster, el almacenamiento y el switch: nodos y almacenes, salud de los conjuntos de discos, y estado, velocidad y errores de cada puerto. Todo por consultas de solo lectura, sin instalar nada en los aparatos.</span></li>
+        <li><strong>Un panel que se mantiene solo</strong><span>El panel de control no se construye pinchando: es un fichero versionado. Si se pierde la máquina que lo muestra, se recrea entero en cinco minutos.</span></li>
       </ol>
       <div class="note">
         <span class="tape tape--small">Qué aportó</span>
@@ -164,6 +166,7 @@
           <thead><tr><th>Trabajo</th><th>Por qué</th><th>Estado</th></tr></thead>
           <tbody>
             <tr><td>Alimentación ininterrumpida que cubra también la red</td><td>Un corte de luz demostró que proteger los servidores y dejar fuera el switch no sirve de nada</td><td><span class="state"><span class="led led--busy" aria-hidden="true"></span>En curso</span></td></tr>
+            <tr><td>Un vigía fuera del laboratorio</td><td>Toda la vigilancia vive dentro: si cae el clúster, cae quien lo mira, y el aviso sale por la misma red que ha fallado</td><td><span class="state"><span class="led led--busy" aria-hidden="true"></span>En curso</span></td></tr>
             <tr><td>Copias de seguridad con copia desconectada</td><td>Instantáneas y réplica para lo que importa, y una copia fuera del clúster que ningún cifrado malicioso pueda tocar</td><td><span class="state"><span class="led led--plan" aria-hidden="true"></span>Planificado</span></td></tr>
             <tr><td>Almacén de archivos para la familia</td><td>Documentos personales accesibles desde fuera, con cuotas y usuarios</td><td><span class="state"><span class="led led--plan" aria-hidden="true"></span>Planificado</span></td></tr>
             <tr><td>Segundo controlador de dominio</td><td>Hoy el directorio y el DNS interno son un punto único de fallo</td><td><span class="state"><span class="led led--plan" aria-hidden="true"></span>Planificado</span></td></tr>

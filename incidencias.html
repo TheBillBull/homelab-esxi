@@ -51,6 +51,7 @@
     <a href="#relojes">Un reloj en 2036</a>
     <a href="#almacenamiento">Caminos donde no tocaba</a>
     <a href="#acl">Bloquearme a mí mismo</a>
+    <a href="#numero">Un número que engañaba</a>
     <a href="#tropiezos">Tropiezos y despistes</a>
     <a href="#reglas">Las reglas que quedaron</a>
   </nav>
@@ -258,6 +259,33 @@
       </div>
     </section>
 
+    <section id="numero">
+      <span class="tape tape--small">Diagnóstico</span>
+      <h2>Un número que no significaba lo que parecía</h2>
+      <p class="intro">
+        Esta no llegó a ser una avería, y por eso me gusta: es el ejemplo de que el peligro no es siempre
+        no tener datos. A veces es tenerlos y leerlos mal.
+      </p>
+      <div class="panel scroll-x">
+        <table class="datatable">
+          <tbody>
+            <tr><td style="width:22%"><strong>Qué decía el dato</strong></td><td>Al conectar el almacenamiento, el conjunto de discos rápido aparecía <strong>al 85 % de ocupación</strong>. Con eso iba a poner una alarma y a avisar de que el rendimiento se resentiría.</td></tr>
+            <tr><td><strong>Qué pasó</strong></td><td>No se aplicó: antes de tocar nada se contrastó con lo que decía el gestor de virtualización, y los números no encajaban.</td></tr>
+            <tr><td><strong>Qué significaba de verdad</strong></td><td>Los volúmenes que el almacenamiento entrega al clúster son <strong>de reserva completa</strong>: apartan todo su tamaño al crearse, haya datos dentro o no. Ese 85 % era espacio <em>comprometido</em>. Lo escrito de verdad era alrededor de una novena parte.</td></tr>
+            <tr><td><strong>Por qué importaba</strong></td><td>La alarma habría estado <strong>encendida desde el primer minuto</strong> y con un dato falso. Y la advertencia de rendimiento era incorrecta: esa regla habla de bloques escritos, no reservados.</td></tr>
+            <tr><td><strong>Qué sí era cierto</strong></td><td>Que queda un margen concreto <strong>sin repartir</strong>: no es un problema de salud, es un límite de cuánto se podría crear de nuevo. Así quedó la alarma, medida en espacio libre y no en porcentaje de ocupación.</td></tr>
+            <tr><td><strong>Lección</strong></td><td>Un número con un nombre familiar puede estar midiendo otra cosa. <strong>Antes de convertir un dato en alarma, contrástalo con una segunda fuente.</strong> Una alarma mal fundada es peor que no tenerla: enseña a ignorar las alarmas.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note">
+        <span class="tape tape--small">El lado bueno del hallazgo</span>
+        <p>Al entender la reserva se vio algo tranquilizador: como el almacenamiento aparta el espacio completo
+          por adelantado, el exceso de promesas que se ve en la capa de virtualización <strong>no puede hacer
+          daño en la capa de abajo</strong>. El riesgo queda contenido donde ya hay una alarma vigilándolo.</p>
+      </div>
+    </section>
+
     <section id="tropiezos">
       <span class="tape tape--small">Tropiezos</span>
       <h2>Despistes que cuestan una tarde</h2>
@@ -315,6 +343,7 @@
           <li><strong>Antes de tocar la hora, asegurar la hora de lo que depende de ella.</strong></li>
           <li><strong>El hardware también falla.</strong> Si una configuración correcta no funciona, sospechar del equipo y probarlo fuera.</li>
           <li><strong>Una vuelta atrás preparada</strong> antes de empezar, y un límite de tiempo para decidir usarla.</li>
+          <li><strong>Una alarma mal fundada es peor que no tenerla.</strong> Antes de convertir un dato en aviso, contrastarlo con otra fuente y preguntarse si sonará cuando no deba.</li>
           <li><strong>Lo que no está escrito, no existe.</strong> Cada incidencia acaba en la documentación, con la evidencia que la demuestra.</li>
         </ul>
       </div>

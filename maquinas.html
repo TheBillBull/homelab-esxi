@@ -160,8 +160,8 @@
           <div class="spec"><span class="k">Recursos</span><span class="dots"></span><span class="v">2 vCPU · 4 GB</span></div>
           <div class="spec"><span class="k">Inquilinos</span><span class="dots"></span><span class="v">notas · monitorización</span></div>
           <p>La casa común de los servicios internos pequeños, cada uno en su propia definición. El primero
-            es la base de datos que sincroniza mis notas; lo que venga después se añade al lado, sin
-            levantar otra máquina.</p>
+            fue la base de datos que sincroniza mis notas; el segundo, toda la vigilancia del laboratorio.
+            Añadir el siguiente es escribir unas líneas más, no levantar otra máquina.</p>
         </div>
 
       </div>
@@ -210,9 +210,9 @@
             </tr>
             <tr>
               <td><strong>Alimentación ininterrumpida</strong></td>
-              <td>Aguanta los cortes de luz mientras el equipo se apaga ordenadamente</td>
-              <td class="mono">pendiente de sustituir por uno que cubra la red</td>
-              <td><span class="state"><span class="led led--busy" aria-hidden="true"></span>Provisional</span></td>
+              <td>Aguantaría los cortes de luz mientras el equipo se apaga ordenadamente</td>
+              <td class="mono">ninguno instalado ahora mismo</td>
+              <td><span class="state"><span class="led led--plan" aria-hidden="true"></span>Pendiente</span></td>
             </tr>
           </tbody>
         </table>
@@ -222,9 +222,10 @@
         <p><strong>Los cuatro hosts no son idénticos:</strong> uno es de otra serie del mismo fabricante.
           Comparten procesador, que es lo que importa para mover máquinas en caliente sin modos de
           compatibilidad, así que el clúster no nota la diferencia.<br>
-          <strong>La alimentación ininterrumpida es provisional</strong>, y además dejó fuera al switch.
-          Un corte de luz lo demostró del peor modo posible: está contado en
-          <a href="incidencias.html">Incidencias</a>.</p>
+          <strong>Hoy el laboratorio no tiene protección eléctrica.</strong> El equipo que había era
+          prestado y volvió con su dueño; además dejaba fuera al switch, que es justo lo que un corte de
+          luz demostró del peor modo posible: está contado en <a href="incidencias.html">Incidencias</a>.
+          Comprar uno que cubra servidores, almacenamiento <em>y</em> red es la primera tarea de la lista.</p>
       </div>
     </section>
 
@@ -235,18 +236,68 @@
         Durante meses me enteraba de los problemas porque alguien se quejaba. Eso se acabó: ahora el
         laboratorio se mira a sí mismo y avisa al móvil cuando algo se tuerce.
       </p>
+
+      <figure class="shot">
+        <img src="assets/panel-estado.png" width="1984" height="142"
+             alt="Fila superior del panel de control: seis indicadores en verde con los valores 4, 5, 0, 0, 2 y 53.">
+        <figcaption>La primera fila del panel diario, tal cual. Hosts conectados, máquinas encendidas,
+          avisos activos, hosts en mantenimiento, servicios publicados respondiendo y días que le quedan al
+          certificado más próximo. Si los seis están en verde, no hay nada que hacer: diez segundos.</figcaption>
+      </figure>
       <div class="panel scroll-x">
         <table class="datatable">
           <thead><tr><th>Se vigila</th><th>Cómo</th><th>Por qué precisamente eso</th></tr></thead>
           <tbody>
             <tr><td>Recursos de cada máquina</td><td>Un recolector dentro de cada sistema</td><td>CPU, memoria, discos y red, con tres meses de historial para ver tendencias</td></tr>
             <tr><td><strong>Disco en solo lectura</strong></td><td>Misma vía</td><td>Un corte de luz dejó dos servicios respondiendo pero incapaces de escribir. Ahora salta en dos minutos</td></tr>
+            <tr><td>El clúster entero</td><td>Preguntando al gestor de virtualización por su interfaz de programación, con un usuario que solo puede leer</td><td>Nodos, máquinas encendidas y espacio de los almacenes. De regalo, el disco <em>dentro</em> de las máquinas, sin instalar nada en ellas</td></tr>
+            <tr><td><strong>Salud del almacenamiento</strong></td><td>Consulta de solo lectura al nodo de almacenamiento</td><td>Un conjunto de discos degradado <strong>sigue sirviendo datos con normalidad</strong>. Sin esto, te enteras cuando muere el segundo disco</td></tr>
+            <tr><td>Cada puerto del switch</td><td>Misma vía</td><td>Estado, velocidad negociada, tráfico y errores de trama. Los errores delatan un cable malo semanas antes de que el enlace se caiga</td></tr>
             <tr><td>Que los servicios contesten</td><td>Peticiones reales, no solo "el proceso está vivo"</td><td>El proceso puede estar arriba y el servicio roto</td></tr>
             <tr><td>Caducidad de los certificados</td><td>Un script propio que lee la fecha del fichero</td><td>La renovación es automática, pero también puede fallar. Avisa con tres semanas</td></tr>
             <tr><td>Avisos</td><td>Mensajería al móvil, agrupados y con aviso de recuperación</td><td>Si avisa de más, se ignora. Si no avisa de la recuperación, no sabes si hay que ir</td></tr>
           </tbody>
         </table>
       </div>
+
+      <div class="gaugegrid">
+        <div class="gaugecard">
+          <div class="gaugecard-head"><span class="led led--on" aria-hidden="true"></span>Almacenamiento</div>
+          <ul class="bars">
+            <li><span class="bl">Conjuntos de discos sanos</span><span class="track"><i style="width:100%"></i></span><span class="bv">3 / 3</span></li>
+            <li><span class="bl">Almacén de producción</span><span class="track"><i style="width:69.4%"></i></span><span class="bv">69,4 % libre</span></li>
+            <li><span class="bl">Almacén multimedia</span><span class="track"><i style="width:88.7%"></i></span><span class="bv">88,7 % libre</span></li>
+            <li><span class="bl">Biblioteca en disco grande</span><span class="track"><i style="width:74.7%"></i></span><span class="bv">74,7 % libre</span></li>
+            <li><span class="bl">Discos locales de los nodos</span><span class="track"><i style="width:99%"></i></span><span class="bv">99 % libre</span></li>
+            <li><span class="bl">Compromiso de espacio</span><span class="track"><i class="warn" style="width:64%"></i></span><span class="bv">127,7 %</span></li>
+          </ul>
+          <p class="foot">La última barra es la interesante: se ha prometido a las máquinas <strong>más disco del
+            que existe</strong>. Es normal con discos de crecimiento progresivo, pero hasta ahora no se veía.</p>
+        </div>
+
+        <div class="gaugecard">
+          <div class="gaugecard-head"><span class="led led--on" aria-hidden="true"></span>Red</div>
+          <ul class="bars">
+            <li><span class="bl">Puertos en servicio</span><span class="track"><i style="width:100%"></i></span><span class="bv">25 / 25</span></li>
+            <li><span class="bl">Negociando por debajo del máximo</span><span class="track"><i style="width:2%"></i></span><span class="bv">0</span></li>
+            <li><span class="bl">Errores de trama (última hora)</span><span class="track"><i style="width:2%"></i></span><span class="bv">0</span></li>
+            <li><span class="bl">Descartes por congestión</span><span class="track"><i style="width:2%"></i></span><span class="bv">0</span></li>
+          </ul>
+          <p class="foot">La segunda vigila una avería silenciosa: un puerto que negocia a una décima parte de su
+            velocidad <strong>no da ningún error</strong>. Funciona, y va diez veces más lento para siempre.</p>
+        </div>
+      </div>
+
+      <div class="note">
+        <span class="tape tape--small">La mitad del trabajo es decidir qué NO avisar</span>
+        <p>Una alarma que suena sin motivo acaba ignorándose, y el día que suena con motivo tampoco se mira.
+          Así que hay métricas recogidas <strong>a propósito sin alarma</strong>: la memoria del nodo de
+          almacenamiento, porque su sistema de ficheros usa de caché toda la que sobra y soltarla es su
+          funcionamiento normal; los puertos sin nada conectado, que están caídos porque deben estarlo; y la
+          ocupación del almacén rápido, que mide espacio reservado y no espacio escrito. Las tres habrían
+          estado encendidas desde el primer minuto.</p>
+      </div>
+
       <div class="note">
         <span class="tape tape--small">Lo que todavía no se puede vigilar desde dentro</span>
         <p>Si el servicio <strong>se ve desde internet</strong>. Al preguntar por el nombre público desde la
@@ -281,7 +332,7 @@
           <span class="tape tape--small">Capacidad</span>
           <h3>Biblioteca</h3>
           <div class="spec"><span class="k">Tamaño</span><span class="dots"></span><span class="v">16 TB</span></div>
-          <div class="spec"><span class="k">Ocupado</span><span class="dots"></span><span class="v">menos de una quinta parte</span></div>
+          <div class="spec"><span class="k">Ocupado</span><span class="dots"></span><span class="v">alrededor de un cuarto</span></div>
           <div class="spec"><span class="k">Redundancia</span><span class="dots"></span><span class="v">ninguna, a propósito</span></div>
           <p>Un solo disco grande en vez de un espejo: para contenido que se puede recuperar, duplicar el
             gasto no compensa. Lo que sí hace falta, y es el siguiente paso, es una copia fuera del clúster

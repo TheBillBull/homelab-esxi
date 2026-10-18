@@ -62,7 +62,7 @@
         <li><strong>Router del operador</strong><span>Reenvía solo el puerto HTTPS al router de borde. Ningún otro puerto está abierto.</span></li>
         <li><strong>Router de borde</strong><span>Redirige a la DMZ solo lo que llega dirigido a él mismo. Así el tráfico HTTPS de la red doméstica hacia el laboratorio, como abrir vCenter, no se desvía al proxy por error.</span></li>
         <li><strong>DMZ</strong><span>El proxy descifra la conexión con su certificado y comprueba qué nombre se ha pedido.</span></li>
-        <li><strong>Servidor multimedia</strong><span>El proxy abre su propia conexión hasta Jellyfin, la única que la ACL le permite. El usuario nunca habla directamente con el servidor.</span></li>
+        <li><strong>El servicio pedido</strong><span>Según el nombre, el proxy abre su propia conexión hasta el servidor multimedia o hasta la sincronización de notas: las dos únicas que la ACL le permite, cada una a su puerto exacto. El usuario nunca habla directamente con ninguno de los dos.</span></li>
       </ol>
     </section>
 
@@ -77,7 +77,7 @@
             <tr><td>Certificado automático</td><td>Let's Encrypt con validación por DNS, así que no hace falta abrir el puerto 80 para validar. Se renueva solo y el proxy recarga el certificado nuevo sin intervención.</td></tr>
             <tr><td>Rechazo de desconocidos</td><td>Quien llega sin pedir el nombre exacto del servicio (los escáneres que recorren internet por IP) ve rechazado el cifrado antes de recibir nada.</td></tr>
             <tr><td>Firewall del proxy</td><td>Controla lo que <em>entra</em>: HTTPS para todos, administración solo desde el equipo de gestión.</td></tr>
-            <tr><td>ACL de la DMZ</td><td>Controla lo que <em>sale</em>: hacia el laboratorio, solo el servidor multimedia. <a href="red.html#dmz">Detalle y pruebas</a>.</td></tr>
+            <tr><td>ACL de la DMZ</td><td>Controla lo que <em>sale</em>: hacia el laboratorio, solo los dos servicios que publica, cada uno a su puerto. Todo lo demás, bloqueado. <a href="red.html#dmz">Detalle y pruebas</a>.</td></tr>
             <tr><td>IP real del usuario</td><td>El proxy le pasa a Jellyfin la IP de cada usuario, y Jellyfin solo se fía de ese dato si viene del proxy. Sin eso, todos los usuarios parecerían la misma persona.</td></tr>
           </tbody>
         </table>

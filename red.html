@@ -59,7 +59,7 @@
       <h2>Diseñado entero, desplegado según hace falta</h2>
       <p class="intro">
         El plan reserva un segmento para cada función que el laboratorio tendrá tarde o temprano.
-        Solo cinco están en uso hoy; el resto existe en el switch pero vacío, listo para cuando llegue
+        Solo seis están en uso hoy; el resto existe en el switch pero vacío, listo para cuando llegue
         su momento. La columna de estado dice cuál es cuál.
       </p>
       <div class="panel scroll-x">
@@ -99,8 +99,9 @@
           Se comprobó intentando llegar al almacenamiento desde fuera de su red: sin respuesta.
         </p>
         <p>
-          La administración se hace desde un equipo concreto de la red doméstica, con su IP reservada
-          en el DHCP. Esas IPs son las únicas que el segmento DMZ tiene permitido contestar.
+          La administración se hace desde un equipo concreto de la red doméstica, con sus direcciones
+          reservadas en el DHCP (una por cable y otra por wifi). Son las únicas a las que el segmento
+          DMZ tiene permitido contestar.
         </p>
       </div>
     </section>
@@ -146,10 +147,12 @@
         <table class="datatable">
           <thead><tr><th>Orden</th><th>Acción</th><th>Qué</th><th>Por qué</th></tr></thead>
           <tbody>
-            <tr><td class="mono">1</td><td>Permitir</td><td>Proxy → servidor multimedia, solo al puerto del servicio</td><td class="muted">Es lo único del laboratorio que necesita</td></tr>
-            <tr><td class="mono">2</td><td>Permitir</td><td>Respuestas SSH y HTTPS del proxy al equipo de administración</td><td class="muted">La ACL no tiene memoria: las respuestas también hay que permitirlas</td></tr>
-            <tr><td class="mono">3</td><td>Bloquear</td><td>Proxy → cualquier red privada</td><td class="muted">El resto del laboratorio y la red doméstica</td></tr>
-            <tr><td class="mono">4</td><td>Permitir</td><td>Proxy → cualquier otro destino</td><td class="muted">Solo queda internet: respuestas a los usuarios, actualizaciones, certificados</td></tr>
+            <tr><td class="mono">1</td><td>Permitir</td><td>Proxy → servidor multimedia, solo al puerto del servicio</td><td class="muted">El primer servicio publicado</td></tr>
+            <tr><td class="mono">2</td><td>Permitir</td><td>Proxy → sincronización de notas, solo a su puerto</td><td class="muted">El segundo servicio publicado. Una regla por servicio, nunca una genérica</td></tr>
+            <tr><td class="mono">3</td><td>Permitir</td><td>Respuestas SSH y HTTPS del proxy al equipo de administración</td><td class="muted">La ACL no tiene memoria: las respuestas también hay que permitirlas</td></tr>
+            <tr><td class="mono">4</td><td>Permitir</td><td>Respuestas de métricas del proxy al servidor de vigilancia</td><td class="muted">Para poder vigilar la máquina expuesta sin abrirle camino hacia dentro</td></tr>
+            <tr><td class="mono">5</td><td>Bloquear</td><td>Proxy → cualquier red privada</td><td class="muted">El resto del laboratorio y la red doméstica</td></tr>
+            <tr><td class="mono">6</td><td>Permitir</td><td>Proxy → cualquier otro destino</td><td class="muted">Solo queda internet: respuestas a los usuarios, actualizaciones, certificados</td></tr>
           </tbody>
         </table>
       </div>
