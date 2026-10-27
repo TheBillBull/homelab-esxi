@@ -1,2 +1,5 @@
 Thumbs.db
 .DS_Store
+
+# Servidor de vista previa local, no es parte del sitio
+.claude/
