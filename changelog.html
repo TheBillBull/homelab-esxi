@@ -49,6 +49,7 @@
     <a href="#f3">3 · Salir a internet</a>
     <a href="#f4">4 · Endurecer y operar</a>
     <a href="#f5">5 · Servicios propios</a>
+    <a href="#f6">6 · La copia que faltaba</a>
     <a href="#siguiente">Lo que viene</a>
   </nav>
 
@@ -158,6 +159,32 @@
       </div>
     </section>
 
+    <section id="f6">
+      <span class="tape tape--small">Fase 6</span>
+      <h2>La copia que faltaba</h2>
+      <p class="intro">
+        Durante meses el laboratorio tuvo un único ejemplar de sí mismo. Si el almacenamiento se perdía,
+        se perdía todo: configuraciones, máquinas y biblioteca. Esta fase arregla eso, y lo hace con una
+        regla por delante: <strong>copiar no puede cambiar lo que se copia</strong>.
+      </p>
+      <ol class="path">
+        <li><strong>Un disco externo, cifrado y desconectado</strong><span>Cifrado con una frase que no vive en ningún equipo del laboratorio. Sin ella el disco no dice nada, que es justo lo que se le pide a una copia que sale de la sala. Y no se queda enchufado: una copia conectada es un objetivo más.</span></li>
+        <li><strong>Primero lo que menos ocupa y más cuesta rehacer</strong><span>La configuración del almacenamiento, la de los cuatro hipervisores, la del switch y la del router. Son unos pocos megas frente a varios teras, y son lo único que no se puede volver a descargar de ninguna parte.</span></li>
+        <li><strong>Los discos de las máquinas, en frío</strong><span>Apagado ordenado, instantánea de cada disco y encendido en el orden correcto: primero el directorio, luego la gestión del clúster, después el resto. Copiar una máquina encendida da el mismo resultado que un corte de luz; apagarla un cuarto de hora da una copia que arranca.</span></li>
+        <li><strong>La biblioteca, por replicación</strong><span>El sistema de ficheros envía sus propios bloques en lugar de recorrer carpeta por carpeta: varios teras a buena velocidad, sin el fichero a fichero que tardaría días.</span></li>
+        <li><strong>Las instantáneas se quedan</strong><span>Marcan el punto exacto que se copió. La próxima vez solo viaja lo que haya cambiado desde entonces: minutos en lugar de horas. Borrarlas obligaría a empezar de cero.</span></li>
+        <li><strong>Ni un ajuste en el laboratorio</strong><span>No se abrió un servicio, ni se relajó una regla, ni se creó una credencial para poder copiar. Un switch antiguo exigió negociar cifrado viejo, y se hizo dentro de ese único comando, sin tocar su configuración.</span></li>
+      </ol>
+      <div class="note">
+        <span class="tape tape--small">Qué aportó</span>
+        <p>Dejar de ser un sistema con un solo ejemplar. Y un efecto que no se esperaba: copiar obliga a
+          mirar cada pieza de una en una, y aparecieron datos que la documentación daba por buenos y no lo
+          eran, incluida <strong>una máquina virtual que no figuraba en el inventario</strong>. Aun así, la
+          copia no estará cerrada hasta verificarla y restaurar algo de verdad: una copia que nunca se ha
+          restaurado es una esperanza, no una copia.</p>
+      </div>
+    </section>
+
     <section id="siguiente">
       <span class="tape tape--small">Lo que viene</span>
       <h2>Siguiente fase</h2>
@@ -167,7 +194,7 @@
           <tbody>
             <tr><td>Alimentación ininterrumpida que cubra también la red</td><td>Un corte de luz demostró que proteger los servidores y dejar fuera el switch no sirve de nada</td><td><span class="state"><span class="led led--busy" aria-hidden="true"></span>En curso</span></td></tr>
             <tr><td>Un vigía fuera del laboratorio</td><td>Toda la vigilancia vive dentro: si cae el clúster, cae quien lo mira, y el aviso sale por la misma red que ha fallado</td><td><span class="state"><span class="led led--busy" aria-hidden="true"></span>En curso</span></td></tr>
-            <tr><td>Copias de seguridad con copia desconectada</td><td>Instantáneas y réplica para lo que importa, y una copia fuera del clúster que ningún cifrado malicioso pueda tocar</td><td><span class="state"><span class="led led--plan" aria-hidden="true"></span>Planificado</span></td></tr>
+            <tr><td>Copias incrementales y verificadas</td><td>La primera copia completa ya existe. Falta verificarla, restaurar algo de verdad y dejar las siguientes en incremental, para que repetirla cueste minutos y no una tarde</td><td><span class="state"><span class="led led--busy" aria-hidden="true"></span>En curso</span></td></tr>
             <tr><td>Almacén de archivos para la familia</td><td>Documentos personales accesibles desde fuera, con cuotas y usuarios</td><td><span class="state"><span class="led led--plan" aria-hidden="true"></span>Planificado</span></td></tr>
             <tr><td>Segundo controlador de dominio</td><td>Hoy el directorio y el DNS interno son un punto único de fallo</td><td><span class="state"><span class="led led--plan" aria-hidden="true"></span>Planificado</span></td></tr>
             <tr><td>Switch de núcleo con más puertos y 10 GbE</td><td>Tres equipos de segunda mano seguidos vinieron defectuosos; se retoma con material nuevo</td><td><span class="state"><span class="led led--plan" aria-hidden="true"></span>Aparcado</span></td></tr>

@@ -158,7 +158,8 @@ flowchart LR
           redundancia:</strong> si ese disco falla, se pierde la biblioteca (los discos de las VMs están en el
           pool NVMe y no se ven afectados). Es una decisión consciente: para una biblioteca que se puede recuperar,
           el espejo duplica el gasto sin aportar protección frente a un borrado o un cifrado malicioso. Lo que sí
-          hace falta, y es el siguiente paso, es una <strong>copia fuera del clúster y desconectada</strong>.</p>
+          hace falta es una <strong>copia fuera del clúster y desconectada</strong>, y ya existe:
+            la biblioteca entera está replicada en un disco externo cifrado que no vive conectado.</p>
       </div>
     </section>
 
