@@ -150,6 +150,7 @@
         <li><strong>Monitorización y avisos</strong><span>Métricas de cada máquina con tres meses de historial, comprobación de que los servicios responden, vigilancia de la caducidad de los certificados y avisos al móvil. Hasta entonces, los problemas se descubrían porque alguien se quejaba.</span></li>
         <li><strong>Las cuatro capas, vigiladas</strong><span>Después llegaron el clúster, el almacenamiento y el switch: nodos y almacenes, salud de los conjuntos de discos, y estado, velocidad y errores de cada puerto. Todo por consultas de solo lectura, sin instalar nada en los aparatos.</span></li>
         <li><strong>Un panel que se mantiene solo</strong><span>El panel de control no se construye pinchando: es un fichero versionado. Si se pierde la máquina que lo muestra, se recrea entero en cinco minutos.</span></li>
+        <li><strong>Un vigía fuera del laboratorio</strong><span>Un equipo pequeño en la red de casa, sin ningún camino hacia el laboratorio, comprueba cada cinco minutos lo que está publicado: que responde, que sus certificados no están a punto de caducar y que el nombre apunta a donde debe. Los avisos los manda un servicio externo, y él mismo da señales de vida a ese servicio: si se calla, también avisa. Así se entera uno aunque caiga el clúster, el switch o la casa entera.</span></li>
       </ol>
       <div class="note">
         <span class="tape tape--small">Qué aportó</span>
@@ -193,7 +194,6 @@
           <thead><tr><th>Trabajo</th><th>Por qué</th><th>Estado</th></tr></thead>
           <tbody>
             <tr><td>Alimentación ininterrumpida que cubra también la red</td><td>Un corte de luz demostró que proteger los servidores y dejar fuera el switch no sirve de nada</td><td><span class="state"><span class="led led--busy" aria-hidden="true"></span>En curso</span></td></tr>
-            <tr><td>Un vigía fuera del laboratorio</td><td>Toda la vigilancia vive dentro: si cae el clúster, cae quien lo mira, y el aviso sale por la misma red que ha fallado</td><td><span class="state"><span class="led led--busy" aria-hidden="true"></span>En curso</span></td></tr>
             <tr><td>Copias incrementales y verificadas</td><td>La primera copia completa ya existe. Falta verificarla, restaurar algo de verdad y dejar las siguientes en incremental, para que repetirla cueste minutos y no una tarde</td><td><span class="state"><span class="led led--busy" aria-hidden="true"></span>En curso</span></td></tr>
             <tr><td>Almacén de archivos para la familia</td><td>Documentos personales accesibles desde fuera, con cuotas y usuarios</td><td><span class="state"><span class="led led--plan" aria-hidden="true"></span>Planificado</span></td></tr>
             <tr><td>Segundo controlador de dominio</td><td>Hoy el directorio y el DNS interno son un punto único de fallo</td><td><span class="state"><span class="led led--plan" aria-hidden="true"></span>Planificado</span></td></tr>

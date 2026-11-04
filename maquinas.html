@@ -299,10 +299,13 @@
       </div>
 
       <div class="note">
-        <span class="tape tape--small">Lo que todavía no se puede vigilar desde dentro</span>
-        <p>Si el servicio <strong>se ve desde internet</strong>. Al preguntar por el nombre público desde la
-          propia red, el router no devuelve el tráfico hacia dentro, así que la comprobación falla aunque
-          todo funcione. Para responder esa pregunta hace falta un vigía en otra red: está en la lista.</p>
+        <span class="tape tape--small">Lo que no se puede vigilar desde dentro</span>
+        <p>Si el servicio <strong>se ve desde fuera</strong>. Al preguntar por el nombre público desde el
+          laboratorio, su router no devuelve el tráfico hacia dentro, así que la comprobación falla aunque
+          todo funcione. Y si cae el clúster, cae también quien vigila. Para eso hay un <strong>vigía en
+          otra red</strong>: comprueba lo publicado por su nombre, sin credenciales, y avisa por un servicio
+          externo. Él mismo da señales de vida a ese servicio, así que si se calla (o se queda sin internet
+          la casa entera) el aviso llega igual. No necesita ningún camino hacia el laboratorio.</p>
       </div>
     </section>
 
