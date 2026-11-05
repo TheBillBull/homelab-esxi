@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Homelab ESXi · Red</title>
-<meta name="description" content="Segmentación del homelab: plan de VLANs, qué se enruta y qué no, almacenamiento con dos caminos y una DMZ aislada con ACL verificada.">
+<meta name="description" content="Segmentación del homelab: plan de VLANs, qué se enruta y qué no, almacenamiento con dos caminos y una DMZ aislada tras un cortafuegos con estado.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23161B21'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%232FBF71'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -75,7 +75,7 @@
             <tr><td class="mono">105</td><td>Control de plataforma</td><td>Componentes de control de nivel superior</td><td class="muted">Enrutada</td><td><span class="state"><span class="led led--plan" aria-hidden="true"></span>Reservada</span></td></tr>
             <tr><td class="mono">201</td><td>Servidores</td><td>VMs que dan servicio, incluido el servidor multimedia</td><td class="muted">Enrutada</td><td><span class="state"><span class="led led--on" aria-hidden="true"></span>En uso</span></td></tr>
             <tr><td class="mono">202</td><td>Transporte SDN</td><td>Túneles Geneve de NSX</td><td class="muted">Solo L2</td><td><span class="state"><span class="led led--plan" aria-hidden="true"></span>Reservada</span></td></tr>
-            <tr><td class="mono">301</td><td>DMZ frontal</td><td>El proxy que recibe las conexiones de internet</td><td class="muted">Enrutada, con ACL</td><td><span class="state"><span class="led led--on" aria-hidden="true"></span>En uso</span></td></tr>
+            <tr><td class="mono">301</td><td>DMZ frontal</td><td>El proxy que recibe las conexiones de internet</td><td class="muted">En el router de borde, con cortafuegos</td><td><span class="state"><span class="led led--on" aria-hidden="true"></span>En uso</span></td></tr>
             <tr><td class="mono">401</td><td>Clientes</td><td>Dispositivos de usuario final</td><td class="muted">Enrutada</td><td><span class="state"><span class="led led--plan" aria-hidden="true"></span>Reservada</span></td></tr>
             <tr><td class="mono">901</td><td>Tránsito</td><td>Enlace punto a punto entre el switch de núcleo y el router de borde</td><td class="muted">Enlace /30</td><td><span class="state"><span class="led led--on" aria-hidden="true"></span>En uso</span></td></tr>
           </tbody>
@@ -90,7 +90,9 @@
         <p>
           El switch de núcleo trabaja en capa 3: tiene una interfaz en cada VLAN que necesita hablar con
           otras, y hace de puerta de enlace para ellas. Su ruta por defecto apunta al router de borde a
-          través de la VLAN de tránsito, y el router de borde hace NAT hacia internet.
+          través de la VLAN de tránsito, y el router de borde hace NAT hacia internet. La excepción es la
+          zona expuesta: el switch la transporta sin interfaz propia, y su puerta de enlace es el router
+          de borde, que la filtra (detalle más abajo).
         </p>
         <p>
           Las VLANs de almacenamiento, migración, réplica y SDN <strong>no tienen interfaz en el
@@ -99,9 +101,18 @@
           Se comprobó intentando llegar al almacenamiento desde fuera de su red: sin respuesta.
         </p>
         <p>
+          Los enlaces troncales hacia los hosts llevan como VLAN nativa una vacía, sin dirección y sin
+          puertos. Lo que llegue sin etiquetar no cae en ningún segmento con servicio.
+        </p>
+        <p>
           La administración se hace desde un equipo concreto de la red doméstica, con sus direcciones
-          reservadas en el DHCP (una por cable y otra por wifi). Son las únicas a las que el segmento
-          DMZ tiene permitido contestar.
+          reservadas en el DHCP (una por cable y otra por wifi). Junto con la red de gestión, son las
+          únicas desde las que el switch acepta administración: desde cualquier otro segmento, ni
+          contesta. La vigilancia tiene su propio permiso, de solo lectura y desde una sola máquina.
+        </p>
+        <p>
+          El vigía externo vive en la red de casa a propósito y no tiene ningún camino hacia el
+          laboratorio: ve lo publicado exactamente como lo vería cualquiera desde internet.
         </p>
       </div>
     </section>
@@ -127,7 +138,7 @@
           <tbody>
             <tr><td>Solo por su red</td><td>El almacenamiento anunciaba los discos por todas sus interfaces, y los hosts acababan usando también la red de gestión. Ahora solo los ofrece por las dos subredes del iSCSI</td><td>Sesiones por host antes y después, vistas desde el almacenamiento y desde cada host</td></tr>
             <tr><td>Solo para sus hosts</td><td>Lista de iniciadores con el nombre iSCSI exacto de cada host, en lugar de "cualquiera"</td><td>Los nombres se copian de las sesiones activas, no se teclean; caminos activos en cada host tras el cambio</td></tr>
-            <tr><td>Jumbo frames</td><td>MTU 9000 de extremo a extremo en la red del iSCSI: almacenamiento, switch y hosts</td><td>Ping de 9000 bytes sin fragmentar por cada camino y cada host</td></tr>
+            <tr><td>Jumbo frames</td><td>MTU 9000 de extremo a extremo en la red del iSCSI: almacenamiento, switch y hosts</td><td>Ping de 9000 bytes sin fragmentar por cada camino y cada host. Se repite tras cada cambio de red: con el switch actual, en curso</td></tr>
             <tr><td>Cada camino por su tarjeta</td><td>Con las dos interfaces del almacenamiento en el mismo segmento, Linux contestaba por cualquiera de ellas (ARP flux) y los hosts mandaban los dos caminos a la misma tarjeta. Corregido para que cada interfaz responda solo por su dirección</td><td>Tabla de vecinos de cada host antes y después</td></tr>
           </tbody>
         </table>
@@ -136,62 +147,80 @@
 
     <section id="dmz">
       <span class="tape tape--small">DMZ</span>
-      <h2>Un segmento que solo puede hablar con un servicio</h2>
+      <h2>Un segmento que solo puede hablar con lo que publica</h2>
       <p class="intro">
         El proxy que recibe las visitas de internet vive solo en su VLAN. Si algún día alguien lo
-        comprometiera, cada puerta abierta hacia dentro sería una puerta para el atacante. Por eso una
-        ACL en el switch filtra todo lo que sale de ese segmento.
+        comprometiera, cada puerta abierta hacia dentro sería una puerta para el atacante. Por eso todo
+        lo que entra en ese segmento y todo lo que sale de él pasa por un cortafuegos con estado, en el
+        router de borde.
       </p>
+
+      <div class="prose">
+        <p>
+          El switch lleva la zona expuesta hasta el router de borde sin tener interfaz en ella: la puerta
+          de enlace de la DMZ es el router, y es ahí donde se decide qué pasa. El cortafuegos recuerda
+          cada conexión, así que las respuestas a lo permitido vuelven solas y no hace falta abrirles
+          nada. Las reglas se evalúan de arriba abajo y gana la primera que coincide.
+        </p>
+      </div>
 
       <div class="panel scroll-x">
         <table class="datatable">
           <thead><tr><th>Orden</th><th>Acción</th><th>Qué</th><th>Por qué</th></tr></thead>
           <tbody>
-            <tr><td class="mono">1</td><td>Permitir</td><td>Proxy → servidor multimedia, solo al puerto del servicio</td><td class="muted">El primer servicio publicado</td></tr>
-            <tr><td class="mono">2</td><td>Permitir</td><td>Proxy → sincronización de notas, solo a su puerto</td><td class="muted">El segundo servicio publicado. Una regla por servicio, nunca una genérica</td></tr>
-            <tr><td class="mono">3</td><td>Permitir</td><td>Respuestas SSH y HTTPS del proxy al equipo de administración</td><td class="muted">La ACL no tiene memoria: las respuestas también hay que permitirlas</td></tr>
-            <tr><td class="mono">4</td><td>Permitir</td><td>Respuestas de métricas del proxy al servidor de vigilancia</td><td class="muted">Para poder vigilar la máquina expuesta sin abrirle camino hacia dentro</td></tr>
-            <tr><td class="mono">5</td><td>Bloquear</td><td>Proxy → cualquier red privada</td><td class="muted">El resto del laboratorio y la red doméstica</td></tr>
-            <tr><td class="mono">6</td><td>Permitir</td><td>Proxy → cualquier otro destino</td><td class="muted">Solo queda internet: respuestas a los usuarios, actualizaciones, certificados</td></tr>
+            <tr><td class="mono">1</td><td>Permitir</td><td>Respuestas de conexiones ya permitidas</td><td class="muted">El cortafuegos recuerda cada conexión: lo que vuelve no necesita regla propia</td></tr>
+            <tr><td class="mono">2</td><td>Permitir</td><td>Internet → proxy, solo HTTPS</td><td class="muted">Lo único que el router redirige hacia dentro</td></tr>
+            <tr><td class="mono">3</td><td>Permitir</td><td>Proxy → internet, sin pasar por la red de casa</td><td class="muted">Respuestas a los usuarios, actualizaciones y certificados</td></tr>
+            <tr><td class="mono">4</td><td>Permitir</td><td>Equipo de administración → proxy</td><td class="muted">Administrarlo desde un único equipo. El propio proxy, además, solo acepta su administración desde ahí</td></tr>
+            <tr><td class="mono">5</td><td>Permitir</td><td>Servidor de vigilancia → proxy, solo métricas</td><td class="muted">Vigilar la máquina expuesta sin abrirle camino hacia dentro</td></tr>
+            <tr><td class="mono">6</td><td>Permitir</td><td>Proxy → sincronización de notas, solo a su puerto</td><td class="muted">Un servicio publicado, una regla. Nunca una genérica</td></tr>
+            <tr><td class="mono">7</td><td>Permitir</td><td>Proxy → servidor multimedia, solo a su puerto</td><td class="muted">Ídem</td></tr>
+            <tr><td class="mono">8</td><td>Bloquear</td><td>Cualquier otra cosa hacia la DMZ</td><td class="muted">Nadie más entra</td></tr>
+            <tr><td class="mono">9</td><td>Bloquear</td><td>Cualquier otra cosa desde la DMZ</td><td class="muted">Ni el resto del laboratorio ni la red de casa</td></tr>
           </tbody>
         </table>
       </div>
 
       <div class="prose" style="margin-top:22px">
         <p>
-          La ACL se evalúa de arriba abajo y gana la primera regla que coincide; lo que no coincide con
-          ninguna se descarta. El segmento tampoco usa el DNS interno: resuelve con DNS públicos, porque
-          una DMZ no debe depender del directorio interno ni tener camino hasta él.
+          El segmento tampoco usa el DNS interno: resuelve con DNS públicos, porque una DMZ no debe
+          depender del directorio interno ni tener camino hasta él.
         </p>
       </div>
 
       <div class="note">
-        <span class="tape tape--small">Lección aprendida</span>
+        <span class="tape tape--small">Por qué el filtro está en el router</span>
         <p>
-          La primera versión de esta ACL parecía correcta y no lo era. Un puerto estaba en el lado de
-          origen en vez de destino, una red entera estaba escrita como si fuera un solo equipo, y la
-          regla final dejaba pasar casi todo. En la práctica, la DMZ llegaba al almacenamiento y a la
-          red doméstica. Se detectó leyendo la configuración real en vez de fiarse de la intención, y se
-          rehízo con una batería de pruebas antes y después:
+          Con el switch anterior, el filtro era una lista de control en el propio switch. El switch
+          actual solo permite aplicar listas a puertos, no a un segmento entero, así que el filtro pasó
+          al router de borde. Se ganó por partida doble: el cortafuegos del router recuerda las
+          conexiones, y la lista antigua no. Con ella, cada respuesta (la de una sesión de administración,
+          la de una consulta de métricas) necesitaba su propia regla.
+        </p>
+      </div>
+
+      <div class="note">
+        <span class="tape tape--small">Cómo se comprueba</span>
+        <p>
+          Cada versión del filtro se revisa contra la configuración aplicada, no contra la intención, y
+          se pasa una batería de pruebas desde el propio proxy. Así se destapó que la primera lista dejaba
+          llegar al almacenamiento y a la red de casa, y así se valida cada cambio desde entonces:
         </p>
       </div>
 
       <div class="panel scroll-x">
         <table class="datatable">
-          <thead><tr><th>Desde el proxy hacia…</th><th>ACL original</th><th>ACL corregida</th></tr></thead>
+          <thead><tr><th>Desde el proxy hacia…</th><th>Debe</th><th>Con el filtro actual</th></tr></thead>
           <tbody>
-            <tr><td>Servidor multimedia (puerto del servicio)</td><td>Llega, pero por la regla final</td><td><span class="state"><span class="led led--on" aria-hidden="true"></span>Llega, regla explícita</span></td></tr>
-            <tr><td>Almacenamiento en el segmento de servidores</td><td>⚠️ Llega</td><td><span class="state"><span class="led led--plan" aria-hidden="true"></span>Bloqueado</span></td></tr>
-            <tr><td>Red de gestión</td><td>Bloqueado</td><td><span class="state"><span class="led led--plan" aria-hidden="true"></span>Bloqueado</span></td></tr>
-            <tr><td>Red doméstica</td><td>⚠️ Llega</td><td><span class="state"><span class="led led--plan" aria-hidden="true"></span>Bloqueado</span></td></tr>
-            <tr><td>Internet</td><td>Llega</td><td><span class="state"><span class="led led--on" aria-hidden="true"></span>Llega</span></td></tr>
+            <tr><td>Servidor multimedia (su puerto)</td><td>Llegar</td><td><span class="state"><span class="led led--on" aria-hidden="true"></span>Comprobado</span></td></tr>
+            <tr><td>Sincronización de notas (su puerto)</td><td>Llegar</td><td><span class="state"><span class="led led--on" aria-hidden="true"></span>Comprobado</span></td></tr>
+            <tr><td>Internet</td><td>Llegar</td><td><span class="state"><span class="led led--busy" aria-hidden="true"></span>En curso</span></td></tr>
+            <tr><td>Almacenamiento en el segmento de servidores</td><td>Bloqueado</td><td><span class="state"><span class="led led--busy" aria-hidden="true"></span>En curso</span></td></tr>
+            <tr><td>Red de gestión</td><td>Bloqueado</td><td><span class="state"><span class="led led--busy" aria-hidden="true"></span>En curso</span></td></tr>
+            <tr><td>Red de casa</td><td>Bloqueado</td><td><span class="state"><span class="led led--busy" aria-hidden="true"></span>En curso</span></td></tr>
           </tbody>
         </table>
       </div>
-      <p class="intro" style="margin-top:14px">
-        Detalle operativo: este switch no permite editar una ACL mientras está aplicada a una VLAN. El
-        procedimiento es quitarla, modificarla, volver a aplicarla y repetir las pruebas.
-      </p>
     </section>
 
     <section id="multimedia">

@@ -33,7 +33,7 @@
 <header class="masthead">
   <div class="masthead-inner">
     <span class="tape">Inventario · Qué hay dentro</span>
-    <h1>Siete equipos, cinco máquinas virtuales y tres servicios que usa gente de verdad</h1>
+    <h1>Ocho equipos, cinco máquinas virtuales y tres servicios que usa gente de verdad</h1>
     <p class="lede">
       El laboratorio no es un montón de cajas encendidas: es un clúster que da vídeo a la familia,
       sincroniza mis notas desde cualquier sitio y sostiene el dominio interno. Esto es todo lo que hay,
@@ -138,7 +138,7 @@
           <div class="spec"><span class="k">Servicios</span><span class="dots"></span><span class="v">nginx · TLS · DNS dinámico</span></div>
           <div class="spec"><span class="k">Segmento</span><span class="dots"></span><span class="v">DMZ</span></div>
           <p>La única pieza que escucha desde internet. Descifra el tráfico, lo reenvía a quien
-            corresponde y nada más: una lista de control en el switch le impide hablar con el resto del
+            corresponde y nada más: el cortafuegos del router de borde le impide hablar con el resto del
             laboratorio.</p>
         </div>
 
@@ -157,7 +157,7 @@
           <span class="tape tape--small">Servidores</span>
           <h3>Servidor de contenedores</h3>
           <div class="spec"><span class="k">Sistema</span><span class="dots"></span><span class="v">Ubuntu Server + Docker</span></div>
-          <div class="spec"><span class="k">Recursos</span><span class="dots"></span><span class="v">2 vCPU · 4 GB</span></div>
+          <div class="spec"><span class="k">Recursos</span><span class="dots"></span><span class="v">2 vCPU · 8 GB</span></div>
           <div class="spec"><span class="k">Inquilinos</span><span class="dots"></span><span class="v">notas · monitorización</span></div>
           <p>La casa común de los servicios internos pequeños, cada uno en su propia definición. El primero
             fue la base de datos que sincroniza mis notas; el segundo, toda la vigilancia del laboratorio.
@@ -175,10 +175,10 @@
 
     <section id="fisico">
       <span class="tape tape--small">Equipos físicos</span>
-      <h2>Siete cajas y ningún servidor de rack</h2>
+      <h2>Ocho cajas y ningún servidor de rack</h2>
       <p class="intro">
-        Todo es hardware de oficina reacondicionado, silencioso y de bajo consumo. Ninguna pieza salió de
-        una tienda lista para usar.
+        Todo es hardware reacondicionado: ordenadores de oficina silenciosos y de bajo consumo, y equipos
+        de red de segunda mano puestos a punto. Ninguna pieza salió de una tienda lista para usar.
       </p>
       <div class="panel scroll-x">
         <table class="datatable">
@@ -187,7 +187,7 @@
             <tr>
               <td><strong>Hosts 1 a 4</strong></td>
               <td>Nodos del clúster: ejecutan las máquinas virtuales</td>
-              <td class="mono">6 núcleos / 12 hilos · 64 GB · NVMe 500 GB · 5 × 1 GbE</td>
+              <td class="mono">6 núcleos / 12 hilos · 64 GB · NVMe 512 GB · 5 × 1 GbE</td>
               <td><span class="state"><span class="led led--on" aria-hidden="true"></span>En servicio</span></td>
             </tr>
             <tr>
@@ -199,13 +199,19 @@
             <tr>
               <td><strong>Switch de núcleo</strong></td>
               <td>Separa el tráfico en segmentos y enruta entre ellos</td>
-              <td class="mono">28 × 1 GbE · capa 3 · tramas grandes</td>
+              <td class="mono">48 × 1 GbE + 2 × 10 GbE · capa 3 · tramas grandes por segmento</td>
               <td><span class="state"><span class="led led--on" aria-hidden="true"></span>En servicio</span></td>
             </tr>
             <tr>
               <td><strong>Router de borde</strong></td>
-              <td>Frontera entre la red de casa y el laboratorio; publica hacia internet</td>
-              <td class="mono">enlace dedicado al switch</td>
+              <td>Frontera entre la red de casa y el laboratorio; publica hacia internet y filtra la zona expuesta</td>
+              <td class="mono">enlace dedicado al switch · cortafuegos con estado</td>
+              <td><span class="state"><span class="led led--on" aria-hidden="true"></span>En servicio</span></td>
+            </tr>
+            <tr>
+              <td><strong>Vigía externo</strong></td>
+              <td>Comprueba lo publicado desde la red de casa y avisa aunque caiga el laboratorio entero</td>
+              <td class="mono">mini PC · wifi de casa · sin camino al laboratorio</td>
               <td><span class="state"><span class="led led--on" aria-hidden="true"></span>En servicio</span></td>
             </tr>
             <tr>
@@ -255,6 +261,7 @@
             <tr><td>Cada puerto del switch</td><td>Misma vía</td><td>Estado, velocidad negociada, tráfico y errores de trama. Los errores delatan un cable malo semanas antes de que el enlace se caiga</td></tr>
             <tr><td>Que los servicios contesten</td><td>Peticiones reales, no solo "el proceso está vivo"</td><td>El proceso puede estar arriba y el servicio roto</td></tr>
             <tr><td>Caducidad de los certificados</td><td>Un script propio que lee la fecha del fichero</td><td>La renovación es automática, pero también puede fallar. Avisa con tres semanas</td></tr>
+            <tr><td><strong>Lo publicado, visto desde fuera</strong></td><td>El vigía, desde la red de casa, cada cinco minutos y por el nombre público</td><td>Que cada servicio responde, que sus certificados aguantan y que el nombre apunta a casa. Avisa por un servicio externo aunque caiga el clúster</td></tr>
             <tr><td>Avisos</td><td>Mensajería al móvil, agrupados y con aviso de recuperación</td><td>Si avisa de más, se ignora. Si no avisa de la recuperación, no sabes si hay que ir</td></tr>
           </tbody>
         </table>

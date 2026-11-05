@@ -57,8 +57,8 @@
         <li><span class="led led--on" role="img" aria-label="En servicio"></span><span class="name">Monitorización y avisos</span><span class="what">métricas · alertas al móvil</span></li>
         <li><span class="led led--busy" role="img" aria-label="En curso"></span><span class="name">Protección eléctrica</span><span class="what">que cubra también la red</span></li>
         <li><span class="led led--on" role="img" aria-label="En servicio"></span><span class="name">Vigía fuera del laboratorio</span><span class="what">comprueba lo publicado · avisa aunque caiga todo</span></li>
-        <li><span class="led led--busy" role="img" aria-label="En curso"></span><span class="name">Copias de seguridad</span><span class="what">primera copia completa y desconectada hecha · verificación y prueba de restauración pendientes</span></li>
-        <li><span class="led led--plan" role="img" aria-label="Planificado"></span><span class="name">Red a 10 GbE</span><span class="what">borde, núcleo y hosts</span></li>
+        <li><span class="led led--busy" role="img" aria-label="En curso"></span><span class="name">Copias de seguridad</span><span class="what">primera copia completa, verificada y desconectada · falta la prueba de restauración</span></li>
+        <li><span class="led led--plan" role="img" aria-label="Planificado"></span><span class="name">Red a 10 GbE</span><span class="what">el switch ya tiene los puertos · faltan almacenamiento y equipo de trabajo</span></li>
         <li><span class="led led--plan" role="img" aria-label="Planificado"></span><span class="name">vSAN · NSX</span><span class="what">por evaluar</span></li>
       </ul>
     </div>
@@ -85,18 +85,20 @@
       <span class="tape tape--small">Topología</span>
       <h2>Del operador al clúster</h2>
       <p class="intro">
-        El tráfico entra por el router del operador, pasa al router de borde (NAT y publicación de
-        servicios) y llega al switch de núcleo, que enruta entre VLANs. De ahí cuelgan los hosts ESXi
-        y el nodo de almacenamiento. El proxy público no es un equipo aparte: es una VM del clúster,
-        aislada en su propio segmento.
+        El tráfico entra por el router del operador, pasa al router de borde (NAT, publicación de
+        servicios y cortafuegos de la zona expuesta) y llega al switch de núcleo, que enruta entre VLANs.
+        De ahí cuelgan los hosts ESXi y el nodo de almacenamiento. El proxy público no es un equipo
+        aparte: es una VM del clúster, aislada en su propio segmento. Y fuera del laboratorio, en la red
+        de casa, un equipo pequeño comprueba lo publicado tal como lo vería cualquiera desde internet.
       </p>
       <figure class="panel">
         <div class="scroll-x">
           <pre class="mermaid">
 flowchart TB
     INET((Internet))
-    ISP["Router del operador"]
-    EDGE["Router de borde · MikroTik<br/>NAT y publicación"]
+    ISP["Router del operador<br/>red de casa"]
+    VIG["Vigía<br/>comprueba lo publicado desde fuera"]
+    EDGE["Router de borde · MikroTik<br/>NAT, publicación y cortafuegos de la DMZ"]
     CORE["Switch de núcleo · capa 3<br/>enruta entre VLANs"]
     subgraph CL["Clúster vSphere"]
         H1["Host ESXi"]
@@ -106,11 +108,12 @@ flowchart TB
     end
     NAS["TrueNAS<br/>almacenamiento compartido"]
     INET --- ISP --- EDGE --- CORE
+    ISP -.-|"wifi · sin camino al laboratorio"| VIG
     CORE ---|"3 trunks + 2 iSCSI por host"| CL
     CORE ---|"gestión · 2 iSCSI · multimedia"| NAS
           </pre>
         </div>
-        <figcaption>Topología física. Los detalles de cada tramo están en Red y Publicación.</figcaption>
+        <figcaption>Topología física. Los detalles de cada tramo están en Red, Publicación y Máquinas.</figcaption>
       </figure>
     </section>
 
@@ -143,11 +146,20 @@ flowchart TB
         <div class="card">
           <span class="tape tape--small">Red</span>
           <h3>Núcleo y borde</h3>
-          <div class="spec"><span class="k">Switch</span><span class="dots"></span><span class="v">28 puertos, capa 3</span></div>
+          <div class="spec"><span class="k">Switch</span><span class="dots"></span><span class="v">48 × 1 GbE + 2 × 10 GbE, capa 3</span></div>
           <div class="spec"><span class="k">Router de borde</span><span class="dots"></span><span class="v">enlace dedicado</span></div>
           <div class="spec"><span class="k">Segmentos</span><span class="dots"></span><span class="v">gestión · datos · expuesto</span></div>
-          <p>El switch enruta entre segmentos; el router de borde separa la casa del laboratorio y publica
-            hacia internet.</p>
+          <p>El switch enruta entre segmentos; el router de borde separa la casa del laboratorio, publica
+            hacia internet y filtra la zona expuesta.</p>
+        </div>
+        <div class="card">
+          <span class="tape tape--small">Vigilancia externa</span>
+          <h3>Un equipo fuera</h3>
+          <div class="spec"><span class="k">Formato</span><span class="dots"></span><span class="v">mini PC</span></div>
+          <div class="spec"><span class="k">Red</span><span class="dots"></span><span class="v">wifi de casa</span></div>
+          <div class="spec"><span class="k">Camino al laboratorio</span><span class="dots"></span><span class="v">ninguno</span></div>
+          <p>Comprueba cada cinco minutos lo publicado, por su nombre y como un usuario más, y avisa por
+            un servicio externo aunque se caiga el laboratorio entero.</p>
         </div>
       </div>
       <div class="note">
@@ -172,8 +184,8 @@ flowchart TB
           <li>Discos sustituidos por SSD/NVMe y bahías adaptadas, con piezas impresas en 3D.</li>
           <li>Ventiladores nuevos, pasta térmica y mejor flujo de aire para funcionar 24/7.</li>
           <li>BIOS y firmware actualizados, también en switch y router.</li>
-          <li>Cableado ordenado por colores y todo etiquetado: hosts, puertos y cables. Sustituir un
-            componente, o un switch entero, es cuestión de minutos.</li>
+          <li>Cableado ordenado por colores y todo etiquetado: hosts, puertos y cables. Al sustituir un
+            componente, o un switch entero, nadie tiene que adivinar qué cable va dónde.</li>
         </ul>
       </div>
     </section>
@@ -183,7 +195,7 @@ flowchart TB
       <h2>Cómo trabajo</h2>
       <p class="intro">
         El laboratorio sirve para aprender, pero se gestiona con las mismas reglas que usaría en un
-        entorno real. Varias de ellas salen de errores propios que están contados en estas páginas.
+        entorno real. Varias salieron de incidencias reales, contadas en estas páginas.
       </p>
       <ul class="principles">
         <li>
@@ -193,8 +205,13 @@ flowchart TB
         </li>
         <li>
           <h3>Un cambio cada vez</h3>
-          <p>Si algo falla, tiene que estar claro qué lo causó. Cambiar de switch y rediseñar la red a
-            la vez, por ejemplo, está descartado.</p>
+          <p>Si algo falla, tiene que estar claro qué lo causó. Por eso, tras cambiar el switch de
+            núcleo, los ajustes que no eran imprescindibles se dejaron para después, de uno en uno.</p>
+        </li>
+        <li>
+          <h3>Probar fuera antes de meterlo dentro</h3>
+          <p>Un equipo nuevo se actualiza, se configura y se prueba en banco, lejos del laboratorio. Solo
+            entra cuando ha demostrado que funciona.</p>
         </li>
         <li>
           <h3>Probar antes y después</h3>
@@ -252,7 +269,7 @@ flowchart TB
         <a href="changelog.html">
           <span class="tape tape--small">Evolución</span>
           <h3>Cómo se ha construido</h3>
-          <p>Las cinco fases del laboratorio, qué aportó cada una y qué queda por hacer.</p>
+          <p>Las fases del laboratorio, qué aportó cada una y qué queda por hacer.</p>
           <span class="go">Ver evolución →</span>
         </a>
       </div>

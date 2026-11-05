@@ -50,6 +50,7 @@
     <a href="#f4">4 · Endurecer y operar</a>
     <a href="#f5">5 · Servicios propios</a>
     <a href="#f6">6 · La copia que faltaba</a>
+    <a href="#f7">7 · Un núcleo con margen</a>
     <a href="#siguiente">Lo que viene</a>
   </nav>
 
@@ -103,7 +104,7 @@
         para vídeo. La alternativa fue montar la puerta en casa.
       </p>
       <ol class="path">
-        <li><strong>Una zona expuesta de verdad</strong><span>El proxy vive aislado en su propio segmento, con una lista de control que le impide hablar con el resto del laboratorio.</span></li>
+        <li><strong>Una zona expuesta de verdad</strong><span>El proxy vive aislado en su propio segmento, con un filtro que le impide hablar con el resto del laboratorio. Primero fue una lista de control en el switch; hoy es un cortafuegos con estado en el router de borde.</span></li>
         <li><strong>Certificados automáticos</strong><span>Emisión y renovación sin intervención, validando por DNS.</span></li>
         <li><strong>DNS dinámico propio</strong><span>El operador cambia la IP pública cuando quiere; un servicio propio la vigila y actualiza el nombre en minutos.</span></li>
         <li><strong>Pruebas de dentro hacia fuera</strong><span>Cada tramo validado antes de abrir el siguiente, con el túnel antiguo intacto como vuelta atrás hasta el final.</span></li>
@@ -146,7 +147,7 @@
       <ol class="path">
         <li><strong>Una máquina para contenedores</strong><span>Los servicios internos pequeños viven juntos, cada uno en su propia definición, en lugar de levantar una máquina por cada cosa.</span></li>
         <li><strong>Sincronización de notas propia</strong><span>Sustituye a un servicio de suscripción. Mantiene al día portátil, móvil y tableta, con las notas cifradas antes de salir del dispositivo.</span></li>
-        <li><strong>Publicar lo siguiente ya cuesta una tarde</strong><span>Reutilizando proxy, certificados y DNS dinámico: lo único nuevo fue una regla en el switch.</span></li>
+        <li><strong>Publicar lo siguiente ya cuesta una tarde</strong><span>Reutilizando proxy, certificados y DNS dinámico: lo único nuevo fue una regla más en el filtro de la DMZ.</span></li>
         <li><strong>Monitorización y avisos</strong><span>Métricas de cada máquina con tres meses de historial, comprobación de que los servicios responden, vigilancia de la caducidad de los certificados y avisos al móvil. Hasta entonces, los problemas se descubrían porque alguien se quejaba.</span></li>
         <li><strong>Las cuatro capas, vigiladas</strong><span>Después llegaron el clúster, el almacenamiento y el switch: nodos y almacenes, salud de los conjuntos de discos, y estado, velocidad y errores de cada puerto. Todo por consultas de solo lectura, sin instalar nada en los aparatos.</span></li>
         <li><strong>Un panel que se mantiene solo</strong><span>El panel de control no se construye pinchando: es un fichero versionado. Si se pierde la máquina que lo muestra, se recrea entero en cinco minutos.</span></li>
@@ -179,10 +180,34 @@
       <div class="note">
         <span class="tape tape--small">Qué aportó</span>
         <p>Dejar de ser un sistema con un solo ejemplar. Y un efecto que no se esperaba: copiar obliga a
-          mirar cada pieza de una en una, y aparecieron datos que la documentación daba por buenos y no lo
-          eran, incluida <strong>una máquina virtual que no figuraba en el inventario</strong>. Aun así, la
-          copia no estará cerrada hasta verificarla y restaurar algo de verdad: una copia que nunca se ha
-          restaurado es una esperanza, no una copia.</p>
+          mirar cada pieza de una en una, y sirvió también para repasar el inventario. La copia está
+          verificada (integridad, tamaños y ficheros abiertos uno a uno) y guardada fuera del rack, pero
+          no estará cerrada hasta restaurar algo de verdad: una copia que nunca se ha restaurado es una
+          esperanza, no una copia.</p>
+      </div>
+    </section>
+
+    <section id="f7">
+      <span class="tape tape--small">Fase 7</span>
+      <h2>Un núcleo con margen</h2>
+      <p class="intro">
+        El switch de núcleo se había quedado justo de puertos y sin camino a 10 GbE. El sustituto se
+        preparó entero antes de tocar nada, y el cambio se hizo con el anterior guardado y configurado
+        como vuelta atrás.
+      </p>
+      <ol class="path">
+        <li><strong>Probado en banco antes de entrar</strong><span>Firmware actualizado, configuración completa y pruebas de segmentos, enrutado y tramas grandes, con el equipo fuera del laboratorio.</span></li>
+        <li><strong>Más puertos, y 10 GbE de serie</strong><span>48 puertos y dos de 10 GbE, que se usarán cuando toque ampliar el camino hacia el almacenamiento.</span></li>
+        <li><strong>La zona expuesta, tras un cortafuegos con estado</strong><span>El switch nuevo no aplica filtros a un segmento entero, así que el filtro de la DMZ pasó al router de borde, que además recuerda cada conexión y no necesita reglas para las respuestas.</span></li>
+        <li><strong>Gestión cerrada</strong><span>El switch solo acepta administración desde la red de gestión y desde el equipo de administración. La vigilancia entra solo para leer, y desde una única máquina. Sin web ni telnet.</span></li>
+        <li><strong>Troncales sin segmento por defecto</strong><span>La VLAN nativa de los enlaces hacia los hosts es una vacía, sin dirección ni puertos: nada sin etiquetar cae en un segmento con servicio.</span></li>
+        <li><strong>Vigilado y en hora desde el primer día</strong><span>Cada puerto en el panel, con las alarmas ajustadas a los puertos físicos, y el reloj sincronizado con el controlador de dominio.</span></li>
+      </ol>
+      <div class="note">
+        <span class="tape tape--small">Qué aportó</span>
+        <p>Margen para crecer sin volver a cambiar el núcleo, y una zona expuesta más sencilla y más
+          segura que la que había. Quedan las comprobaciones finas: el cableado puerto a puerto, los dos
+          caminos del almacenamiento con tramas grandes y la batería de bloqueos con el filtro nuevo.</p>
       </div>
     </section>
 
@@ -194,10 +219,11 @@
           <thead><tr><th>Trabajo</th><th>Por qué</th><th>Estado</th></tr></thead>
           <tbody>
             <tr><td>Alimentación ininterrumpida que cubra también la red</td><td>Un corte de luz demostró que proteger los servidores y dejar fuera el switch no sirve de nada</td><td><span class="state"><span class="led led--busy" aria-hidden="true"></span>En curso</span></td></tr>
-            <tr><td>Copias incrementales y verificadas</td><td>La primera copia completa ya existe. Falta verificarla, restaurar algo de verdad y dejar las siguientes en incremental, para que repetirla cueste minutos y no una tarde</td><td><span class="state"><span class="led led--busy" aria-hidden="true"></span>En curso</span></td></tr>
+            <tr><td>Copias incrementales y restauración probada</td><td>La primera copia completa ya existe y está verificada. Falta restaurar algo de verdad y dejar las siguientes en incremental, para que repetirla cueste minutos y no una tarde</td><td><span class="state"><span class="led led--busy" aria-hidden="true"></span>En curso</span></td></tr>
             <tr><td>Almacén de archivos para la familia</td><td>Documentos personales accesibles desde fuera, con cuotas y usuarios</td><td><span class="state"><span class="led led--plan" aria-hidden="true"></span>Planificado</span></td></tr>
             <tr><td>Segundo controlador de dominio</td><td>Hoy el directorio y el DNS interno son un punto único de fallo</td><td><span class="state"><span class="led led--plan" aria-hidden="true"></span>Planificado</span></td></tr>
-            <tr><td>Switch de núcleo con más puertos y 10 GbE</td><td>Tres equipos de segunda mano seguidos vinieron defectuosos; se retoma con material nuevo</td><td><span class="state"><span class="led led--plan" aria-hidden="true"></span>Aparcado</span></td></tr>
+            <tr><td>Red a 10 GbE hacia el almacenamiento</td><td>El switch ya trae los puertos; faltan las tarjetas en el almacenamiento y en el equipo de trabajo</td><td><span class="state"><span class="led led--plan" aria-hidden="true"></span>Planificado</span></td></tr>
+            <tr><td>Router de borde nuevo</td><td>Ahora es también la puerta de la zona expuesta: el sustituto tiene que manejar segmentos etiquetados y cortafuegos con estado</td><td><span class="state"><span class="led led--plan" aria-hidden="true"></span>Planificado</span></td></tr>
           </tbody>
         </table>
       </div>

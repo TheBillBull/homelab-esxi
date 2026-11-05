@@ -140,7 +140,7 @@ flowchart LR
 
     <section id="ampliacion">
       <span class="tape tape--small">Caso práctico</span>
-      <h2>De 2 TB a 16 TB, a cambio de la redundancia</h2>
+      <h2>De 1 TB a 16 TB, a cambio de la redundancia</h2>
       <p class="intro">
         El pool de capacidad era un espejo de dos discos de 1 TB y se quedaba corto para la biblioteca. La bahía no
         tiene sitio para más discos, así que se amplió con uno solo, más grande; primero a 6 TB y después a 16 TB,
@@ -153,7 +153,7 @@ flowchart LR
       </ol>
       <div class="note">
         <span class="tape tape--small">Resultado · y su precio</span>
-        <p>Cero pérdida de datos y ocho veces la capacidad original. Los datasets, las comparticiones NFS/SMB y la
+        <p>Cero pérdida de datos y dieciséis veces la capacidad útil original. Los datasets, las comparticiones NFS/SMB y la
           ruta de la biblioteca quedaron igual: ningún servicio necesitó cambios. <strong>El precio es la
           redundancia:</strong> si ese disco falla, se pierde la biblioteca (los discos de las VMs están en el
           pool NVMe y no se ven afectados). Es una decisión consciente: para una biblioteca que se puede recuperar,

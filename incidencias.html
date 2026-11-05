@@ -45,14 +45,12 @@
 <div class="layout">
   <nav class="toc" id="toc" aria-label="En esta página">
     <a href="#metodo">Cómo se diagnostica</a>
-    <a href="#switch">Un switch que no reenviaba</a>
     <a href="#memoria">Sin memoria de madrugada</a>
     <a href="#apagon">Vivos pero sin poder escribir</a>
     <a href="#relojes">Un reloj en 2036</a>
     <a href="#almacenamiento">Caminos donde no tocaba</a>
-    <a href="#acl">Bloquearme a mí mismo</a>
     <a href="#numero">Un número que engañaba</a>
-    <a href="#tropiezos">Tropiezos y despistes</a>
+    <a href="#snmp">Respuestas desde otra puerta</a>
     <a href="#reglas">Las reglas que quedaron</a>
   </nav>
 
@@ -72,30 +70,6 @@
         <li><strong>Un cambio cada vez</strong><span>Con dos cambios a la vez no se sabe cuál arregló (o rompió) nada.</span></li>
         <li><strong>Dejarlo escrito</strong><span>Síntoma, causa y evidencia. La memoria se borra; la documentación no.</span></li>
       </ol>
-    </section>
-
-    <section id="switch">
-      <span class="tape tape--small">Hardware</span>
-      <h2>Un switch nuevo que no reenviaba el tráfico</h2>
-      <div class="panel scroll-x">
-        <table class="datatable">
-          <tbody>
-            <tr><td style="width:22%"><strong>Síntoma</strong></td><td>Tras cambiar el switch de núcleo por otro con más puertos, el laboratorio funcionaba a ratos: unas máquinas se veían y otras no, y la cosa cambiaba al mover un cable.</td></tr>
-            <tr><td><strong>Qué parecía</strong></td><td>Una configuración mal copiada: etiquetas de segmento, enlaces troncales, algún puerto en el modo equivocado.</td></tr>
-            <tr><td><strong>Qué era</strong></td><td>El equipo estaba averiado. En pruebas de banco, fuera del laboratorio, <strong>la mitad de los puertos no pasaba tráfico</strong>, con un patrón que no dependía de la configuración.</td></tr>
-            <tr><td><strong>Arreglo</strong></td><td>Devolver el equipo y volver al switch anterior, que seguía configurado e intacto.</td></tr>
-            <tr><td><strong>Lección</strong></td><td>Antes de reescribir una configuración por tercera vez, hay que plantearse si el hardware está bien. Y un equipo nuevo se prueba <strong>fuera</strong> del entorno de producción, no sustituyendo al que funciona.</td></tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="note">
-        <span class="tape tape--small">Y no fue el único</span>
-        <p>Vinieron dos más, y ninguno llegó a entrar. El último arrancaba bien, pero <strong>tras apagarlo
-          no volvía a encender hasta pasado un cuarto de hora</strong>: un fallo de alimentación que una
-          prueba de cinco arranques en frío destapó en diez minutos. Un equipo que no sobrevive a un corte
-          de luz no puede ser el núcleo de nada. Conclusión práctica: se abandona la búsqueda de switch de
-          segunda mano.</p>
-      </div>
     </section>
 
     <section id="memoria">
@@ -231,34 +205,6 @@
       </div>
     </section>
 
-    <section id="acl">
-      <span class="tape tape--small">Autoinfligida</span>
-      <h2>La lista de control, aplicada a la red equivocada</h2>
-      <p class="intro">
-        Las mejores incidencias para aprender no son las que te pasan: son las que provocas tú. Esta duró
-        poco y enseñó mucho.
-      </p>
-      <div class="panel scroll-x">
-        <table class="datatable">
-          <tbody>
-            <tr><td style="width:22%"><strong>Qué se estaba haciendo</strong></td><td>Añadir un permiso a la lista de control del segmento expuesto, para poder vigilar esa máquina.</td></tr>
-            <tr><td><strong>El error</strong></td><td>Ese switch no deja modificar una lista mientras está aplicada: hay que quitarla, cambiarla y volver a aplicarla. Al volver a aplicarla se seleccionó <strong>la red equivocada</strong>: la del enlace con el router de borde.</td></tr>
-            <tr><td><strong>Qué pasó</strong></td><td>Todas las reglas hablaban de una única dirección de origen, así que el resto del tráfico cayó en el "denegar todo" final. El laboratorio se quedó <strong>sin internet, sin servicios publicados y sin acceso remoto</strong>: todo el tráfico de casa entra justo por ahí.</td></tr>
-            <tr><td><strong>Cómo se salía</strong></td><td>Dos vías, las dos por fuera de la red bloqueada: la <strong>consola física</strong> del switch, o un cable del portátil a un puerto de otro segmento, que sí tiene pasarela y no está filtrado.</td></tr>
-            <tr><td><strong>Arreglo</strong></td><td>Quitar la aplicación de la red equivocada, volver a aplicarla en la correcta y guardar la configuración. Después, comprobar las reglas una a una y los dos servicios desde internet.</td></tr>
-            <tr><td><strong>Lección</strong></td><td>Cuando configuras el equipo que te da el acceso, <strong>ten pensada la vía de rescate antes de empezar</strong>. Y verifica la aplicación de una regla en la misma pantalla, antes de cerrarla.</td></tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="note">
-        <span class="tape tape--small">De la misma tarde: dos filtros en serie</span>
-        <p>Aun con la lista arreglada, la vigilancia seguía sin funcionar. Faltaba el <strong>cortafuegos de la
-          propia máquina</strong>, que tiene todo cerrado salvo lo imprescindible. Los dos filtros descartan en
-          silencio y producen el mismo síntoma, así que se comprueba capa por capa: primero que el camino
-          exista, después que el destino escuche, y solo entonces que la aplicación responda.</p>
-      </div>
-    </section>
-
     <section id="numero">
       <span class="tape tape--small">Diagnóstico</span>
       <h2>Un número que no significaba lo que parecía</h2>
@@ -286,49 +232,31 @@
       </div>
     </section>
 
-    <section id="tropiezos">
-      <span class="tape tape--small">Tropiezos</span>
-      <h2>Despistes que cuestan una tarde</h2>
+    <section id="snmp">
+      <span class="tape tape--small">Red</span>
+      <h2>Un switch que contestaba, pero no a quien preguntaba</h2>
       <p class="intro">
-        No todo son incidencias de manual. Estos son los fallos tontos, los que de verdad se repiten, y
-        cómo se detectaron.
+        Al conectar la vigilancia al switch de núcleo nuevo apareció un fallo que parecía imposible:
+        el switch respondía o no según desde dónde se le preguntase.
       </p>
       <div class="panel scroll-x">
         <table class="datatable">
-          <thead><tr><th>Qué pasó</th><th>Cómo se vio</th><th>Qué se aprendió</th></tr></thead>
           <tbody>
-            <tr>
-              <td>Una máquina nueva llegaba a su propio segmento, pero no salía a ninguna parte</td>
-              <td>La tabla de rutas estaba vacía: la puerta de enlace tenía <strong>un dígito de más</strong>, escrito durante la instalación</td>
-              <td>Al configurar red a mano, comprobar la ruta por defecto antes de dar la máquina por buena</td>
-            </tr>
-            <tr>
-              <td>Dos almacenes de datos con los nombres intercambiados</td>
-              <td>Comparando el identificador del disco en el almacenamiento con el que mostraba el clúster</td>
-              <td>Al crear un almacén, elegir el disco por su identificador, no por tamaño ni por orden en la lista</td>
-            </tr>
-            <tr>
-              <td>La interfaz del switch se quedó colgada a mitad de un cambio de reglas</td>
-              <td>Al recuperarla, el cambio <strong>sí</strong> se había aplicado y el filtro seguía activo</td>
-              <td>Tras un cuelgue, no repetir el cambio a ciegas: primero mirar en qué estado quedó</td>
-            </tr>
-            <tr>
-              <td>Una lista de control que parecía la que tocaba, y no lo era</td>
-              <td>En el switch convivían dos listas con nombres parecidos; la que estaba en uso era la otra</td>
-              <td>Comprobar siempre qué configuración está <strong>aplicada</strong>, no solo cuál existe</td>
-            </tr>
-            <tr>
-              <td>La gestión del clúster avisaba de falta de memoria</td>
-              <td>Dentro de la máquina, consumo al límite de lo asignado</td>
-              <td>Las alarmas del propio sistema suelen tener razón; se le amplió la memoria y se fue el aviso</td>
-            </tr>
-            <tr>
-              <td>Un cable de consola que no servía para el equipo nuevo</td>
-              <td>Caracteres sin sentido en pantalla, con cualquier velocidad</td>
-              <td>Antes de culpar a la configuración, probar el otro puerto de consola del equipo</td>
-            </tr>
+            <tr><td style="width:22%"><strong>Síntoma</strong></td><td>El recolector de métricas daba siempre «sin respuesta». Desde el mismo servidor, una consulta manual con la misma clave respondía al instante.</td></tr>
+            <tr><td><strong>Qué parecía</strong></td><td>La clave, los permisos de acceso del switch o un tiempo de espera demasiado corto.</td></tr>
+            <tr><td><strong>Qué se descartó</strong></td><td>La clave era la misma. El switch no registraba ningún acceso rechazado. El mismo tipo de consulta funcionaba desde el servidor. Y el nodo de almacenamiento, consultado por el mismo recolector, respondía con normalidad.</td></tr>
+            <tr><td><strong>Qué era</strong></td><td>El recolector vive en un contenedor, que sale a la red a través de una traducción de direcciones. El switch sí respondía, pero <strong>desde la dirección de otra de sus interfaces</strong>, no desde la que se le había preguntado. La traducción solo devuelve al contenedor lo que llega desde donde se preguntó, así que lo descartaba. La consulta manual funcionaba porque acepta respuestas vengan de donde vengan.</td></tr>
+            <tr><td><strong>Arreglo</strong></td><td>Una opción del propio switch, documentada por el fabricante, para que responda siempre desde la dirección preguntada. Se comprobó que el recolector leía el switch entero antes de guardar la configuración.</td></tr>
+            <tr><td><strong>Lección</strong></td><td>Si algo funciona desde un sitio y no desde otro, hay que <strong>comparar los paquetes de los dos casos</strong>. Y capturar sin filtrar por lo que uno espera ver: la respuesta estaba ahí, pero llegaba desde una dirección que nadie estaba mirando.</td></tr>
           </tbody>
         </table>
+      </div>
+      <div class="note">
+        <span class="tape tape--small">Antes de darlo por bueno</span>
+        <p>Con los datos ya llegando, se repasaron las alarmas del switch una a una. El nuevo pone nombre a
+          sus interfaces internas, que el anterior dejaba sin nombre, y las alarmas las habrían tomado por
+          puertos: habrían sonado en falso desde el primer minuto. Se ajustaron para mirar solo los puertos
+          físicos y se comprobó que ninguna saltaba sin motivo.</p>
       </div>
     </section>
 
@@ -341,8 +269,10 @@
           <li><strong>Un servicio que responde no está necesariamente sano.</strong> Después de un corte, revisar también si puede escribir.</li>
           <li><strong>La redundancia se verifica desde los dos extremos.</strong> Lo que dice el cliente y lo que dice el servidor.</li>
           <li><strong>Antes de tocar la hora, asegurar la hora de lo que depende de ella.</strong></li>
-          <li><strong>El hardware también falla.</strong> Si una configuración correcta no funciona, sospechar del equipo y probarlo fuera.</li>
+          <li><strong>El hardware también falla.</strong> Un equipo nuevo se prueba en banco, fuera del laboratorio, antes de sustituir al que funciona.</li>
           <li><strong>Una vuelta atrás preparada</strong> antes de empezar, y un límite de tiempo para decidir usarla.</li>
+          <li><strong>La vía de rescate, decidida antes de tocar el equipo que da el acceso.</strong> Si un cambio corta la red, tiene que haber otra forma de entrar.</li>
+          <li><strong>Si funciona desde un sitio y no desde otro, comparar los paquetes.</strong> La diferencia está ahí, no en la configuración que uno cree tener.</li>
           <li><strong>Una alarma mal fundada es peor que no tenerla.</strong> Antes de convertir un dato en aviso, contrastarlo con otra fuente y preguntarse si sonará cuando no deba.</li>
           <li><strong>Lo que no está escrito, no existe.</strong> Cada incidencia acaba en la documentación, con la evidencia que la demuestra.</li>
         </ul>
