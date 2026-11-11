@@ -146,7 +146,7 @@
       </p>
       <ol class="path">
         <li><strong>Una máquina para contenedores</strong><span>Los servicios internos pequeños viven juntos, cada uno en su propia definición, en lugar de levantar una máquina por cada cosa.</span></li>
-        <li><strong>Sincronización de notas propia</strong><span>Sustituye a un servicio de suscripción. Mantiene al día portátil, móvil y tableta, con las notas cifradas antes de salir del dispositivo.</span></li>
+        <li><strong>Sincronización de notas propia</strong><span>Sustituye a un servicio de suscripción. Mantiene al día los dos ordenadores y la tableta (el móvil, pendiente), con las notas cifradas antes de salir del dispositivo.</span></li>
         <li><strong>Publicar lo siguiente ya cuesta una tarde</strong><span>Reutilizando proxy, certificados y DNS dinámico: lo único nuevo fue una regla más en el filtro de la DMZ.</span></li>
         <li><strong>Monitorización y avisos</strong><span>Métricas de cada máquina con tres meses de historial, comprobación de que los servicios responden, vigilancia de la caducidad de los certificados y avisos al móvil. Hasta entonces, los problemas se descubrían porque alguien se quejaba.</span></li>
         <li><strong>Las cuatro capas, vigiladas</strong><span>Después llegaron el clúster, el almacenamiento y el switch: nodos y almacenes, salud de los conjuntos de discos, y estado, velocidad y errores de cada puerto. Todo por consultas de solo lectura, sin instalar nada en los aparatos.</span></li>
@@ -199,7 +199,7 @@
         <li><strong>Probado en banco antes de entrar</strong><span>Firmware actualizado, configuración completa y pruebas de segmentos, enrutado y tramas grandes, con el equipo fuera del laboratorio.</span></li>
         <li><strong>Más puertos, y 10 GbE de serie</strong><span>48 puertos y dos de 10 GbE, que se usarán cuando toque ampliar el camino hacia el almacenamiento.</span></li>
         <li><strong>La zona expuesta, tras un cortafuegos con estado</strong><span>El switch nuevo no aplica filtros a un segmento entero, así que el filtro de la DMZ pasó al router de borde, que además recuerda cada conexión y no necesita reglas para las respuestas.</span></li>
-        <li><strong>Gestión cerrada</strong><span>El switch solo acepta administración desde la red de gestión y desde el equipo de administración. La vigilancia entra solo para leer, y desde una única máquina. Sin web ni telnet.</span></li>
+        <li><strong>Gestión cerrada</strong><span>El switch solo acepta administración desde la red de gestión y desde los equipos de administración. La vigilancia entra solo para leer, y desde una única máquina. Sin web ni telnet.</span></li>
         <li><strong>Troncales sin segmento por defecto</strong><span>La VLAN nativa de los enlaces hacia los hosts es una vacía, sin dirección ni puertos: nada sin etiquetar cae en un segmento con servicio.</span></li>
         <li><strong>Vigilado y en hora desde el primer día</strong><span>Cada puerto en el panel, con las alarmas ajustadas a los puertos físicos, y el reloj sincronizado con el controlador de dominio.</span></li>
       </ol>
@@ -218,7 +218,7 @@
         <table class="datatable">
           <thead><tr><th>Trabajo</th><th>Por qué</th><th>Estado</th></tr></thead>
           <tbody>
-            <tr><td>Alimentación ininterrumpida que cubra también la red</td><td>Un corte de luz demostró que proteger los servidores y dejar fuera el switch no sirve de nada</td><td><span class="state"><span class="led led--busy" aria-hidden="true"></span>En curso</span></td></tr>
+            <tr><td>Alimentación ininterrumpida que cubra también la red</td><td>Un corte de luz demostró que proteger los servidores y dejar fuera el switch no sirve de nada</td><td><span class="state"><span class="led led--plan" aria-hidden="true"></span>Planificado</span></td></tr>
             <tr><td>Copias incrementales y restauración probada</td><td>La primera copia completa ya existe y está verificada. Falta restaurar algo de verdad y dejar las siguientes en incremental, para que repetirla cueste minutos y no una tarde</td><td><span class="state"><span class="led led--busy" aria-hidden="true"></span>En curso</span></td></tr>
             <tr><td>Almacén de archivos para la familia</td><td>Documentos personales accesibles desde fuera, con cuotas y usuarios</td><td><span class="state"><span class="led led--plan" aria-hidden="true"></span>Planificado</span></td></tr>
             <tr><td>Segundo controlador de dominio</td><td>Hoy el directorio y el DNS interno son un punto único de fallo</td><td><span class="state"><span class="led led--plan" aria-hidden="true"></span>Planificado</span></td></tr>

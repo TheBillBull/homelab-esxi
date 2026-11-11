@@ -76,7 +76,7 @@
             <tr><td>Un solo puerto</td><td>Desde internet solo se llega al HTTPS. El puerto 80 ni siquiera escucha.</td></tr>
             <tr><td>Certificado automático</td><td>Let's Encrypt con validación por DNS, así que no hace falta abrir el puerto 80 para validar. Se renueva solo y el proxy recarga el certificado nuevo sin intervención.</td></tr>
             <tr><td>Rechazo de desconocidos</td><td>Quien llega sin pedir el nombre exacto del servicio (los escáneres que recorren internet por IP) ve rechazado el cifrado antes de recibir nada.</td></tr>
-            <tr><td>Firewall del proxy</td><td>Controla lo que <em>entra</em>: HTTPS para todos, administración solo desde el equipo de gestión.</td></tr>
+            <tr><td>Firewall del proxy</td><td>Controla lo que <em>entra</em>: HTTPS para todos, administración solo desde los equipos de administración.</td></tr>
             <tr><td>Cortafuegos de la DMZ</td><td>En el router de borde, y con memoria de cada conexión. Controla lo que <em>sale</em>: hacia el laboratorio, solo los dos servicios que publica, cada uno a su puerto. Y lo que <em>entra</em>: solo el HTTPS de internet, la administración y la vigilancia. Todo lo demás, bloqueado. <a href="red.html#dmz">Detalle y pruebas</a>.</td></tr>
             <tr><td>IP real del usuario</td><td>El proxy le pasa a Jellyfin la IP de cada usuario, y Jellyfin solo se fía de ese dato si viene del proxy. Sin eso, todos los usuarios parecerían la misma persona.</td></tr>
           </tbody>
