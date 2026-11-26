@@ -3,7 +3,7 @@
 Documentación pública de un laboratorio de virtualización doméstico: clúster VMware ESXi de cuatro
 nodos con hardware reacondicionado, almacenamiento compartido en TrueNAS, red segmentada en un switch
 de capa 3, dos servicios publicados en internet a través de un reverse proxy propio en DMZ, y un vigía
-externo que comprueba lo publicado desde fuera.
+externo en GitHub Actions que comprueba lo publicado desde fuera.
 
 **Web:** https://thebillbull.github.io/homelab-esxi/
 

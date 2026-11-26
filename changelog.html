@@ -152,6 +152,7 @@
         <li><strong>Las cuatro capas, vigiladas</strong><span>Después llegaron el clúster, el almacenamiento y el switch: nodos y almacenes, salud de los conjuntos de discos, y estado, velocidad y errores de cada puerto. Todo por consultas de solo lectura, sin instalar nada en los aparatos.</span></li>
         <li><strong>Un panel que se mantiene solo</strong><span>El panel de control no se construye pinchando: es un fichero versionado. Si se pierde la máquina que lo muestra, se recrea entero en cinco minutos.</span></li>
         <li><strong>Un vigía fuera del laboratorio</strong><span>Un equipo pequeño en la red de casa, sin ningún camino hacia el laboratorio, comprueba cada cinco minutos lo que está publicado: que responde, que sus certificados no están a punto de caducar y que el nombre apunta a donde debe. Los avisos los manda un servicio externo, y él mismo da señales de vida a ese servicio: si se calla, también avisa. Así se entera uno aunque caiga el clúster, el switch o la casa entera.</span></li>
+        <li><strong>El vigía, sin máquina propia</strong><span>Las mismas comprobaciones pasan a una tarea programada en GitHub Actions, cada diez minutos, con los mismos avisos. Sin acciones de terceros, sin permisos y con el gasto bloqueado a cero. El mini PC queda libre para otra cosa.</span></li>
       </ol>
       <div class="note">
         <span class="tape tape--small">Qué aportó</span>
